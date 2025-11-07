@@ -21,6 +21,7 @@ public final class UserAccessPolicy {
     );
 
     private static final Set<UserRole> REPORT_ROLES = EnumSet.allOf(UserRole.class);
+    private static final Set<UserRole> INVENTORY_VIEW_ROLES = EnumSet.allOf(UserRole.class);
 
     private UserAccessPolicy() {
         // Utility class
@@ -38,6 +39,13 @@ public final class UserAccessPolicy {
     }
 
     /**
+     * Determines whether the given role is allowed to create, update or delete revenue entries.
+     */
+    public static boolean canManageRevenues(UserRole role) {
+        return ensureRole(role) && MANAGEMENT_ROLES.contains(role);
+    }
+
+    /**
      * Determines whether the given role is allowed to manipulate the inventory.
      *
      * @param role the role to be evaluated
@@ -49,6 +57,13 @@ public final class UserAccessPolicy {
     }
 
     /**
+     * Determines whether the given role is allowed to consult inventory information.
+     */
+    public static boolean canViewInventory(UserRole role) {
+        return ensureRole(role) && INVENTORY_VIEW_ROLES.contains(role);
+    }
+
+    /**
      * Determines whether the given role is allowed to visualise reports.
      *
      * @param role the role to be evaluated
@@ -57,6 +72,13 @@ public final class UserAccessPolicy {
      */
     public static boolean canViewReports(UserRole role) {
         return ensureRole(role) && REPORT_ROLES.contains(role);
+    }
+
+    /**
+     * Determines whether the given role is allowed to administer user accounts.
+     */
+    public static boolean canManageUsers(UserRole role) {
+        return ensureRole(role) && MANAGEMENT_ROLES.contains(role);
     }
 
     private static boolean ensureRole(UserRole role) {

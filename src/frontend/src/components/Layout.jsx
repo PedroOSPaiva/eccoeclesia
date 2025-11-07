@@ -3,7 +3,13 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import './Layout.css';
 
 function Layout() {
-  const { logout } = useAuth();
+  const { logout, profile } = useAuth();
+  const authorities = profile?.authorities ?? [];
+  const canManageExpenses = authorities.includes('expenses:manage');
+  const canViewReports = authorities.includes('reports:view');
+  const canManageRevenues = authorities.includes('revenues:manage');
+  const canViewInventory = authorities.includes('inventory:view');
+  const canManageUsers = authorities.includes('users:manage');
 
   return (
     <div className="app-shell">
@@ -13,15 +19,31 @@ function Layout() {
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
             Dashboard
           </NavLink>
-          <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Gastos
-          </NavLink>
-          <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Estoque
-          </NavLink>
-          <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Relatórios
-          </NavLink>
+          {(canManageExpenses || canViewReports) && (
+            <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Gastos
+            </NavLink>
+          )}
+          {(canManageRevenues || canViewReports) && (
+            <NavLink to="/revenues" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Receitas
+            </NavLink>
+          )}
+          {canViewInventory && (
+            <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Estoque
+            </NavLink>
+          )}
+          {canViewReports && (
+            <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Relatórios
+            </NavLink>
+          )}
+          {canManageUsers && (
+            <NavLink to="/users" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Usuários
+            </NavLink>
+          )}
         </nav>
         <button type="button" className="logout" onClick={logout}>
           Sair

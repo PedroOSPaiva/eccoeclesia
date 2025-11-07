@@ -1,8 +1,11 @@
 import axios from 'axios';
 import authService from './authService.js';
 
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseURL = rawBaseUrl ? rawBaseUrl.replace(/\/+$/, '') : '';
+
 const apiClient = axios.create({
-  baseURL: '/',
+  baseURL,
   headers: {
     'Content-Type': 'application/json'
   }
