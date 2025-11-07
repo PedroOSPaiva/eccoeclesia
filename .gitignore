@@ -8,3 +8,8 @@
 
 # OS files
 .DS_Store
+
+# Frontend build artifacts
+src/frontend/node_modules/
+src/frontend/dist/
+src/main/resources/static/
