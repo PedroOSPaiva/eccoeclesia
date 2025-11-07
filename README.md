@@ -83,7 +83,12 @@
     mvn clean verify
     ```
 
-3. Inicie a API Spring Boot:
+3. Execute a suíte de testes automatizados do backend:
+    ```sh
+    ./mvnw test
+    ```
+
+4. Inicie a API Spring Boot:
     ```sh
     mvn spring-boot:run
     ```
@@ -94,7 +99,7 @@
      mvn spring-boot:run
      ```
 
-4. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
+5. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
 
 ## Contribuição
 
