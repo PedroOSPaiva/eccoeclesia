@@ -99,6 +99,31 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void faithfulRoleShouldAccessRevenuesReadOnlyAndCannotManageUsers() throws Exception {
+        userAccountService.createUser("faithful2@example.com", "password", Set.of(UserRole.FAITHFUL));
+        AuthenticationResponse tokens = authenticate("faithful2@example.com", "password");
+
+        mockMvc.perform(get("/api/revenues")
+                        .header("Authorization", "Bearer " + tokens.accessToken())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/revenues")
+                        .header("Authorization", "Bearer " + tokens.accessToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{" +
+                                "\"amount\":10.0," +
+                                "\"description\":\"Test revenue\"," +
+                                "\"category\":\"OTHER\"" +
+                                "}"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(get("/api/users")
+                        .header("Authorization", "Bearer " + tokens.accessToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void coordinationRoleShouldManageInventory() throws Exception {
         userAccountService.createUser("coord@example.com", "password", Set.of(UserRole.COORDINATION));
         AuthenticationResponse tokens = authenticate("coord@example.com", "password");

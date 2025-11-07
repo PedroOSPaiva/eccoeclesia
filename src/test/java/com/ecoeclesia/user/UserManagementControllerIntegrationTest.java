@@ -1,4 +1,4 @@
-package com.ecoeclesia.expense;
+package com.ecoeclesia.user;
 
 import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.auth.AuthenticationResponse;
@@ -24,14 +24,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import java.math.BigDecimal;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ExpenseControllerIntegrationTest {
+class UserManagementControllerIntegrationTest {
 
     @Container
     static final MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
@@ -51,59 +50,63 @@ class ExpenseControllerIntegrationTest {
     private UserAccountService userAccountService;
 
     @BeforeEach
-    void cleanDatabase() {
+    void cleanUp() {
         userAccountRepository.deleteAll();
     }
 
     @Test
-    @DisplayName("should create, fetch and delete an expense")
-    void shouldCreateFetchAndDeleteExpense() {
-        userAccountService.createUser("tesoureiro@paroquia.com", "senhaSegura", Set.of(UserRole.TREASURER));
-        AuthenticationResponse tokens = authenticate("tesoureiro@paroquia.com", "senhaSegura");
+    @DisplayName("should allow administrators to manage users end-to-end")
+    void shouldManageUsers() {
+        userAccountService.createUser("coord@paroquia.com", "senhaSegura", Set.of(UserRole.COORDINATION));
+        AuthenticationResponse adminTokens = authenticate("coord@paroquia.com", "senhaSegura");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(tokens.accessToken());
+        headers.setBearerAuth(adminTokens.accessToken());
 
-        ExpenseRequest request = new ExpenseRequest(new BigDecimal("78.90"), "Monthly supermarket run", null);
+        CreateUserRequest createRequest = new CreateUserRequest(
+                "fiel@paroquia.com",
+                "senhaInicial",
+                Set.of("FAITHFUL")
+        );
 
-        ResponseEntity<ExpenseResponse> createResponse = restTemplate.exchange(
-                "/api/expenses",
+        ResponseEntity<UserAccountResponse> createResponse = restTemplate.exchange(
+                "/api/users",
                 HttpMethod.POST,
-                new HttpEntity<>(request, headers),
-                ExpenseResponse.class
+                new HttpEntity<>(createRequest, headers),
+                UserAccountResponse.class
         );
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        ExpenseResponse created = createResponse.getBody();
+        UserAccountResponse created = createResponse.getBody();
         assertThat(created).isNotNull();
-        assertThat(created.category()).isEqualTo(ExpenseCategory.GROCERIES);
+        assertThat(created.email()).isEqualTo("fiel@paroquia.com");
+        assertThat(created.roles()).containsExactly("FAITHFUL");
 
-        ResponseEntity<ExpenseResponse> fetchResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
-                HttpMethod.GET,
-                new HttpEntity<Void>(headers),
-                ExpenseResponse.class
+        UpdateUserRolesRequest rolesRequest = new UpdateUserRolesRequest(Set.of("FAITHFUL", "TREASURER"));
+        ResponseEntity<UserAccountResponse> updateRolesResponse = restTemplate.exchange(
+                "/api/users/" + created.id() + "/roles",
+                HttpMethod.PUT,
+                new HttpEntity<>(rolesRequest, headers),
+                UserAccountResponse.class
         );
-        assertThat(fetchResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(fetchResponse.getBody()).isNotNull();
-        assertThat(fetchResponse.getBody().id()).isEqualTo(created.id());
 
-        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
-                HttpMethod.DELETE,
-                new HttpEntity<Void>(headers),
-                Void.class
-        );
-        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(updateRolesResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(updateRolesResponse.getBody()).isNotNull();
+        assertThat(updateRolesResponse.getBody().roles()).containsExactlyInAnyOrder("FAITHFUL", "TREASURER");
 
-        ResponseEntity<String> missingResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
-                HttpMethod.GET,
-                new HttpEntity<Void>(headers),
-                String.class
+        UpdateUserPasswordRequest passwordRequest = new UpdateUserPasswordRequest("novaSenha");
+        ResponseEntity<UserAccountResponse> passwordResponse = restTemplate.exchange(
+                "/api/users/" + created.id() + "/password",
+                HttpMethod.PUT,
+                new HttpEntity<>(passwordRequest, headers),
+                UserAccountResponse.class
         );
-        assertThat(missingResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
+        assertThat(passwordResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        AuthenticationResponse updatedUserTokens = authenticate("fiel@paroquia.com", "novaSenha");
+        assertThat(updatedUserTokens.accessToken()).isNotBlank();
     }
 
     private AuthenticationResponse authenticate(String email, String password) {
