@@ -1,13 +1,17 @@
 package com.ecoeclesia.expense;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Service responsible for registering expenses and classifying them into categories based on
@@ -16,9 +20,11 @@ import java.util.Objects;
 @Service
 public class ExpenseService {
 
+    private final ExpenseRepository expenseRepository;
     private final Map<ExpenseCategory, List<String>> classificationRules;
 
-    public ExpenseService() {
+    public ExpenseService(ExpenseRepository expenseRepository) {
+        this.expenseRepository = expenseRepository;
         classificationRules = new EnumMap<>(ExpenseCategory.class);
         classificationRules.put(ExpenseCategory.GROCERIES, List.of("market", "mercado", "supermarket", "food"));
         classificationRules.put(ExpenseCategory.TRANSPORT, List.of("uber", "taxi", "bus", "metr", "ride"));
@@ -31,17 +37,47 @@ public class ExpenseService {
      *
      * @throws IllegalArgumentException when the provided categoryName cannot be mapped to a known category
      */
-    public Expense registerExpense(BigDecimal amount, String description, String categoryName) {
+    public ExpenseDocument registerExpense(BigDecimal amount, String description, String categoryName) {
         ExpenseCategory category = parseCategory(categoryName);
-        return new Expense(amount, description, category);
+        return saveExpense(amount, description, category);
     }
 
     /**
      * Registers an expense by automatically classifying it based on the description.
      */
-    public Expense registerExpense(BigDecimal amount, String description) {
+    public ExpenseDocument registerExpense(BigDecimal amount, String description) {
         ExpenseCategory category = classifyExpense(description);
-        return new Expense(amount, description, category);
+        return saveExpense(amount, description, category);
+    }
+
+    public List<ExpenseDocument> listExpenses() {
+        return expenseRepository.findAll()
+            .stream()
+            .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+            .collect(Collectors.toList());
+    }
+
+    public ExpenseDocument getExpense(String id) {
+        return expenseRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id));
+    }
+
+    public ExpenseDocument updateExpense(String id, BigDecimal amount, String description, String categoryName) {
+        ExpenseDocument existing = getExpense(id);
+        ExpenseCategory category = categoryName == null || categoryName.isBlank()
+            ? classifyExpense(description)
+            : parseCategory(categoryName);
+        existing.setAmount(Objects.requireNonNull(amount, "amount must not be null"));
+        existing.setDescription(Objects.requireNonNullElse(description, ""));
+        existing.setCategory(category);
+        return expenseRepository.save(existing);
+    }
+
+    public void deleteExpense(String id) {
+        if (!expenseRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id);
+        }
+        expenseRepository.deleteById(id);
     }
 
     /**
@@ -65,11 +101,20 @@ public class ExpenseService {
         try {
             return ExpenseCategory.valueOf(categoryName.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Categoria inválida: " + categoryName, ex);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria inválida: " + categoryName, ex);
         }
     }
 
     private String normalize(String description) {
         return description == null ? "" : description.toLowerCase(Locale.ROOT);
+    }
+
+    private ExpenseDocument saveExpense(BigDecimal amount, String description, ExpenseCategory category) {
+        ExpenseDocument document = new ExpenseDocument(null,
+            Objects.requireNonNull(amount, "amount must not be null"),
+            Objects.requireNonNullElse(description, ""),
+            category,
+            Instant.now());
+        return expenseRepository.save(document);
     }
 }
