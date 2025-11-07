@@ -57,10 +57,20 @@
 
 ### Descrição dos Diretórios
 
-- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot.
+> Estrutura auditada em: 2025-11-07
+
+- **README.md**: Documento atual com visão geral, instruções e mapa de diretórios.
+- **pom.xml**: Arquivo de configuração do Maven para a aplicação Spring Boot.
+- **.gitignore**: Configuração de arquivos e diretórios ignorados pelo Git.
+- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot (`EcoEcclesiaApplication.java`).
 - **src/main/resources/**: Arquivos de configuração (por exemplo, `application.properties`).
-- **src/test/java/com/ecoeclesia/**: Testes automatizados.
-- **src/frontend/**: Contém todo o código relacionado ao frontend da aplicação, incluindo componentes React, páginas e assets públicos.
+- **src/test/java/com/ecoeclesia/**: Testes automatizados (`EcoEcclesiaApplicationTests.java`).
+
+> **Estrutura proposta**: o diretório `src/frontend/` mencionado no planejamento inicial ainda não foi criado. Permanecerá documentado assim que os artefatos do frontend forem adicionados ao repositório.
+
+### Próximos Passos
+
+- [ ] Solicitar revisão da documentação de estrutura para outro membro da equipe, garantindo que o mapeamento reflita o estado atual do repositório.
 
 ## Instalação e Execução
 
