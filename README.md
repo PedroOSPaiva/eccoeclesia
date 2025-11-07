@@ -57,20 +57,23 @@
 
 ### Descrição dos Diretórios
 
-> Estrutura auditada em: 2025-11-07
+> Estrutura auditada em: 2025-11-07 (atualizada para refletir os artefatos finais)
 
 - **README.md**: Documento atual com visão geral, instruções e mapa de diretórios.
-- **pom.xml**: Arquivo de configuração do Maven para a aplicação Spring Boot.
+- **LICENSE**: Licença MIT adotada pelo projeto.
+- **pom.xml**: Arquivo de configuração do Maven para a aplicação Spring Boot e build do frontend.
 - **.gitignore**: Configuração de arquivos e diretórios ignorados pelo Git.
-- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot (`EcoEcclesiaApplication.java`).
+- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot (`EcoEcclesiaApplication.java`) e módulos de domínio (autenticação, controle de gastos e inventário).
 - **src/main/resources/**: Arquivos de configuração (por exemplo, `application.properties`).
-- **src/test/java/com/ecoeclesia/**: Testes automatizados (`EcoEcclesiaApplicationTests.java`).
+- **src/test/java/com/ecoeclesia/**: Testes automatizados do backend.
+- **src/frontend/**: Aplicação React com roteamento protegido, páginas de dashboard, despesas, inventário e relatórios, empacotada com Vite.
 
-> **Estrutura proposta**: o diretório `src/frontend/` mencionado no planejamento inicial ainda não foi criado. Permanecerá documentado assim que os artefatos do frontend forem adicionados ao repositório.
+### Status do Projeto
 
-### Próximos Passos
-
-- [ ] Solicitar revisão da documentação de estrutura para outro membro da equipe, garantindo que o mapeamento reflita o estado atual do repositório.
+- [x] Backend Spring Boot com autenticação JWT, gerenciamento de despesas e estoque.
+- [x] Testes automatizados do backend (unitários e integração com MongoDB via Testcontainers).
+- [x] Frontend React integrado aos endpoints do backend.
+- [x] Documentação final (este arquivo) e definição de licença.
 
 ## Instalação e Execução
 
@@ -110,6 +113,19 @@
      ```
 
 5. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
+
+### Executando o Frontend
+
+1. Acesse o diretório do frontend:
+   ```sh
+   cd src/frontend
+   ```
+2. Instale as dependências e inicie o servidor de desenvolvimento (Vite):
+   ```sh
+   npm install
+   npm run dev
+   ```
+3. A aplicação estará disponível em `http://localhost:5173`. Configure a variável de ambiente `VITE_API_BASE_URL` se precisar apontar para uma URL diferente da API.
 
 ## Contribuição
 
