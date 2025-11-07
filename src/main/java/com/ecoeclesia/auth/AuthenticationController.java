@@ -1,5 +1,6 @@
 package com.ecoeclesia.auth;
 
+import com.ecoeclesia.user.UserAccountResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,7 +41,8 @@ public class AuthenticationController {
             UserAccountDocument account = principal.getAccount();
             String accessToken = jwtService.generateAccessToken(account);
             String refreshToken = jwtService.generateRefreshToken(account);
-            return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, refreshToken));
+            UserAccountResponse user = UserAccountResponse.fromDocument(account);
+            return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, refreshToken, user));
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(UNAUTHORIZED, "Invalid credentials", ex);
         }
@@ -61,6 +63,7 @@ public class AuthenticationController {
         }
         String accessToken = jwtService.generateAccessToken(account);
         String newRefreshToken = jwtService.generateRefreshToken(account);
-        return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, newRefreshToken));
+        UserAccountResponse user = UserAccountResponse.fromDocument(account);
+        return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, newRefreshToken, user));
     }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import inventoryService from '../services/inventoryService.js';
 
 const consumableDefaults = {
@@ -18,6 +19,10 @@ const durableDefaults = {
 };
 
 function InventoryPage() {
+  const { profile } = useAuth();
+  const authorities = profile?.authorities ?? [];
+  const canManage = authorities.includes('inventory:manage');
+  const canView = canManage || authorities.includes('inventory:view');
   const [items, setItems] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [consumableForm, setConsumableForm] = useState(() => ({ ...consumableDefaults }));
@@ -26,6 +31,9 @@ function InventoryPage() {
   const [error, setError] = useState(null);
 
   const refresh = async () => {
+    if (!canView) {
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -44,7 +52,18 @@ function InventoryPage() {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [canView]);
+
+  if (!canView) {
+    return (
+      <div className="grid" style={{ gap: '2rem' }}>
+        <div>
+          <h1 className="page-title">Estoque</h1>
+          <p>Seu perfil não possui permissão para consultar o inventário.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleConsumableChange = (event) => {
     const { name, value } = event.target;
@@ -58,6 +77,9 @@ function InventoryPage() {
 
   const handleConsumableSubmit = async (event) => {
     event.preventDefault();
+    if (!canManage) {
+      return;
+    }
     try {
       await inventoryService.createConsumable({
         name: consumableForm.name,
@@ -75,6 +97,9 @@ function InventoryPage() {
 
   const handleDurableSubmit = async (event) => {
     event.preventDefault();
+    if (!canManage) {
+      return;
+    }
     try {
       await inventoryService.createDurable({
         name: durableForm.name,
@@ -100,6 +125,9 @@ function InventoryPage() {
     if (!Number.isFinite(quantity) || quantity <= 0) {
       return;
     }
+    if (!canManage) {
+      return;
+    }
     const pathSegment = item.type === 'CONSUMABLE' ? 'consumables' : 'durables';
     try {
       if (type === 'entry') {
@@ -122,123 +150,127 @@ function InventoryPage() {
 
       {error && <p className="error" role="alert">{error}</p>}
 
-      <section className="section">
-        <h2>Novo insumo (consumível)</h2>
-        <form className="form-grid" onSubmit={handleConsumableSubmit}>
-          <div className="input-group">
-            <label htmlFor="consumable-name">Nome</label>
-            <input id="consumable-name" name="name" value={consumableForm.name} onChange={handleConsumableChange} required />
-          </div>
-          <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="consumable-description">Descrição</label>
-            <input
-              id="consumable-description"
-              name="description"
-              value={consumableForm.description}
-              onChange={handleConsumableChange}
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="consumable-quantity">Quantidade</label>
-            <input
-              id="consumable-quantity"
-              name="quantity"
-              type="number"
-              min="0"
-              value={consumableForm.quantity}
-              onChange={handleConsumableChange}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="consumable-minimum">Quantidade mínima</label>
-            <input
-              id="consumable-minimum"
-              name="minimumQuantity"
-              type="number"
-              min="0"
-              value={consumableForm.minimumQuantity}
-              onChange={handleConsumableChange}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="consumable-expiration">Validade</label>
-            <input
-              id="consumable-expiration"
-              name="expirationDate"
-              type="date"
-              value={consumableForm.expirationDate}
-              onChange={handleConsumableChange}
-              required
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button className="primary-button" type="submit">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </section>
+      {canManage && (
+        <>
+          <section className="section">
+            <h2>Novo insumo (consumível)</h2>
+            <form className="form-grid" onSubmit={handleConsumableSubmit}>
+              <div className="input-group">
+                <label htmlFor="consumable-name">Nome</label>
+                <input id="consumable-name" name="name" value={consumableForm.name} onChange={handleConsumableChange} required />
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="consumable-description">Descrição</label>
+                <input
+                  id="consumable-description"
+                  name="description"
+                  value={consumableForm.description}
+                  onChange={handleConsumableChange}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="consumable-quantity">Quantidade</label>
+                <input
+                  id="consumable-quantity"
+                  name="quantity"
+                  type="number"
+                  min="0"
+                  value={consumableForm.quantity}
+                  onChange={handleConsumableChange}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="consumable-minimum">Quantidade mínima</label>
+                <input
+                  id="consumable-minimum"
+                  name="minimumQuantity"
+                  type="number"
+                  min="0"
+                  value={consumableForm.minimumQuantity}
+                  onChange={handleConsumableChange}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="consumable-expiration">Validade</label>
+                <input
+                  id="consumable-expiration"
+                  name="expirationDate"
+                  type="date"
+                  value={consumableForm.expirationDate}
+                  onChange={handleConsumableChange}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button className="primary-button" type="submit">
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </section>
 
-      <section className="section">
-        <h2>Novo patrimônio (durável)</h2>
-        <form className="form-grid" onSubmit={handleDurableSubmit}>
-          <div className="input-group">
-            <label htmlFor="durable-name">Nome</label>
-            <input id="durable-name" name="name" value={durableForm.name} onChange={handleDurableChange} required />
-          </div>
-          <div className="input-group" style={{ gridColumn: '1 / -1' }}>
-            <label htmlFor="durable-description">Descrição</label>
-            <input
-              id="durable-description"
-              name="description"
-              value={durableForm.description}
-              onChange={handleDurableChange}
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="durable-quantity">Quantidade</label>
-            <input
-              id="durable-quantity"
-              name="quantity"
-              type="number"
-              min="0"
-              value={durableForm.quantity}
-              onChange={handleDurableChange}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="durable-minimum">Quantidade mínima</label>
-            <input
-              id="durable-minimum"
-              name="minimumQuantity"
-              type="number"
-              min="0"
-              value={durableForm.minimumQuantity}
-              onChange={handleDurableChange}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="durable-warranty">Garantia (meses)</label>
-            <input
-              id="durable-warranty"
-              name="warrantyMonths"
-              type="number"
-              min="0"
-              value={durableForm.warrantyMonths}
-              onChange={handleDurableChange}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button className="primary-button" type="submit">
-              Salvar
-            </button>
-          </div>
-        </form>
-      </section>
+          <section className="section">
+            <h2>Novo patrimônio (durável)</h2>
+            <form className="form-grid" onSubmit={handleDurableSubmit}>
+              <div className="input-group">
+                <label htmlFor="durable-name">Nome</label>
+                <input id="durable-name" name="name" value={durableForm.name} onChange={handleDurableChange} required />
+              </div>
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label htmlFor="durable-description">Descrição</label>
+                <input
+                  id="durable-description"
+                  name="description"
+                  value={durableForm.description}
+                  onChange={handleDurableChange}
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="durable-quantity">Quantidade</label>
+                <input
+                  id="durable-quantity"
+                  name="quantity"
+                  type="number"
+                  min="0"
+                  value={durableForm.quantity}
+                  onChange={handleDurableChange}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="durable-minimum">Quantidade mínima</label>
+                <input
+                  id="durable-minimum"
+                  name="minimumQuantity"
+                  type="number"
+                  min="0"
+                  value={durableForm.minimumQuantity}
+                  onChange={handleDurableChange}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="durable-warranty">Garantia (meses)</label>
+                <input
+                  id="durable-warranty"
+                  name="warrantyMonths"
+                  type="number"
+                  min="0"
+                  value={durableForm.warrantyMonths}
+                  onChange={handleDurableChange}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button className="primary-button" type="submit">
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </section>
+        </>
+      )}
 
       <section className="section">
         <h2>Itens cadastrados</h2>
@@ -268,12 +300,18 @@ function InventoryPage() {
                   <td>{item.quantity}</td>
                   <td>{item.minimumQuantity}</td>
                   <td>
-                    <button type="button" onClick={() => handleMovement(item, 'entry')} style={{ marginRight: '0.5rem' }}>
-                      Entrada
-                    </button>
-                    <button type="button" onClick={() => handleMovement(item, 'exit')}>
-                      Saída
-                    </button>
+                    {canManage ? (
+                      <>
+                        <button type="button" onClick={() => handleMovement(item, 'entry')} style={{ marginRight: '0.5rem' }}>
+                          Entrada
+                        </button>
+                        <button type="button" onClick={() => handleMovement(item, 'exit')}>
+                          Saída
+                        </button>
+                      </>
+                    ) : (
+                      <span style={{ color: '#64748b' }}>Somente leitura</span>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import expenseService from '../services/expenseService.js';
+import revenueService from '../services/revenueService.js';
 
 const defaultForm = { amount: '', description: '', category: '' };
 
-function ExpensesPage() {
+function RevenuesPage() {
   const { profile } = useAuth();
   const authorities = profile?.authorities ?? [];
-  const canManage = authorities.includes('expenses:manage');
+  const canManage = authorities.includes('revenues:manage');
   const canView = canManage || authorities.includes('reports:view');
-  const [expenses, setExpenses] = useState([]);
+
+  const [revenues, setRevenues] = useState([]);
   const [form, setForm] = useState(() => ({ ...defaultForm }));
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,10 +20,10 @@ function ExpensesPage() {
     if (!canView) {
       return;
     }
-    expenseService
+    revenueService
       .list()
-      .then((items) => setExpenses(items))
-      .catch(() => setError('Não foi possível carregar os gastos.'))
+      .then((items) => setRevenues(items))
+      .catch(() => setError('Não foi possível carregar as receitas.'))
       .finally(() => setLoading(false));
   }, [canView]);
 
@@ -30,8 +31,8 @@ function ExpensesPage() {
     return (
       <div className="grid" style={{ gap: '2rem' }}>
         <div>
-          <h1 className="page-title">Gastos</h1>
-          <p>Seu perfil não possui permissão para visualizar despesas financeiras.</p>
+          <h1 className="page-title">Receitas</h1>
+          <p>Seu perfil não possui permissão para visualizar receitas financeiras.</p>
         </div>
       </div>
     );
@@ -53,35 +54,35 @@ function ExpensesPage() {
     try {
       setError(null);
       if (editingId) {
-        const updated = await expenseService.update(editingId, payload);
-        setExpenses((current) => current.map((expense) => (expense.id === editingId ? updated : expense)));
+        const updated = await revenueService.update(editingId, payload);
+        setRevenues((current) => current.map((revenue) => (revenue.id === editingId ? updated : revenue)));
       } else {
-        const created = await expenseService.create(payload);
-        setExpenses((current) => [created, ...current]);
+        const created = await revenueService.create(payload);
+        setRevenues((current) => [created, ...current]);
       }
       setForm({ ...defaultForm });
       setEditingId(null);
     } catch (err) {
-      const message = err.response?.data?.message ?? 'Erro ao salvar o gasto.';
+      const message = err.response?.data?.message ?? 'Erro ao salvar a receita.';
       setError(message);
     }
   };
 
-  const handleEdit = (expense) => {
-    setEditingId(expense.id);
+  const handleEdit = (revenue) => {
+    setEditingId(revenue.id);
     setForm({
-      amount: expense.amount != null ? String(expense.amount) : '',
-      description: expense.description ?? '',
-      category: expense.category ?? ''
+      amount: revenue.amount != null ? String(revenue.amount) : '',
+      description: revenue.description ?? '',
+      category: revenue.category ?? ''
     });
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Tem certeza que deseja excluir este gasto?')) {
+    if (!window.confirm('Tem certeza que deseja excluir esta receita?')) {
       return;
     }
-    await expenseService.remove(id);
-    setExpenses((current) => current.filter((expense) => expense.id !== id));
+    await revenueService.remove(id);
+    setRevenues((current) => current.filter((revenue) => revenue.id !== id));
   };
 
   const formatDate = (isoDate) => {
@@ -98,15 +99,15 @@ function ExpensesPage() {
   return (
     <div className="grid" style={{ gap: '2rem' }}>
       <div>
-        <h1 className="page-title">Gestão de gastos</h1>
-        <p>Registre novas despesas e acompanhe lançamentos existentes.</p>
+        <h1 className="page-title">Gestão de receitas</h1>
+        <p>Registre contribuições e acompanhe entradas financeiras.</p>
       </div>
 
       {error && <p className="error" role="alert">{error}</p>}
 
       {canManage && (
         <section className="section">
-          <h2>{editingId ? 'Editar gasto' : 'Novo gasto'}</h2>
+          <h2>{editingId ? 'Editar receita' : 'Nova receita'}</h2>
           <form className="form-grid" onSubmit={handleSubmit}>
             <div className="input-group">
               <label htmlFor="amount">Valor (R$)</label>
@@ -123,13 +124,7 @@ function ExpensesPage() {
             </div>
             <div className="input-group">
               <label htmlFor="description">Descrição</label>
-              <input
-                id="description"
-                name="description"
-                required
-                value={form.description}
-                onChange={handleChange}
-              />
+              <input id="description" name="description" required value={form.description} onChange={handleChange} />
             </div>
             <div className="input-group">
               <label htmlFor="category">Categoria</label>
@@ -148,8 +143,8 @@ function ExpensesPage() {
         <h2>Lançamentos</h2>
         {loading ? (
           <p>Carregando…</p>
-        ) : expenses.length === 0 ? (
-          <p>Nenhum gasto cadastrado.</p>
+        ) : revenues.length === 0 ? (
+          <p>Nenhuma receita cadastrada.</p>
         ) : (
           <table className="table">
             <thead>
@@ -162,20 +157,18 @@ function ExpensesPage() {
               </tr>
             </thead>
             <tbody>
-              {expenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td>{expense.description}</td>
-                  <td>{expense.category ?? 'Não informada'}</td>
-                  <td>R$ {Number(expense.amount).toFixed(2)}</td>
-                  <td>{formatDate(expense.createdAt)}</td>
+              {revenues.map((revenue) => (
+                <tr key={revenue.id}>
+                  <td>{revenue.description}</td>
+                  <td>{revenue.category ?? 'Não informada'}</td>
+                  <td>R$ {Number(revenue.amount).toFixed(2)}</td>
+                  <td>{formatDate(revenue.createdAt)}</td>
                   {canManage && (
                     <td>
-                      <button type="button" onClick={() => handleEdit(expense)} style={{ marginRight: '0.5rem' }}>
+                      <button type="button" onClick={() => handleEdit(revenue)} style={{ marginRight: '0.5rem' }}>
                         Editar
                       </button>
-                      <button type="button" onClick={() => handleDelete(expense.id)}>
-                        Excluir
-                      </button>
+                      <button type="button" onClick={() => handleDelete(revenue.id)}>Excluir</button>
                     </td>
                   )}
                 </tr>
@@ -188,4 +181,4 @@ function ExpensesPage() {
   );
 }
 
-export default ExpensesPage;
+export default RevenuesPage;

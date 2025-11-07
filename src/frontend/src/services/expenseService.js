@@ -1,8 +1,8 @@
 import apiClient from './apiClient.js';
 
 const expenseService = {
-  async list() {
-    const response = await apiClient.get('/api/expenses');
+  async list(params = {}) {
+    const response = await apiClient.get('/api/expenses', { params });
     return response.data;
   },
   async create(expense) {

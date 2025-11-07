@@ -4,6 +4,7 @@ import com.ecoeclesia.access.UserRole;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -30,6 +31,20 @@ public class UserAccountService {
     }
 
     public UserAccountDocument save(UserAccountDocument account) {
+        return userAccountRepository.save(account);
+    }
+
+    public List<UserAccountDocument> listUsers() {
+        return userAccountRepository.findAll();
+    }
+
+    public UserAccountDocument requireById(String id) {
+        return userAccountRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    public UserAccountDocument updateRoles(UserAccountDocument account, Set<UserRole> roles) {
+        account.setRoles(roles);
         return userAccountRepository.save(account);
     }
 
