@@ -2,7 +2,7 @@
 
 ## Visão Geral do Projeto
 
-**Nome do Projeto:** EcoEcclesia  
+**Nome do Projeto:** EcoEcclesia
 **Objetivo:** Criar um sistema web para controle de gastos de uma igreja, com mapeamentos mensais de estoque de bens de consumo e inventário de bens como cadeiras, instrumentos musicais, etc.
 
 ## Stakeholders
@@ -41,7 +41,8 @@
 
 - **Backend:**
   - Java
-  - Framework: Spring
+  - Framework: Spring Boot
+  - Build: Maven
 
 - **Banco de Dados:**
   - MongoDB
@@ -54,39 +55,22 @@
 
 ## Estrutura do Projeto
 
-
 ### Descrição dos Diretórios
 
-- **src/EcoEcclesia/application/services**: Contém a lógica de aplicação, onde os casos de uso do sistema são definidos.
-  Estes serviços orquestram a lógica de negócios e coordenam a comunicação entre os domínios e as interfaces.
-
-- **src/EcoEcclesia/domain/models**: Contém os modelos de domínio que representam as entidades principais do negócio.
-  Esses modelos encapsulam a lógica de negócios e as regras de validação.
-
-- **src/EcoEcclesia/infrastructure/controllers**: Contém os controladores que lidam com as requisições HTTP,
-  delegando a lógica de negócios para os serviços de aplicação.
-
-- **src/EcoEcclesia/infrastructure/persistence**: Contém as implementações dos repositórios para persistência de dados.
-  Essas implementações são responsáveis por interagir com a base de dados ou qualquer outro mecanismo de armazenamento.
-
-- **src/EcoEcclesia/infrastructure/routes**: Contém as definições das rotas da aplicação.
-  Este módulo define quais URLs estão disponíveis e quais controladores devem ser acionados para cada rota.
-
-- **src/EcoEcclesia/infrastructure/middleware**: Contém os middlewares usados na aplicação,
-  como autenticação, autorização, manipulação de erros, etc.
-
-- **src/EcoEcclesia/interfaces/rest**: Contém os adaptadores de interface REST.
-  Esses adaptadores lidam com as entradas e saídas do sistema via HTTP.
-
-- **src/EcoEcclesia/interfaces/cli**: Contém os adaptadores de interface de linha de comando.
-  Esses adaptadores lidam com as entradas e saídas do sistema via linha de comando.
-
-- **src/frontend/**: Contém todo o código relacionado ao frontend da aplicação,
-  incluindo componentes React, páginas e assets públicos.
-
-- **app.js**: Ponto de entrada da aplicação backend.
+- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot.
+- **src/main/resources/**: Arquivos de configuração (por exemplo, `application.properties`).
+- **src/test/java/com/ecoeclesia/**: Testes automatizados.
+- **src/frontend/**: Contém todo o código relacionado ao frontend da aplicação, incluindo componentes React, páginas e assets públicos.
 
 ## Instalação e Execução
+
+### Pré-requisitos
+
+- Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
+- Maven 3.9+ instalado ou acesso ao wrapper do Maven (`./mvnw`).
+- (Opcional) Um servidor MongoDB disponível. A aplicação utiliza a variável de ambiente `MONGODB_URI` para configurar a conexão (padrão: `mongodb://localhost:27017/ecoeclesia`).
+
+### Passo a passo
 
 1. Clone o repositório:
     ```sh
@@ -94,15 +78,23 @@
     cd EcoEcclesia
     ```
 
-2. Instale as dependências:
+2. Compile o projeto e baixe as dependências:
     ```sh
-    yarn install
+    mvn clean verify
     ```
 
-3. Inicie a aplicação:
+3. Inicie a API Spring Boot:
     ```sh
-    yarn start
+    mvn spring-boot:run
     ```
+
+   - Para utilizar uma instância específica do MongoDB, exporte a variável de ambiente antes de iniciar:
+     ```sh
+     export MONGODB_URI="mongodb://usuario:senha@host:27017/ecoeclesia"
+     mvn spring-boot:run
+     ```
+
+4. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
 
 ## Contribuição
 
