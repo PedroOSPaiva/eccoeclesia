@@ -57,23 +57,32 @@
 
 ### Descrição dos Diretórios
 
-- **src/EcoEcclesia/application/services**: Contém a lógica de aplicação, onde os casos de uso do sistema são definidos. Estes serviços orquestram a lógica de negócios e coordenam a comunicação entre os domínios e as interfaces.
+- **src/EcoEcclesia/application/services**: Contém a lógica de aplicação, onde os casos de uso do sistema são definidos.
+  Estes serviços orquestram a lógica de negócios e coordenam a comunicação entre os domínios e as interfaces.
 
-- **src/EcoEcclesia/domain/models**: Contém os modelos de domínio que representam as entidades principais do negócio. Esses modelos encapsulam a lógica de negócios e as regras de validação.
+- **src/EcoEcclesia/domain/models**: Contém os modelos de domínio que representam as entidades principais do negócio.
+  Esses modelos encapsulam a lógica de negócios e as regras de validação.
 
-- **src/EcoEcclesia/infrastructure/controllers**: Contém os controladores que lidam com as requisições HTTP, delegando a lógica de negócios para os serviços de aplicação.
+- **src/EcoEcclesia/infrastructure/controllers**: Contém os controladores que lidam com as requisições HTTP,
+  delegando a lógica de negócios para os serviços de aplicação.
 
-- **src/EcoEcclesia/infrastructure/persistence**: Contém as implementações dos repositórios para persistência de dados. Essas implementações são responsáveis por interagir com a base de dados ou qualquer outro mecanismo de armazenamento.
+- **src/EcoEcclesia/infrastructure/persistence**: Contém as implementações dos repositórios para persistência de dados.
+  Essas implementações são responsáveis por interagir com a base de dados ou qualquer outro mecanismo de armazenamento.
 
-- **src/EcoEcclesia/infrastructure/routes**: Contém as definições das rotas da aplicação. Este módulo define quais URLs estão disponíveis e quais controladores devem ser acionados para cada rota.
+- **src/EcoEcclesia/infrastructure/routes**: Contém as definições das rotas da aplicação.
+  Este módulo define quais URLs estão disponíveis e quais controladores devem ser acionados para cada rota.
 
-- **src/EcoEcclesia/infrastructure/middleware**: Contém os middlewares usados na aplicação, como autenticação, autorização, manipulação de erros, etc.
+- **src/EcoEcclesia/infrastructure/middleware**: Contém os middlewares usados na aplicação,
+  como autenticação, autorização, manipulação de erros, etc.
 
-- **src/EcoEcclesia/interfaces/rest**: Contém os adaptadores de interface REST. Esses adaptadores lidam com as entradas e saídas do sistema via HTTP.
+- **src/EcoEcclesia/interfaces/rest**: Contém os adaptadores de interface REST.
+  Esses adaptadores lidam com as entradas e saídas do sistema via HTTP.
 
-- **src/EcoEcclesia/interfaces/cli**: Contém os adaptadores de interface de linha de comando. Esses adaptadores lidam com as entradas e saídas do sistema via linha de comando.
+- **src/EcoEcclesia/interfaces/cli**: Contém os adaptadores de interface de linha de comando.
+  Esses adaptadores lidam com as entradas e saídas do sistema via linha de comando.
 
-- **src/frontend/**: Contém todo o código relacionado ao frontend da aplicação, incluindo componentes React, páginas e assets públicos.
+- **src/frontend/**: Contém todo o código relacionado ao frontend da aplicação,
+  incluindo componentes React, páginas e assets públicos.
 
 - **app.js**: Ponto de entrada da aplicação backend.
 
