@@ -1,4 +1,4 @@
-package com.ecoeclesia.expense;
+package com.ecoeclesia.revenue;
 
 import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.auth.AuthenticationResponse;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ExpenseControllerIntegrationTest {
+class RevenueControllerIntegrationTest {
 
     @Container
     static final MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
@@ -51,13 +51,13 @@ class ExpenseControllerIntegrationTest {
     private UserAccountService userAccountService;
 
     @BeforeEach
-    void cleanDatabase() {
+    void setUp() {
         userAccountRepository.deleteAll();
     }
 
     @Test
-    @DisplayName("should create, fetch and delete an expense")
-    void shouldCreateFetchAndDeleteExpense() {
+    @DisplayName("should create, fetch and delete a revenue")
+    void shouldCreateFetchAndDeleteRevenue() {
         userAccountService.createUser("tesoureiro@paroquia.com", "senhaSegura", Set.of(UserRole.TREASURER));
         AuthenticationResponse tokens = authenticate("tesoureiro@paroquia.com", "senhaSegura");
 
@@ -65,32 +65,32 @@ class ExpenseControllerIntegrationTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(tokens.accessToken());
 
-        ExpenseRequest request = new ExpenseRequest(new BigDecimal("78.90"), "Monthly supermarket run", null);
+        RevenueRequest request = new RevenueRequest(new BigDecimal("540.00"), "Dízimo da família Lima", null);
 
-        ResponseEntity<ExpenseResponse> createResponse = restTemplate.exchange(
-                "/api/expenses",
+        ResponseEntity<RevenueResponse> createResponse = restTemplate.exchange(
+                "/api/revenues",
                 HttpMethod.POST,
                 new HttpEntity<>(request, headers),
-                ExpenseResponse.class
+                RevenueResponse.class
         );
 
         assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        ExpenseResponse created = createResponse.getBody();
+        RevenueResponse created = createResponse.getBody();
         assertThat(created).isNotNull();
-        assertThat(created.category()).isEqualTo(ExpenseCategory.GROCERIES);
+        assertThat(created.category()).isEqualTo(RevenueCategory.TITHES);
 
-        ResponseEntity<ExpenseResponse> fetchResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
+        ResponseEntity<RevenueResponse> fetchResponse = restTemplate.exchange(
+                "/api/revenues/" + created.id(),
                 HttpMethod.GET,
                 new HttpEntity<Void>(headers),
-                ExpenseResponse.class
+                RevenueResponse.class
         );
         assertThat(fetchResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(fetchResponse.getBody()).isNotNull();
         assertThat(fetchResponse.getBody().id()).isEqualTo(created.id());
 
         ResponseEntity<Void> deleteResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
+                "/api/revenues/" + created.id(),
                 HttpMethod.DELETE,
                 new HttpEntity<Void>(headers),
                 Void.class
@@ -98,7 +98,7 @@ class ExpenseControllerIntegrationTest {
         assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
         ResponseEntity<String> missingResponse = restTemplate.exchange(
-                "/api/expenses/" + created.id(),
+                "/api/revenues/" + created.id(),
                 HttpMethod.GET,
                 new HttpEntity<Void>(headers),
                 String.class

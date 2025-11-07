@@ -1,14 +1,15 @@
 import expenseService from './expenseService.js';
 import inventoryService from './inventoryService.js';
+import revenueService from './revenueService.js';
 
-function sumExpenses(expenses) {
-  return expenses.reduce((acc, expense) => acc + Number(expense.amount ?? 0), 0);
+function sumAmounts(records) {
+  return records.reduce((acc, entry) => acc + Number(entry.amount ?? 0), 0);
 }
 
-function groupByCategory(expenses) {
-  return expenses.reduce((acc, expense) => {
-    const category = expense.category ?? 'Não categorizado';
-    acc[category] = (acc[category] ?? 0) + Number(expense.amount ?? 0);
+function groupByCategory(records) {
+  return records.reduce((acc, entry) => {
+    const category = entry.category ?? 'Não categorizado';
+    acc[category] = (acc[category] ?? 0) + Number(entry.amount ?? 0);
     return acc;
   }, {});
 }
@@ -24,24 +25,42 @@ function computeInventoryTotals(items) {
 }
 
 const reportService = {
-  async loadDashboardData() {
-    const [expenses, inventoryItems, alerts] = await Promise.all([
-      expenseService.list(),
+  async loadDashboardData(filters = {}) {
+    const [expenses, revenues, inventoryItems, alerts] = await Promise.all([
+      expenseService.list(filters),
+      revenueService.list(filters),
       inventoryService.listItems(),
       inventoryService.listAlerts()
     ]);
 
-    const expenseTotal = sumExpenses(expenses);
+    const expenseTotal = sumAmounts(expenses);
+    const revenueTotal = sumAmounts(revenues);
     const groupedExpenses = groupByCategory(expenses);
+    const groupedRevenues = groupByCategory(revenues);
     const inventorySummary = computeInventoryTotals(inventoryItems);
 
     return {
       expenses,
+      revenues,
       expenseTotal,
+      revenueTotal,
+      netResult: revenueTotal - expenseTotal,
       groupedExpenses,
+      groupedRevenues,
       inventoryItems,
       inventorySummary,
       alerts
+    };
+  },
+
+  async loadFinancialData(filters = {}) {
+    const [expenses, revenues] = await Promise.all([
+      expenseService.list(filters),
+      revenueService.list(filters)
+    ]);
+    return {
+      expenses,
+      revenues
     };
   }
 };

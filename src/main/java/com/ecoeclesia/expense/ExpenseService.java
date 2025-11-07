@@ -50,9 +50,18 @@ public class ExpenseService {
         return saveExpense(amount, description, category);
     }
 
-    public List<ExpenseDocument> listExpenses() {
-        return expenseRepository.findAll()
-            .stream()
+    public List<ExpenseDocument> listExpenses(Instant start, Instant end) {
+        List<ExpenseDocument> expenses;
+        if (start != null && end != null) {
+            expenses = expenseRepository.findAllByCreatedAtBetween(start, end);
+        } else if (start != null) {
+            expenses = expenseRepository.findAllByCreatedAtAfter(start);
+        } else if (end != null) {
+            expenses = expenseRepository.findAllByCreatedAtBefore(end);
+        } else {
+            expenses = expenseRepository.findAll();
+        }
+        return expenses.stream()
             .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
             .collect(Collectors.toList());
     }

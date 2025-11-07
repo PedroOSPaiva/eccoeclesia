@@ -9,8 +9,11 @@ import java.util.Set;
 public final class UserHttpAuthorities {
 
     public static final String MANAGE_EXPENSES = "expenses:manage";
+    public static final String MANAGE_REVENUES = "revenues:manage";
     public static final String MANAGE_INVENTORY = "inventory:manage";
+    public static final String VIEW_INVENTORY = "inventory:view";
     public static final String VIEW_REPORTS = "reports:view";
+    public static final String MANAGE_USERS = "users:manage";
 
     private UserHttpAuthorities() {
     }
@@ -21,11 +24,20 @@ public final class UserHttpAuthorities {
         if (UserAccessPolicy.canManageExpenses(role)) {
             authorities.add(MANAGE_EXPENSES);
         }
+        if (UserAccessPolicy.canManageRevenues(role)) {
+            authorities.add(MANAGE_REVENUES);
+        }
         if (UserAccessPolicy.canManageInventory(role)) {
             authorities.add(MANAGE_INVENTORY);
         }
+        if (UserAccessPolicy.canViewInventory(role)) {
+            authorities.add(VIEW_INVENTORY);
+        }
         if (UserAccessPolicy.canViewReports(role)) {
             authorities.add(VIEW_REPORTS);
+        }
+        if (UserAccessPolicy.canManageUsers(role)) {
+            authorities.add(MANAGE_USERS);
         }
         return authorities;
     }
