@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
+import ExpensesImportPage from './pages/expenses/ExpensesImportPage.jsx';
 import RevenuesPage from './pages/RevenuesPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
@@ -21,6 +22,7 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/expenses/import" element={<ExpensesImportPage />} />
           <Route path="/revenues" element={<RevenuesPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/reports" element={<ReportsPage />} />

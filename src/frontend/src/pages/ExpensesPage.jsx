@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import expenseService from '../services/expenseService.js';
 
@@ -100,6 +101,15 @@ function ExpensesPage() {
       <div>
         <h1 className="page-title">Gestão de gastos</h1>
         <p>Registre novas despesas e acompanhe lançamentos existentes.</p>
+        {canManage && (
+          <Link
+            to="/expenses/import"
+            className="primary-button"
+            style={{ textDecoration: 'none', display: 'inline-block', marginTop: '0.75rem' }}
+          >
+            Importar extrato
+          </Link>
+        )}
       </div>
 
       {error && <p className="error" role="alert">{error}</p>}
