@@ -81,7 +81,8 @@
 
 - Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
 - Maven 3.9+ instalado ou acesso ao wrapper do Maven (`./mvnw`).
-- (Opcional) Um servidor PostgreSQL disponível. A aplicação utiliza as variáveis `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` para configurar a conexão (padrão: `jdbc:postgresql://localhost:5432/ecoeclesia`, usuário `postgres`, senha `postgres`).
+- (Opcional) Um servidor PostgreSQL disponível. A aplicação utiliza as variáveis `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` para configurar a conexão (veja o arquivo [`./.env.example`](./.env.example) para valores sugeridos para desenvolvimento local).
+- Defina um valor secreto para `SECURITY_JWT_SECRET` (JWT utilizado na autenticação) antes de iniciar a aplicação.
 - O schema do banco é versionado pelo [Flyway](https://flywaydb.org/); as migrações são executadas automaticamente na inicialização do Spring Boot.
 
 ### Passo a passo
@@ -112,12 +113,22 @@
     mvn spring-boot:run
     ```
 
-   - Para utilizar uma instância específica do PostgreSQL, exporte as variáveis de ambiente antes de iniciar:
+   - Para utilizar uma instância específica do PostgreSQL, exporte as variáveis de ambiente (ou crie um arquivo `.env`) antes de iniciar:
      ```sh
      export DATABASE_URL="jdbc:postgresql://host:5432/ecoeclesia"
      export DATABASE_USERNAME="usuario"
      export DATABASE_PASSWORD="senha"
-     mvn spring-boot:run
+     export SECURITY_JWT_SECRET="$(openssl rand -base64 48)"
+     ./mvnw spring-boot:run
+     ```
+
+   - Para provisionar o usuário administrador inicial automaticamente, habilite o processo e informe as credenciais (o comando também funciona passando propriedades direto para o Maven):
+     ```sh
+     ./mvnw spring-boot:run \
+       -Dapp.admin.enabled=true \
+       -Dapp.admin.email=admin@example.com \
+       -Dapp.admin.password=uma-senha-forte \
+       -Dapp.admin.roles=TREASURER
      ```
 
 6. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
@@ -152,10 +163,18 @@ O repositório já inclui um `Dockerfile` otimizado para o backend Spring Boot. 
    ```
    Ao final, o CLI exibirá as variáveis `DATABASE_URL`, `PGUSER`, `PGPASSWORD`, `PGHOST`, `PGDATABASE` e `PGPORT`.
 
-3. A aplicação já consegue interpretar automaticamente o formato `postgres://` exposto pelo Railway. As seguintes variáveis precisam estar definidas na service da API (o comando `railway variables` permite verificá-las):
-   - `DATABASE_URL` (fornecida pelo plugin PostgreSQL)
-   - `SECURITY_JWT_SECRET` (opcional, se quiser substituir o segredo padrão)
-   - `APP_ADMIN_PASSWORD` (recomenda-se sobrescrever o valor padrão "changeme")
+3. A aplicação interpreta automaticamente o formato `postgres://` exposto pelo Railway. Garanta que as seguintes variáveis estejam configuradas na service da API (use `railway variables` para conferi-las):
+
+   | Variável | Obrigatória | Observação |
+   | --- | --- | --- |
+   | `DATABASE_URL` | ✅ | Utilize o valor exposto pelo plugin PostgreSQL (`postgres://...`). |
+   | `DATABASE_USERNAME` | ✅ | Preencha com o valor de `PGUSER` do Railway. |
+   | `DATABASE_PASSWORD` | ✅ | Preencha com o valor de `PGPASSWORD` do Railway. |
+   | `SECURITY_JWT_SECRET` | ✅ | Segredo usado para assinar os JWTs. Gere um valor forte (por exemplo, `openssl rand -base64 48`). |
+   | `APP_ADMIN_ENABLED` | Opcional | Defina como `true` para criar um usuário administrador inicial automaticamente. |
+   | `APP_ADMIN_EMAIL` | Obrigatória se `APP_ADMIN_ENABLED=true` | E-mail do usuário administrador a ser criado. |
+   | `APP_ADMIN_PASSWORD` | Obrigatória se `APP_ADMIN_ENABLED=true` | Senha do usuário administrador inicial. |
+   | `APP_ADMIN_ROLES` | Opcional | Lista separada por vírgula de papéis para o usuário (padrão: `TREASURER`). |
 
 4. Após o deploy, sincronize o frontend (por exemplo, hospedando-o no Vercel ou Netlify) apontando a variável `VITE_API_BASE_URL` para a URL pública gerada pelo Railway.
 

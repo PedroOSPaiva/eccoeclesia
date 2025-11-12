@@ -3,7 +3,6 @@ package com.ecoeclesia.auth;
 import com.ecoeclesia.access.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -18,38 +17,31 @@ public class AdminUserInitializer implements ApplicationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(AdminUserInitializer.class);
 
     private final UserAccountService userAccountService;
-    private final boolean enabled;
-    private final String email;
-    private final String password;
-    private final String roles;
+    private final AdminProvisioningProperties adminProperties;
 
     public AdminUserInitializer(UserAccountService userAccountService,
-                                @Value("${app.admin.enabled:true}") boolean enabled,
-                                @Value("${app.admin.email:admin@ecoeclesia.com}") String email,
-                                @Value("${app.admin.password:changeme}") String password,
-                                @Value("${app.admin.roles:TREASURER}") String roles) {
+                                AdminProvisioningProperties adminProperties) {
         this.userAccountService = userAccountService;
-        this.enabled = enabled;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
+        this.adminProperties = adminProperties;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        if (!enabled) {
+        if (!adminProperties.isEnabled()) {
             LOGGER.debug("Admin user provisioning disabled");
             return;
         }
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
+        if (!adminProperties.hasRequiredCredentials()) {
             LOGGER.warn("Skipping admin user provisioning due to missing credentials");
             return;
         }
+        String email = adminProperties.getEmail();
+        String password = adminProperties.getPassword();
         if (userAccountService.emailExists(email)) {
             LOGGER.debug("Admin user already exists: {}", email);
             return;
         }
-        Set<UserRole> roleSet = parseRoles(roles);
+        Set<UserRole> roleSet = parseRoles(adminProperties.getRoles());
         userAccountService.createUser(email, password, roleSet);
         LOGGER.info("Provisioned default admin user: {}", email);
     }

@@ -22,5 +22,6 @@ public abstract class AbstractPostgresIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.flyway.clean-disabled", () -> "false");
         registry.add("app.admin.enabled", () -> "false");
+        registry.add("security.jwt.secret", () -> "test-jwt-secret");
     }
 }
