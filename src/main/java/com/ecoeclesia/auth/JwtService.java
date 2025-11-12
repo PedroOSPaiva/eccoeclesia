@@ -79,11 +79,12 @@ public class JwtService {
 
     private Claims parseClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
+                .parseClaimsJws(token)
+                .getBody();
     }
+
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(properties.getSecret());
