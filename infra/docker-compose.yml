@@ -16,6 +16,21 @@ services:
     networks:
       - ecoeclesia-network
 
+  postgres:
+    image: postgres:16
+    container_name: postgres-ecoeclesia
+    restart: always
+    environment:
+      POSTGRES_DB: ecoeclesia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecoeclesia-network
+
   mongo-express:
     image: mongo-express:1.0.0-alpha.4
     container_name: mongo-express-ecoeclesia
@@ -37,3 +52,4 @@ networks:
 
 volumes:
   mongo_data:
+  postgres_data:
