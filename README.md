@@ -82,6 +82,7 @@
 - Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
 - Maven 3.9+ instalado ou acesso ao wrapper do Maven (`./mvnw`).
 - (Opcional) Um servidor PostgreSQL disponível. A aplicação utiliza as variáveis `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` para configurar a conexão (padrão: `jdbc:postgresql://localhost:5432/ecoeclesia`, usuário `postgres`, senha `postgres`).
+- O schema do banco é versionado pelo [Flyway](https://flywaydb.org/); as migrações são executadas automaticamente na inicialização do Spring Boot.
 
 ### Passo a passo
 
@@ -101,7 +102,12 @@
     ./mvnw test
     ```
 
-4. Inicie a API Spring Boot:
+4. (Opcional) Para aplicar manualmente as migrações em um banco recém-criado sem subir a aplicação, utilize o plugin Maven do Flyway:
+   ```sh
+   ./mvnw flyway:migrate
+   ```
+
+5. Inicie a API Spring Boot:
     ```sh
     mvn spring-boot:run
     ```
@@ -114,7 +120,7 @@
      mvn spring-boot:run
      ```
 
-5. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
+6. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
 
 ### Executando o Frontend
 
