@@ -1,0 +1,6 @@
+.git
+.gitignore
+node_modules
+target
+src/frontend/node_modules
+src/frontend/dist

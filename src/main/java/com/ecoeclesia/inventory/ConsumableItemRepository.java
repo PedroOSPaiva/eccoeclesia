@@ -1,8 +1,10 @@
 package com.ecoeclesia.inventory;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
+
 @Repository
-public interface ConsumableItemRepository extends MongoRepository<ConsumableItem, String> {
+public interface ConsumableItemRepository extends JpaRepository<ConsumableItem, UUID> {
 }

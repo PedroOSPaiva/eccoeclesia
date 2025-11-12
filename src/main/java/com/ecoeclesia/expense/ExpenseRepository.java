@@ -1,15 +1,16 @@
 package com.ecoeclesia.expense;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
-public interface ExpenseRepository extends MongoRepository<ExpenseDocument, String> {
+public interface ExpenseRepository extends JpaRepository<ExpenseEntity, UUID> {
 
-    List<ExpenseDocument> findAllByCreatedAtBetween(Instant start, Instant end);
+    List<ExpenseEntity> findAllByCreatedAtBetween(Instant start, Instant end);
 
-    List<ExpenseDocument> findAllByCreatedAtAfter(Instant start);
+    List<ExpenseEntity> findAllByCreatedAtAfter(Instant start);
 
-    List<ExpenseDocument> findAllByCreatedAtBefore(Instant end);
+    List<ExpenseEntity> findAllByCreatedAtBefore(Instant end);
 }

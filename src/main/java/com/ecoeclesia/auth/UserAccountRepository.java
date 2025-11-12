@@ -1,10 +1,11 @@
 package com.ecoeclesia.auth;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.UUID;
 
-public interface UserAccountRepository extends MongoRepository<UserAccountDocument, String> {
+public interface UserAccountRepository extends JpaRepository<UserAccountEntity, UUID> {
 
-    Optional<UserAccountDocument> findByEmail(String email);
+    Optional<UserAccountEntity> findByEmail(String email);
 }

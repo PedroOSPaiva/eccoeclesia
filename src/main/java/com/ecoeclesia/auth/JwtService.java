@@ -26,11 +26,11 @@ public class JwtService {
         this.properties = properties;
     }
 
-    public String generateAccessToken(UserAccountDocument account) {
+    public String generateAccessToken(UserAccountEntity account) {
         return generateToken(account, TOKEN_TYPE_ACCESS, properties.getAccessTokenValidity().getSeconds());
     }
 
-    public String generateRefreshToken(UserAccountDocument account) {
+    public String generateRefreshToken(UserAccountEntity account) {
         return generateToken(account, TOKEN_TYPE_REFRESH, properties.getRefreshTokenValidity().getSeconds());
     }
 
@@ -51,7 +51,7 @@ public class JwtService {
         return username.equalsIgnoreCase(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    private String generateToken(UserAccountDocument account, String tokenType, long validitySeconds) {
+    private String generateToken(UserAccountEntity account, String tokenType, long validitySeconds) {
         Instant now = Instant.now();
         Instant expiry = now.plus(validitySeconds, ChronoUnit.SECONDS);
 
@@ -61,7 +61,7 @@ public class JwtService {
                 .expiration(Date.from(expiry))
                 .addClaims(Map.of(
                         TOKEN_TYPE_CLAIM, tokenType,
-                        "uid", account.getId()
+                        "uid", account.getId().toString()
                 ))
                 .signWith(getSigningKey())
                 .compact();

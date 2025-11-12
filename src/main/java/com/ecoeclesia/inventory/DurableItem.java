@@ -1,18 +1,21 @@
 package com.ecoeclesia.inventory;
 
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
-@Document(collection = "inventory_items")
+@Entity
+@DiscriminatorValue("DURABLE")
 public class DurableItem extends InventoryItem {
 
+    @Column(name = "warranty_months")
     private Integer warrantyMonths;
 
     public DurableItem() {
         super();
     }
 
-    public DurableItem(String name, String description, int quantity, int minimumQuantity,
-                       Integer warrantyMonths) {
+    public DurableItem(String name, String description, int quantity, int minimumQuantity, Integer warrantyMonths) {
         super(name, description, quantity, minimumQuantity);
         this.warrantyMonths = warrantyMonths;
     }

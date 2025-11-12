@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -37,21 +38,31 @@ public class ExpenseService {
      *
      * @throws IllegalArgumentException when the provided categoryName cannot be mapped to a known category
      */
-    public ExpenseDocument registerExpense(BigDecimal amount, String description, String categoryName) {
+    public ExpenseEntity registerExpense(BigDecimal amount, String description, String categoryName) {
         ExpenseCategory category = parseCategory(categoryName);
-        return saveExpense(amount, description, category);
+        return saveExpense(amount, description, category, null);
     }
 
     /**
      * Registers an expense by automatically classifying it based on the description.
      */
-    public ExpenseDocument registerExpense(BigDecimal amount, String description) {
+    public ExpenseEntity registerExpense(BigDecimal amount, String description) {
         ExpenseCategory category = classifyExpense(description);
-        return saveExpense(amount, description, category);
+        return saveExpense(amount, description, category, null);
     }
 
-    public List<ExpenseDocument> listExpenses(Instant start, Instant end) {
-        List<ExpenseDocument> expenses;
+    /**
+     * Registers an expense using a specific timestamp, typically used when importing historical data.
+     */
+    public ExpenseEntity registerExpense(BigDecimal amount, String description, String categoryName, Instant createdAt) {
+        ExpenseCategory category = categoryName == null || categoryName.isBlank()
+            ? classifyExpense(description)
+            : parseCategory(categoryName);
+        return saveExpense(amount, description, category, createdAt);
+    }
+
+    public List<ExpenseEntity> listExpenses(Instant start, Instant end) {
+        List<ExpenseEntity> expenses;
         if (start != null && end != null) {
             expenses = expenseRepository.findAllByCreatedAtBetween(start, end);
         } else if (start != null) {
@@ -66,13 +77,13 @@ public class ExpenseService {
             .collect(Collectors.toList());
     }
 
-    public ExpenseDocument getExpense(String id) {
+    public ExpenseEntity getExpense(UUID id) {
         return expenseRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id));
     }
 
-    public ExpenseDocument updateExpense(String id, BigDecimal amount, String description, String categoryName) {
-        ExpenseDocument existing = getExpense(id);
+    public ExpenseEntity updateExpense(UUID id, BigDecimal amount, String description, String categoryName) {
+        ExpenseEntity existing = getExpense(id);
         ExpenseCategory category = categoryName == null || categoryName.isBlank()
             ? classifyExpense(description)
             : parseCategory(categoryName);
@@ -82,7 +93,7 @@ public class ExpenseService {
         return expenseRepository.save(existing);
     }
 
-    public void deleteExpense(String id) {
+    public void deleteExpense(UUID id) {
         if (!expenseRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id);
         }
@@ -118,12 +129,12 @@ public class ExpenseService {
         return description == null ? "" : description.toLowerCase(Locale.ROOT);
     }
 
-    private ExpenseDocument saveExpense(BigDecimal amount, String description, ExpenseCategory category) {
-        ExpenseDocument document = new ExpenseDocument(null,
+    private ExpenseEntity saveExpense(BigDecimal amount, String description, ExpenseCategory category, Instant createdAt) {
+        ExpenseEntity entity = new ExpenseEntity(null,
             Objects.requireNonNull(amount, "amount must not be null"),
             Objects.requireNonNullElse(description, ""),
             category,
-            Instant.now());
-        return expenseRepository.save(document);
+            createdAt == null ? Instant.now() : createdAt);
+        return expenseRepository.save(entity);
     }
 }

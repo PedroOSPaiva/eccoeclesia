@@ -1,15 +1,16 @@
 package com.ecoeclesia.revenue;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
-public interface RevenueRepository extends MongoRepository<RevenueDocument, String> {
+public interface RevenueRepository extends JpaRepository<RevenueEntity, UUID> {
 
-    List<RevenueDocument> findAllByCreatedAtBetween(Instant start, Instant end);
+    List<RevenueEntity> findAllByCreatedAtBetween(Instant start, Instant end);
 
-    List<RevenueDocument> findAllByCreatedAtAfter(Instant start);
+    List<RevenueEntity> findAllByCreatedAtAfter(Instant start);
 
-    List<RevenueDocument> findAllByCreatedAtBefore(Instant end);
+    List<RevenueEntity> findAllByCreatedAtBefore(Instant end);
 }

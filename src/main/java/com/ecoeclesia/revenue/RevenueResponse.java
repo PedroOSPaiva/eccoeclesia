@@ -2,22 +2,22 @@ package com.ecoeclesia.revenue;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 public record RevenueResponse(
-        String id,
+        UUID id,
         BigDecimal amount,
         String description,
         RevenueCategory category,
         Instant createdAt
 ) {
-
-    public static RevenueResponse fromDocument(RevenueDocument document) {
+    public static RevenueResponse fromEntity(RevenueEntity entity) {
         return new RevenueResponse(
-                document.getId(),
-                document.getAmount(),
-                document.getDescription(),
-                document.getCategory(),
-                document.getCreatedAt()
+                entity.getId(),
+                entity.getAmount(),
+                entity.getDescription(),
+                entity.getCategory(),
+                entity.getCreatedAt()
         );
     }
 }
