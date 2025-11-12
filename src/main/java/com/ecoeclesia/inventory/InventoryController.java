@@ -1,6 +1,7 @@
 package com.ecoeclesia.inventory;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -41,7 +42,7 @@ public class InventoryController {
 
     @PostMapping("/{type}/{id}/entries")
     public InventoryItemResponse recordEntry(@PathVariable String type,
-                                             @PathVariable String id,
+                                             @PathVariable UUID id,
                                              @Valid @RequestBody InventoryMovementRequest request) {
         ItemType itemType = ItemType.fromPathSegment(type);
         InventoryItem updated = inventoryService.recordEntry(id, itemType, request.quantity());
@@ -50,7 +51,7 @@ public class InventoryController {
 
     @PostMapping("/{type}/{id}/exits")
     public InventoryItemResponse recordExit(@PathVariable String type,
-                                            @PathVariable String id,
+                                            @PathVariable UUID id,
                                             @Valid @RequestBody InventoryMovementRequest request) {
         ItemType itemType = ItemType.fromPathSegment(type);
         InventoryItem updated = inventoryService.recordExit(id, itemType, request.quantity());

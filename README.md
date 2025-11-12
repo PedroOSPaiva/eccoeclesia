@@ -45,13 +45,13 @@
   - Build: Maven
 
 - **Banco de Dados:**
-  - MongoDB
+  - PostgreSQL
 
 - **Autenticação:**
   - JWT (JSON Web Tokens)
 
 - **Hospedagem:**
-  - Heroku / AWS
+  - Railway (backend + PostgreSQL)
 
 ## Estrutura do Projeto
 
@@ -71,7 +71,7 @@
 ### Status do Projeto
 
 - [x] Backend Spring Boot com autenticação JWT, gerenciamento de despesas e estoque.
-- [x] Testes automatizados do backend (unitários e integração com MongoDB via Testcontainers).
+- [x] Testes automatizados do backend (unitários e integração com PostgreSQL via Testcontainers).
 - [x] Frontend React integrado aos endpoints do backend.
 - [x] Documentação final (este arquivo) e definição de licença.
 
@@ -81,7 +81,8 @@
 
 - Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
 - Maven 3.9+ instalado ou acesso ao wrapper do Maven (`./mvnw`).
-- (Opcional) Um servidor MongoDB disponível. A aplicação utiliza a variável de ambiente `MONGODB_URI` para configurar a conexão (padrão: `mongodb://localhost:27017/ecoeclesia`).
+- (Opcional) Um servidor PostgreSQL disponível. A aplicação utiliza as variáveis `DATABASE_URL`, `DATABASE_USERNAME` e `DATABASE_PASSWORD` para configurar a conexão (padrão: `jdbc:postgresql://localhost:5432/ecoeclesia`, usuário `postgres`, senha `postgres`).
+- O schema do banco é versionado pelo [Flyway](https://flywaydb.org/); as migrações são executadas automaticamente na inicialização do Spring Boot.
 
 ### Passo a passo
 
@@ -101,18 +102,25 @@
     ./mvnw test
     ```
 
-4. Inicie a API Spring Boot:
+4. (Opcional) Para aplicar manualmente as migrações em um banco recém-criado sem subir a aplicação, utilize o plugin Maven do Flyway:
+   ```sh
+   ./mvnw flyway:migrate
+   ```
+
+5. Inicie a API Spring Boot:
     ```sh
     mvn spring-boot:run
     ```
 
-   - Para utilizar uma instância específica do MongoDB, exporte a variável de ambiente antes de iniciar:
+   - Para utilizar uma instância específica do PostgreSQL, exporte as variáveis de ambiente antes de iniciar:
      ```sh
-     export MONGODB_URI="mongodb://usuario:senha@host:27017/ecoeclesia"
+     export DATABASE_URL="jdbc:postgresql://host:5432/ecoeclesia"
+     export DATABASE_USERNAME="usuario"
+     export DATABASE_PASSWORD="senha"
      mvn spring-boot:run
      ```
 
-5. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
+6. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
 
 ### Executando o Frontend
 
@@ -126,6 +134,34 @@
    npm run dev
    ```
 3. A aplicação estará disponível em `http://localhost:5173`. Configure a variável de ambiente `VITE_API_BASE_URL` se precisar apontar para uma URL diferente da API.
+
+## Deploy no Railway
+
+O repositório já inclui um `Dockerfile` otimizado para o backend Spring Boot. Para publicar no Railway sem custos:
+
+1. Instale e autentique o [Railway CLI](https://docs.railway.app/develop/cli). Em seguida, dentro do diretório do projeto execute:
+   ```sh
+   railway init --service ecoeclesia-api
+   railway up
+   ```
+   O Railway detectará o `Dockerfile`, construirá a imagem e disponibilizará a URL pública da API.
+
+2. Provisione um banco PostgreSQL gratuito dentro do mesmo projeto Railway:
+   ```sh
+   railway add plugin postgresql
+   ```
+   Ao final, o CLI exibirá as variáveis `DATABASE_URL`, `PGUSER`, `PGPASSWORD`, `PGHOST`, `PGDATABASE` e `PGPORT`.
+
+3. A aplicação já consegue interpretar automaticamente o formato `postgres://` exposto pelo Railway. As seguintes variáveis precisam estar definidas na service da API (o comando `railway variables` permite verificá-las):
+   - `DATABASE_URL` (fornecida pelo plugin PostgreSQL)
+   - `SECURITY_JWT_SECRET` (opcional, se quiser substituir o segredo padrão)
+   - `APP_ADMIN_PASSWORD` (recomenda-se sobrescrever o valor padrão "changeme")
+
+4. Após o deploy, sincronize o frontend (por exemplo, hospedando-o no Vercel ou Netlify) apontando a variável `VITE_API_BASE_URL` para a URL pública gerada pelo Railway.
+
+### Atualizando o serviço
+
+Para publicar novas versões do backend, basta repetir o comando `railway up`. O Railway reconstruirá a imagem Docker com o código mais recente e aplicará o deploy contínuo.
 
 ## Contribuição
 

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,30 +31,34 @@ class InventoryServiceTest {
 
     private ConsumableItem consumable;
     private DurableItem durable;
+    private UUID consumableId;
+    private UUID durableId;
 
     @BeforeEach
     void setUp() {
         consumable = new ConsumableItem("Velas", "Velas de cera", 5, 2, LocalDate.now().plusDays(30));
-        consumable.setId("consumable-1");
         durable = new DurableItem("Projetor", "Projetor multimídia", 2, 1, 24);
-        durable.setId("durable-1");
+        consumableId = UUID.randomUUID();
+        durableId = UUID.randomUUID();
+        consumable.setId(consumableId);
+        durable.setId(durableId);
     }
 
     @Test
     void recordEntryShouldIncreaseQuantity() {
-        when(consumableRepository.findById("consumable-1")).thenReturn(Optional.of(consumable));
+        when(consumableRepository.findById(consumableId)).thenReturn(Optional.of(consumable));
         when(consumableRepository.save(any(ConsumableItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        InventoryItem updated = inventoryService.recordEntry("consumable-1", ItemType.CONSUMABLE, 3);
+        InventoryItem updated = inventoryService.recordEntry(consumableId, ItemType.CONSUMABLE, 3);
 
         assertThat(updated.getQuantity()).isEqualTo(8);
     }
 
     @Test
     void recordExitShouldValidateStockAvailability() {
-        when(durableRepository.findById("durable-1")).thenReturn(Optional.of(durable));
+        when(durableRepository.findById(durableId)).thenReturn(Optional.of(durable));
 
-        assertThatThrownBy(() -> inventoryService.recordExit("durable-1", ItemType.DURABLE, 5))
+        assertThatThrownBy(() -> inventoryService.recordExit(durableId, ItemType.DURABLE, 5))
                 .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Quantidade insuficiente");
     }
@@ -61,9 +66,9 @@ class InventoryServiceTest {
     @Test
     void findItemsBelowMinimumShouldReturnItemsWithLowStock() {
         ConsumableItem lowStockConsumable = new ConsumableItem("Café", "Café em pó", 1, 3, LocalDate.now().plusDays(20));
-        lowStockConsumable.setId("cafe");
+        lowStockConsumable.setId(UUID.randomUUID());
         DurableItem okDurable = new DurableItem("Caixa de som", "Caixa para eventos", 5, 2, 12);
-        okDurable.setId("speaker");
+        okDurable.setId(UUID.randomUUID());
 
         when(consumableRepository.findAll()).thenReturn(List.of(lowStockConsumable, consumable));
         when(durableRepository.findAll()).thenReturn(List.of(okDurable));

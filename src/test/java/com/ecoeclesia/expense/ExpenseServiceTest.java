@@ -63,18 +63,17 @@ class ExpenseServiceTest {
         @Test
         @DisplayName("should register expense with valid category name")
         void shouldRegisterWithValidCategory() {
-            ExpenseDocument saved = new ExpenseDocument();
-            saved.setId("abc123");
+            ExpenseEntity saved = new ExpenseEntity();
             saved.setCategory(ExpenseCategory.ENTERTAINMENT);
             saved.setAmount(new BigDecimal("125.80"));
             saved.setDescription("Concert tickets");
-            when(expenseRepository.save(any(ExpenseDocument.class))).thenReturn(saved);
+            when(expenseRepository.save(any(ExpenseEntity.class))).thenReturn(saved);
 
-            ExpenseDocument expense = expenseService.registerExpense(new BigDecimal("125.80"), "Concert tickets", "entertainment");
+            ExpenseEntity expense = expenseService.registerExpense(new BigDecimal("125.80"), "Concert tickets", "entertainment");
 
             assertEquals(ExpenseCategory.ENTERTAINMENT, expense.getCategory());
             assertEquals("Concert tickets", expense.getDescription());
-            verify(expenseRepository).save(any(ExpenseDocument.class));
+            verify(expenseRepository).save(any(ExpenseEntity.class));
         }
 
         @Test
@@ -88,14 +87,14 @@ class ExpenseServiceTest {
         @Test
         @DisplayName("should classify and persist expense when category is missing")
         void shouldClassifyAndPersistExpense() {
-            ArgumentCaptor<ExpenseDocument> documentCaptor = ArgumentCaptor.forClass(ExpenseDocument.class);
-            when(expenseRepository.save(any(ExpenseDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            ArgumentCaptor<ExpenseEntity> entityCaptor = ArgumentCaptor.forClass(ExpenseEntity.class);
+            when(expenseRepository.save(any(ExpenseEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-            ExpenseDocument document = expenseService.registerExpense(new BigDecimal("45.00"), "Uber ride downtown");
+            ExpenseEntity entity = expenseService.registerExpense(new BigDecimal("45.00"), "Uber ride downtown");
 
-            assertEquals(ExpenseCategory.TRANSPORT, document.getCategory());
-            verify(expenseRepository).save(documentCaptor.capture());
-            assertEquals("Uber ride downtown", documentCaptor.getValue().getDescription());
+            assertEquals(ExpenseCategory.TRANSPORT, entity.getCategory());
+            verify(expenseRepository).save(entityCaptor.capture());
+            assertEquals("Uber ride downtown", entityCaptor.getValue().getDescription());
         }
     }
 }

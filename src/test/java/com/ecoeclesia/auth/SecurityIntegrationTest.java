@@ -1,6 +1,7 @@
 package com.ecoeclesia.auth;
 
 import com.ecoeclesia.access.UserRole;
+import com.ecoeclesia.support.AbstractPostgresIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,12 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -27,17 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SecurityIntegrationTest {
-
-    @Container
-    static final MongoDBContainer mongo = new MongoDBContainer("mongo:7.0.5");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongo::getReplicaSetUrl);
-    }
+class SecurityIntegrationTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

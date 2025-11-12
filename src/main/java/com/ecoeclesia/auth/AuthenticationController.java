@@ -38,10 +38,10 @@ public class AuthenticationController {
                     new UsernamePasswordAuthenticationToken(request.email(), request.password())
             );
             UserAccountDetails principal = (UserAccountDetails) authentication.getPrincipal();
-            UserAccountDocument account = principal.getAccount();
+            UserAccountEntity account = principal.getAccount();
             String accessToken = jwtService.generateAccessToken(account);
             String refreshToken = jwtService.generateRefreshToken(account);
-            UserAccountResponse user = UserAccountResponse.fromDocument(account);
+            UserAccountResponse user = UserAccountResponse.fromEntity(account);
             return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, refreshToken, user));
         } catch (BadCredentialsException ex) {
             throw new ResponseStatusException(UNAUTHORIZED, "Invalid credentials", ex);
@@ -56,14 +56,14 @@ public class AuthenticationController {
         }
 
         String username = jwtService.extractUsername(refreshToken);
-        UserAccountDocument account = userAccountService.requireByEmail(username);
+        UserAccountEntity account = userAccountService.requireByEmail(username);
         UserAccountDetails userDetails = new UserAccountDetails(account);
         if (!jwtService.isTokenValid(refreshToken, userDetails)) {
             throw new ResponseStatusException(UNAUTHORIZED, "Invalid refresh token");
         }
         String accessToken = jwtService.generateAccessToken(account);
         String newRefreshToken = jwtService.generateRefreshToken(account);
-        UserAccountResponse user = UserAccountResponse.fromDocument(account);
+        UserAccountResponse user = UserAccountResponse.fromEntity(account);
         return ResponseEntity.ok(AuthenticationResponse.bearer(accessToken, newRefreshToken, user));
     }
 }

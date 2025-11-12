@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,18 +30,25 @@ public class RevenueService {
         classificationRules.put(RevenueCategory.SERVICES, List.of("servico", "serviço", "service", "curso"));
     }
 
-    public RevenueDocument registerRevenue(BigDecimal amount, String description) {
+    public RevenueEntity registerRevenue(BigDecimal amount, String description) {
         RevenueCategory category = classifyRevenue(description);
-        return saveRevenue(amount, description, category);
+        return saveRevenue(amount, description, category, null);
     }
 
-    public RevenueDocument registerRevenue(BigDecimal amount, String description, String categoryName) {
+    public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName) {
         RevenueCategory category = parseCategory(categoryName);
-        return saveRevenue(amount, description, category);
+        return saveRevenue(amount, description, category, null);
     }
 
-    public List<RevenueDocument> listRevenues(Instant start, Instant end) {
-        List<RevenueDocument> revenues;
+    public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName, Instant createdAt) {
+        RevenueCategory category = categoryName == null || categoryName.isBlank()
+                ? classifyRevenue(description)
+                : parseCategory(categoryName);
+        return saveRevenue(amount, description, category, createdAt);
+    }
+
+    public List<RevenueEntity> listRevenues(Instant start, Instant end) {
+        List<RevenueEntity> revenues;
         if (start != null && end != null) {
             revenues = revenueRepository.findAllByCreatedAtBetween(start, end);
         } else if (start != null) {
@@ -55,13 +63,13 @@ public class RevenueService {
                 .collect(Collectors.toList());
     }
 
-    public RevenueDocument getRevenue(String id) {
+    public RevenueEntity getRevenue(UUID id) {
         return revenueRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Revenue not found: " + id));
     }
 
-    public RevenueDocument updateRevenue(String id, BigDecimal amount, String description, String categoryName) {
-        RevenueDocument existing = getRevenue(id);
+    public RevenueEntity updateRevenue(UUID id, BigDecimal amount, String description, String categoryName) {
+        RevenueEntity existing = getRevenue(id);
         RevenueCategory category = categoryName == null || categoryName.isBlank()
                 ? classifyRevenue(description)
                 : parseCategory(categoryName);
@@ -71,7 +79,7 @@ public class RevenueService {
         return revenueRepository.save(existing);
     }
 
-    public void deleteRevenue(String id) {
+    public void deleteRevenue(UUID id) {
         if (!revenueRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Revenue not found: " + id);
         }
@@ -90,13 +98,13 @@ public class RevenueService {
         return RevenueCategory.OTHER;
     }
 
-    private RevenueDocument saveRevenue(BigDecimal amount, String description, RevenueCategory category) {
-        RevenueDocument document = new RevenueDocument(null,
+    private RevenueEntity saveRevenue(BigDecimal amount, String description, RevenueCategory category, Instant createdAt) {
+        RevenueEntity entity = new RevenueEntity(null,
                 Objects.requireNonNull(amount, "amount must not be null"),
                 Objects.requireNonNullElse(description, ""),
                 Objects.requireNonNull(category, "category must not be null"),
-                Instant.now());
-        return revenueRepository.save(document);
+                createdAt == null ? Instant.now() : createdAt);
+        return revenueRepository.save(entity);
     }
 
     private RevenueCategory parseCategory(String categoryName) {

@@ -2,7 +2,7 @@ package com.ecoeclesia.user;
 
 import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.auth.UserAccountDetails;
-import com.ecoeclesia.auth.UserAccountDocument;
+import com.ecoeclesia.auth.UserAccountEntity;
 import com.ecoeclesia.auth.UserAccountService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -37,37 +38,37 @@ public class UserManagementController {
     public List<UserAccountResponse> listUsers() {
         return userAccountService.listUsers()
                 .stream()
-                .map(UserAccountResponse::fromDocument)
+                .map(UserAccountResponse::fromEntity)
                 .toList();
     }
 
     @PostMapping
     public ResponseEntity<UserAccountResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         Set<UserRole> roles = parseRoles(request.roles());
-        UserAccountDocument document = userAccountService.createUser(request.email(), request.password(), roles);
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserAccountResponse.fromDocument(document));
+        UserAccountEntity entity = userAccountService.createUser(request.email(), request.password(), roles);
+        return ResponseEntity.status(HttpStatus.CREATED).body(UserAccountResponse.fromEntity(entity));
     }
 
     @PutMapping("/{id}/roles")
-    public UserAccountResponse updateRoles(@PathVariable String id, @Valid @RequestBody UpdateUserRolesRequest request) {
-        UserAccountDocument account = userAccountService.requireById(id);
+    public UserAccountResponse updateRoles(@PathVariable UUID id, @Valid @RequestBody UpdateUserRolesRequest request) {
+        UserAccountEntity account = userAccountService.requireById(id);
         Set<UserRole> roles = parseRoles(request.roles());
-        UserAccountDocument updated = userAccountService.updateRoles(account, roles);
-        return UserAccountResponse.fromDocument(updated);
+        UserAccountEntity updated = userAccountService.updateRoles(account, roles);
+        return UserAccountResponse.fromEntity(updated);
     }
 
     @PutMapping("/{id}/password")
-    public UserAccountResponse updatePassword(@PathVariable String id, @Valid @RequestBody UpdateUserPasswordRequest request) {
-        UserAccountDocument account = userAccountService.requireById(id);
-        UserAccountDocument updated = userAccountService.updatePassword(account, request.password());
-        return UserAccountResponse.fromDocument(updated);
+    public UserAccountResponse updatePassword(@PathVariable UUID id, @Valid @RequestBody UpdateUserPasswordRequest request) {
+        UserAccountEntity account = userAccountService.requireById(id);
+        UserAccountEntity updated = userAccountService.updatePassword(account, request.password());
+        return UserAccountResponse.fromEntity(updated);
     }
 
     @GetMapping("/me")
     public UserAccountResponse currentUser(Authentication authentication) {
         Objects.requireNonNull(authentication, "authentication must not be null");
         UserAccountDetails principal = (UserAccountDetails) authentication.getPrincipal();
-        return UserAccountResponse.fromDocument(principal.getAccount());
+        return UserAccountResponse.fromEntity(principal.getAccount());
     }
 
     private Set<UserRole> parseRoles(Set<String> roleNames) {

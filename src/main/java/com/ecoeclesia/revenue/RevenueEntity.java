@@ -1,27 +1,46 @@
 package com.ecoeclesia.revenue;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
-@Document(collection = "revenues")
-public class RevenueDocument {
+@Entity
+@Table(name = "revenues")
+public class RevenueEntity {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
+
+    @Column(nullable = false, length = 512)
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
     private RevenueCategory category;
+
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    public RevenueDocument() {
-        // Default constructor for persistence frameworks
+    public RevenueEntity() {
+        // Default constructor for JPA
     }
 
-    public RevenueDocument(String id, BigDecimal amount, String description, RevenueCategory category, Instant createdAt) {
+    public RevenueEntity(UUID id, BigDecimal amount, String description, RevenueCategory category, Instant createdAt) {
         this.id = id;
         this.amount = Objects.requireNonNull(amount, "amount must not be null");
         this.description = Objects.requireNonNullElse(description, "");
@@ -29,11 +48,18 @@ public class RevenueDocument {
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
     }
 
-    public String getId() {
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

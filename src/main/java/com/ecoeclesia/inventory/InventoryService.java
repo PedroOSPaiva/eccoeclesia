@@ -2,6 +2,7 @@ package com.ecoeclesia.inventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,13 +28,13 @@ public class InventoryService {
         return durableRepository.save(item);
     }
 
-    public InventoryItem recordEntry(String id, ItemType type, int quantity) {
+    public InventoryItem recordEntry(UUID id, ItemType type, int quantity) {
         InventoryItem item = findItem(id, type);
         item.increaseQuantity(quantity);
         return saveItem(item, type);
     }
 
-    public InventoryItem recordExit(String id, ItemType type, int quantity) {
+    public InventoryItem recordExit(UUID id, ItemType type, int quantity) {
         InventoryItem item = findItem(id, type);
         try {
             item.decreaseQuantity(quantity);
@@ -56,7 +57,7 @@ public class InventoryService {
                 .toList();
     }
 
-    private InventoryItem findItem(String id, ItemType type) {
+    private InventoryItem findItem(UUID id, ItemType type) {
         return switch (type) {
             case CONSUMABLE -> consumableRepository.findById(id)
                     .orElseThrow(() -> new InventoryNotFoundException("Consumível não encontrado: " + id));

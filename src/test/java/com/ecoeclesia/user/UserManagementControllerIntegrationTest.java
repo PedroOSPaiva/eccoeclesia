@@ -5,6 +5,7 @@ import com.ecoeclesia.auth.AuthenticationResponse;
 import com.ecoeclesia.auth.LoginRequest;
 import com.ecoeclesia.auth.UserAccountRepository;
 import com.ecoeclesia.auth.UserAccountService;
+import com.ecoeclesia.support.AbstractPostgresIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,28 +18,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class UserManagementControllerIntegrationTest {
-
-    @Container
-    static final MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.5"));
-
-    @DynamicPropertySource
-    static void mongoProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getConnectionString);
-    }
+class UserManagementControllerIntegrationTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;

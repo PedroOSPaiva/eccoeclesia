@@ -13,15 +13,15 @@ import java.util.stream.Collectors;
 
 public class UserAccountDetails implements UserDetails {
 
-    private final UserAccountDocument account;
+    private final UserAccountEntity account;
     private final Set<GrantedAuthority> authorities;
 
-    public UserAccountDetails(UserAccountDocument account) {
+    public UserAccountDetails(UserAccountEntity account) {
         this.account = Objects.requireNonNull(account, "account must not be null");
         this.authorities = computeAuthorities(account.getRoles());
     }
 
-    public UserAccountDocument getAccount() {
+    public UserAccountEntity getAccount() {
         return account;
     }
 

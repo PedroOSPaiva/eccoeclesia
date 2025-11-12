@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/revenues")
@@ -31,10 +32,10 @@ public class RevenueController {
 
     @PostMapping
     public ResponseEntity<RevenueResponse> createRevenue(@Valid @RequestBody RevenueRequest request) {
-        RevenueDocument document = request.category() == null || request.category().isBlank()
+        RevenueEntity entity = request.category() == null || request.category().isBlank()
                 ? revenueService.registerRevenue(request.amount(), request.description())
                 : revenueService.registerRevenue(request.amount(), request.description(), request.category());
-        return ResponseEntity.status(HttpStatus.CREATED).body(RevenueResponse.fromDocument(document));
+        return ResponseEntity.status(HttpStatus.CREATED).body(RevenueResponse.fromEntity(entity));
     }
 
     @GetMapping
@@ -46,29 +47,29 @@ public class RevenueController {
         Instant end = toEndInstant(endDate);
         return revenueService.listRevenues(start, end)
                 .stream()
-                .map(RevenueResponse::fromDocument)
+                .map(RevenueResponse::fromEntity)
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public RevenueResponse getRevenue(@PathVariable String id) {
-        RevenueDocument document = revenueService.getRevenue(id);
-        return RevenueResponse.fromDocument(document);
+    public RevenueResponse getRevenue(@PathVariable UUID id) {
+        RevenueEntity entity = revenueService.getRevenue(id);
+        return RevenueResponse.fromEntity(entity);
     }
 
     @PutMapping("/{id}")
-    public RevenueResponse updateRevenue(@PathVariable String id, @Valid @RequestBody RevenueRequest request) {
-        RevenueDocument document = revenueService.updateRevenue(
+    public RevenueResponse updateRevenue(@PathVariable UUID id, @Valid @RequestBody RevenueRequest request) {
+        RevenueEntity entity = revenueService.updateRevenue(
                 id,
                 request.amount(),
                 request.description(),
                 request.category()
         );
-        return RevenueResponse.fromDocument(document);
+        return RevenueResponse.fromEntity(entity);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRevenue(@PathVariable String id) {
+    public ResponseEntity<Void> deleteRevenue(@PathVariable UUID id) {
         revenueService.deleteRevenue(id);
         return ResponseEntity.noContent().build();
     }

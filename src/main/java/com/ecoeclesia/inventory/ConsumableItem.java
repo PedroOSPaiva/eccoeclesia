@@ -1,14 +1,16 @@
 package com.ecoeclesia.inventory;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 import java.time.LocalDate;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-@Document(collection = "inventory_items")
+@Entity
+@DiscriminatorValue("CONSUMABLE")
 public class ConsumableItem extends InventoryItem {
 
-    @Field("expiration_date")
+    @Column(name = "expiration_date")
     private LocalDate expirationDate;
 
     public ConsumableItem() {
