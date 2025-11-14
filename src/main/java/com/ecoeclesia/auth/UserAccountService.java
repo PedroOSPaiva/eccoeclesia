@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class UserAccountService {
@@ -20,35 +21,35 @@ public class UserAccountService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public UserAccountDocument createUser(String email, String rawPassword, Set<UserRole> roles) {
+    public UserAccountEntity createUser(String email, String rawPassword, Set<UserRole> roles) {
         Objects.requireNonNull(email, "email must not be null");
         Objects.requireNonNull(rawPassword, "rawPassword must not be null");
         Objects.requireNonNull(roles, "roles must not be null");
 
-        UserAccountDocument account = UserAccountDocument.of(email, encodePassword(rawPassword), roles);
+        UserAccountEntity account = UserAccountEntity.of(email, encodePassword(rawPassword), roles);
         account.setEmail(email);
         return userAccountRepository.save(account);
     }
 
-    public UserAccountDocument save(UserAccountDocument account) {
+    public UserAccountEntity save(UserAccountEntity account) {
         return userAccountRepository.save(account);
     }
 
-    public List<UserAccountDocument> listUsers() {
+    public List<UserAccountEntity> listUsers() {
         return userAccountRepository.findAll();
     }
 
-    public UserAccountDocument requireById(String id) {
+    public UserAccountEntity requireById(UUID id) {
         return userAccountRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+                .orElseThrow(() -> new UserNotFoundException(id.toString()));
     }
 
-    public UserAccountDocument updateRoles(UserAccountDocument account, Set<UserRole> roles) {
+    public UserAccountEntity updateRoles(UserAccountEntity account, Set<UserRole> roles) {
         account.setRoles(roles);
         return userAccountRepository.save(account);
     }
 
-    public UserAccountDocument updatePassword(UserAccountDocument account, String rawPassword) {
+    public UserAccountEntity updatePassword(UserAccountEntity account, String rawPassword) {
         account.setPassword(encodePassword(rawPassword));
         return userAccountRepository.save(account);
     }
@@ -57,7 +58,7 @@ public class UserAccountService {
         return userAccountRepository.findByEmail(email.toLowerCase()).isPresent();
     }
 
-    public UserAccountDocument requireByEmail(String email) {
+    public UserAccountEntity requireByEmail(String email) {
         return userAccountRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new UserNotFoundException(email));
     }

@@ -56,13 +56,13 @@ class RevenueServiceTest {
         @Test
         @DisplayName("should persist classified revenue when category is missing")
         void shouldPersistClassifiedRevenue() {
-            when(revenueRepository.save(any(RevenueDocument.class)))
+            when(revenueRepository.save(any(RevenueEntity.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
 
-            RevenueDocument document = revenueService.registerRevenue(new BigDecimal("150.00"), "Dízimo da família Souza");
+            RevenueEntity entity = revenueService.registerRevenue(new BigDecimal("150.00"), "Dízimo da família Souza");
 
-            assertThat(document.getCategory()).isEqualTo(RevenueCategory.TITHES);
-            verify(revenueRepository).save(any(RevenueDocument.class));
+            assertThat(entity.getCategory()).isEqualTo(RevenueCategory.TITHES);
+            verify(revenueRepository).save(any(RevenueEntity.class));
         }
 
         @Test
@@ -81,13 +81,13 @@ class RevenueServiceTest {
         @Test
         @DisplayName("should sort revenues by creation date descending")
         void shouldSortByCreationDate() {
-            RevenueDocument older = new RevenueDocument("1", new BigDecimal("100"), "Doação",
+            RevenueEntity older = new RevenueEntity(null, new BigDecimal("100"), "Doação",
                     RevenueCategory.DONATIONS, Instant.parse("2024-01-10T10:15:30Z"));
-            RevenueDocument newer = new RevenueDocument("2", new BigDecimal("200"), "Evento",
+            RevenueEntity newer = new RevenueEntity(null, new BigDecimal("200"), "Evento",
                     RevenueCategory.EVENTS, Instant.parse("2024-02-05T12:00:00Z"));
             when(revenueRepository.findAll()).thenReturn(List.of(older, newer));
 
-            List<RevenueDocument> results = revenueService.listRevenues(null, null);
+            List<RevenueEntity> results = revenueService.listRevenues(null, null);
 
             assertThat(results).containsExactly(newer, older);
         }

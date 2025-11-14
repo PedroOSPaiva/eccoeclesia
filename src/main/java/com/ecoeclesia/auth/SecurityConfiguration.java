@@ -40,6 +40,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/expenses/**").hasAuthority(UserHttpAuthorities.VIEW_REPORTS)
                         .requestMatchers("/api/expenses/**").hasAuthority(UserHttpAuthorities.MANAGE_EXPENSES)
+                        .requestMatchers("/api/finance/import").hasAuthority(UserHttpAuthorities.MANAGE_EXPENSES)
                         .requestMatchers(HttpMethod.GET, "/api/revenues/**").hasAuthority(UserHttpAuthorities.VIEW_REPORTS)
                         .requestMatchers("/api/revenues/**").hasAuthority(UserHttpAuthorities.MANAGE_REVENUES)
                         .requestMatchers(HttpMethod.GET, "/inventory/**").hasAuthority(UserHttpAuthorities.VIEW_INVENTORY)

@@ -1,28 +1,44 @@
 package com.ecoeclesia.inventory;
 
-import java.util.Objects;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
-@Document(collection = "inventory_items")
+import java.util.Objects;
+import java.util.UUID;
+
+@Entity
+@Table(name = "inventory_items")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "item_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class InventoryItem {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     @NotBlank
+    @Column(nullable = false, length = 255)
     private String name;
 
+    @Column(length = 512)
     private String description;
 
     @Min(0)
+    @Column(nullable = false)
     private int quantity;
 
     @Min(0)
+    @Column(name = "minimum_quantity", nullable = false)
     private int minimumQuantity;
 
     protected InventoryItem() {
@@ -38,11 +54,11 @@ public abstract class InventoryItem {
 
     public abstract ItemType getType();
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

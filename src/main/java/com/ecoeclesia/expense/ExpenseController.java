@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -31,10 +32,10 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseRequest request) {
-        ExpenseDocument document = request.category() == null || request.category().isBlank()
+        ExpenseEntity entity = request.category() == null || request.category().isBlank()
             ? expenseService.registerExpense(request.amount(), request.description())
             : expenseService.registerExpense(request.amount(), request.description(), request.category());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ExpenseResponse.fromDocument(document));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ExpenseResponse.fromEntity(entity));
     }
 
     @GetMapping
@@ -46,29 +47,29 @@ public class ExpenseController {
         Instant end = toEndInstant(endDate);
         return expenseService.listExpenses(start, end)
             .stream()
-            .map(ExpenseResponse::fromDocument)
+            .map(ExpenseResponse::fromEntity)
             .toList();
     }
 
     @GetMapping("/{id}")
-    public ExpenseResponse getExpense(@PathVariable String id) {
-        ExpenseDocument document = expenseService.getExpense(id);
-        return ExpenseResponse.fromDocument(document);
+    public ExpenseResponse getExpense(@PathVariable UUID id) {
+        ExpenseEntity entity = expenseService.getExpense(id);
+        return ExpenseResponse.fromEntity(entity);
     }
 
     @PutMapping("/{id}")
-    public ExpenseResponse updateExpense(@PathVariable String id, @Valid @RequestBody ExpenseRequest request) {
-        ExpenseDocument document = expenseService.updateExpense(
+    public ExpenseResponse updateExpense(@PathVariable UUID id, @Valid @RequestBody ExpenseRequest request) {
+        ExpenseEntity entity = expenseService.updateExpense(
             id,
             request.amount(),
             request.description(),
             request.category()
         );
-        return ExpenseResponse.fromDocument(document);
+        return ExpenseResponse.fromEntity(entity);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable String id) {
+    public ResponseEntity<Void> deleteExpense(@PathVariable UUID id) {
         expenseService.deleteExpense(id);
         return ResponseEntity.noContent().build();
     }
