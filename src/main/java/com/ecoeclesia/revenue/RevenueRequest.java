@@ -1,19 +1,11 @@
 package com.ecoeclesia.revenue;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
+import java.util.Objects;
 
-public record RevenueRequest(
-        @NotNull(message = "amount is required")
-        @DecimalMin(value = "0.01", message = "amount must be greater than zero")
-        BigDecimal amount,
-
-        @NotBlank(message = "description is required")
-        String description,
-
-        String category
-) {
+public record RevenueRequest(BigDecimal amount, String description, String category) {
+    public RevenueRequest {
+        Objects.requireNonNull(amount, "amount");
+        Objects.requireNonNull(description, "description");
+    }
 }

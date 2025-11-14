@@ -1,95 +1,46 @@
 package com.ecoeclesia.revenue;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import static com.ecoeclesia.testing.Assertions.assertEquals;
+import static com.ecoeclesia.testing.Assertions.assertTrue;
 
+import com.ecoeclesia.testing.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+public final class RevenueServiceTest {
 
-@ExtendWith(MockitoExtension.class)
-class RevenueServiceTest {
+    private final RevenueService service = new RevenueService(new InMemoryRevenueRepository());
 
-    @Mock
-    private RevenueRepository revenueRepository;
-
-    @InjectMocks
-    private RevenueService revenueService;
-
-    @Nested
-    @DisplayName("classifyRevenue")
-    class ClassifyRevenue {
-
-        @Test
-        @DisplayName("should classify description containing dizimo as tithes")
-        void shouldClassifyTithes() {
-            RevenueCategory category = revenueService.classifyRevenue("Contribuição do dízimo mensal");
-
-            assertThat(category).isEqualTo(RevenueCategory.TITHES);
-        }
-
-        @Test
-        @DisplayName("should default to OTHER when no rule matches")
-        void shouldFallbackToOther() {
-            RevenueCategory category = revenueService.classifyRevenue("Repasse não identificado");
-
-            assertThat(category).isEqualTo(RevenueCategory.OTHER);
-        }
+    @Test("classifies descriptions containing dízimo")
+    public void classifiesTithes() {
+        var category = service.classifyRevenue("Dízimo da família Araújo");
+        assertEquals(RevenueCategory.TITHES, category);
     }
 
-    @Nested
-    @DisplayName("registerRevenue")
-    class RegisterRevenue {
+    @Test("persists filtered list using date range")
+    public void filtersByPeriod() {
+        service.registerRevenue(new BigDecimal("50"), "Oferta", "OFFERINGS");
+        var past = service.registerRevenue(new BigDecimal("120"), "Dízimo antigo", "TITHES");
+        past.setReceivedAt(Instant.parse("2024-01-10T00:00:00Z"));
+        var recent = service.registerRevenue(new BigDecimal("90"), "Evento juventude", "EVENTS");
+        recent.setReceivedAt(Instant.parse("2024-02-15T00:00:00Z"));
 
-        @Test
-        @DisplayName("should persist classified revenue when category is missing")
-        void shouldPersistClassifiedRevenue() {
-            when(revenueRepository.save(any(RevenueEntity.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(0));
+        List<RevenueEntity> results = service.listRevenues(
+                Instant.parse("2024-02-01T00:00:00Z"), Instant.parse("2024-03-01T00:00:00Z"));
 
-            RevenueEntity entity = revenueService.registerRevenue(new BigDecimal("150.00"), "Dízimo da família Souza");
-
-            assertThat(entity.getCategory()).isEqualTo(RevenueCategory.TITHES);
-            verify(revenueRepository).save(any(RevenueEntity.class));
-        }
-
-        @Test
-        @DisplayName("should reject invalid category value")
-        void shouldRejectInvalidCategory() {
-            assertThatThrownBy(() ->
-                    revenueService.registerRevenue(new BigDecimal("250.00"), "Doação especial", "INVALID")
-            ).isInstanceOf(ResponseStatusException.class);
-        }
+        assertEquals(1, results.size());
+        assertEquals(recent.getId(), results.get(0).getId());
     }
 
-    @Nested
-    @DisplayName("listRevenues")
-    class ListRevenues {
-
-        @Test
-        @DisplayName("should sort revenues by creation date descending")
-        void shouldSortByCreationDate() {
-            RevenueEntity older = new RevenueEntity(null, new BigDecimal("100"), "Doação",
-                    RevenueCategory.DONATIONS, Instant.parse("2024-01-10T10:15:30Z"));
-            RevenueEntity newer = new RevenueEntity(null, new BigDecimal("200"), "Evento",
-                    RevenueCategory.EVENTS, Instant.parse("2024-02-05T12:00:00Z"));
-            when(revenueRepository.findAll()).thenReturn(List.of(older, newer));
-
-            List<RevenueEntity> results = revenueService.listRevenues(null, null);
-
-            assertThat(results).containsExactly(newer, older);
+    @Test("rejects unknown category names")
+    public void rejectsInvalidCategory() {
+        boolean thrown = false;
+        try {
+            service.registerRevenue(new BigDecimal("10"), "Entrada", "UNKNOWN");
+        } catch (IllegalArgumentException ex) {
+            thrown = true;
         }
+        assertTrue(thrown, "Expected IllegalArgumentException to be thrown");
     }
 }

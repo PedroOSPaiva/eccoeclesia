@@ -2,7 +2,7 @@
 
 ## Visão Geral do Projeto
 
-**Nome do Projeto:** EcoEcclesia
+**Nome do Projeto:** EcoEcclesia  
 **Objetivo:** Criar um sistema web para controle de gastos de uma igreja, com mapeamentos mensais de estoque de bens de consumo e inventário de bens como cadeiras, instrumentos musicais, etc.
 
 ## Stakeholders
@@ -37,48 +37,33 @@
 
 - **Frontend:**
   - HTML, CSS, JavaScript
-  - Frameworks: React.js
+  - Frameworks: React.js (a estrutura para o frontend continua reservada em `src/frontend`)
 
 - **Backend:**
-  - Java
-  - Framework: Spring Boot
-  - Build: Maven
+  - Java 21
+  - Sem dependências externas: serviços, controladores e repositórios executam em memória
+  - Build/Test: script `./mvnw` (wrapper customizado que usa `javac` e o executor de testes interno)
 
-- **Banco de Dados:**
-  - MongoDB
-
-- **Autenticação:**
-  - JWT (JSON Web Tokens)
-
-- **Hospedagem:**
-  - Heroku / AWS
+- **Persistência:**
+  - Implementações em memória para facilitar o desenvolvimento offline
 
 ## Estrutura do Projeto
 
-### Descrição dos Diretórios
-
-> Estrutura auditada em: 2025-11-07
+> Estrutura auditada em: 2025-11-14
 
 - **README.md**: Documento atual com visão geral, instruções e mapa de diretórios.
-- **pom.xml**: Arquivo de configuração do Maven para a aplicação Spring Boot.
-- **.gitignore**: Configuração de arquivos e diretórios ignorados pelo Git.
-- **src/main/java/com/ecoeclesia/**: Código-fonte principal da aplicação Spring Boot (`EcoEcclesiaApplication.java`).
-- **src/main/resources/**: Arquivos de configuração (por exemplo, `application.properties`).
-- **src/test/java/com/ecoeclesia/**: Testes automatizados (`EcoEcclesiaApplicationTests.java`).
-
-> **Estrutura proposta**: o diretório `src/frontend/` mencionado no planejamento inicial ainda não foi criado. Permanecerá documentado assim que os artefatos do frontend forem adicionados ao repositório.
-
-### Próximos Passos
-
-- [ ] Solicitar revisão da documentação de estrutura para outro membro da equipe, garantindo que o mapeamento reflita o estado atual do repositório.
+- **pom.xml**: Mantido apenas para referência histórica; o fluxo de build usa o script `./mvnw`.
+- **mvnw**: Script responsável por compilar o código (`javac`) e executar a suíte de testes personalizada.
+- **src/main/java/com/ecoeclesia/**: Código-fonte principal organizado em módulos (`config`, `expense`, `revenue`, `inventory`, `finance`, `access`, `user`).
+- **src/test/java/com/ecoeclesia/**: Testes automatizados escritos com o mini framework localizado em `com.ecoeclesia.testing`.
+- **src/frontend/**: Placeholder para o frontend planejado.
 
 ## Instalação e Execução
 
 ### Pré-requisitos
 
 - Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
-- Maven 3.9+ instalado ou acesso ao wrapper do Maven (`./mvnw`).
-- (Opcional) Um servidor MongoDB disponível. A aplicação utiliza a variável de ambiente `MONGODB_URI` para configurar a conexão (padrão: `mongodb://localhost:27017/ecoeclesia`).
+- Bash (para executar o script `./mvnw`).
 
 ### Passo a passo
 
@@ -88,28 +73,20 @@
     cd EcoEcclesia
     ```
 
-2. Compile o projeto e baixe as dependências:
-    ```sh
-    mvn clean verify
-    ```
-
-3. Execute a suíte de testes automatizados do backend:
+2. Execute a suíte de testes automatizados do backend:
     ```sh
     ./mvnw test
     ```
+    O script irá:
+    - Limpar/gerar o diretório `target/`
+    - Compilar `src/main/java` e `src/test/java` com `javac`
+    - Executar `com.ecoeclesia.testing.TestRunner`, que reporta o status de cada teste
 
-4. Inicie a API Spring Boot:
+3. (Opcional) Faça uma verificação manual executando a classe principal:
     ```sh
-    mvn spring-boot:run
+    ./mvnw run
     ```
-
-   - Para utilizar uma instância específica do MongoDB, exporte a variável de ambiente antes de iniciar:
-     ```sh
-     export MONGODB_URI="mongodb://usuario:senha@host:27017/ecoeclesia"
-     mvn spring-boot:run
-     ```
-
-5. A API ficará disponível em `http://localhost:8080`. Você pode verificar o estado do serviço acessando `http://localhost:8080/health`.
+    Isso irá apenas compilar os artefatos (se necessário) e executar `com.ecoeclesia.EcoEcclesiaApplication` para um pequeno smoke test em linha de comando.
 
 ## Contribuição
 

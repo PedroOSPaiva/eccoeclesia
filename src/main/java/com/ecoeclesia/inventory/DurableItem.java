@@ -1,32 +1,15 @@
 package com.ecoeclesia.inventory;
 
-import org.springframework.data.mongodb.core.mapping.Document;
+public final class DurableItem extends InventoryItem {
 
-@Document(collection = "inventory_items")
-public class DurableItem extends InventoryItem {
+    private final int warrantyMonths;
 
-    private Integer warrantyMonths;
-
-    public DurableItem() {
-        super();
-    }
-
-    public DurableItem(String name, String description, int quantity, int minimumQuantity,
-                       Integer warrantyMonths) {
-        super(name, description, quantity, minimumQuantity);
+    public DurableItem(String name, String description, int quantity, int minimumStock, int warrantyMonths) {
+        super(name, description, quantity, minimumStock);
         this.warrantyMonths = warrantyMonths;
     }
 
-    @Override
-    public ItemType getType() {
-        return ItemType.DURABLE;
-    }
-
-    public Integer getWarrantyMonths() {
+    public int getWarrantyMonths() {
         return warrantyMonths;
-    }
-
-    public void setWarrantyMonths(Integer warrantyMonths) {
-        this.warrantyMonths = warrantyMonths;
     }
 }

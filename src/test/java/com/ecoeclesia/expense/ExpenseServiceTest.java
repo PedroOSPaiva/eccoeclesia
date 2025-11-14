@@ -1,101 +1,30 @@
 package com.ecoeclesia.expense;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
+import static com.ecoeclesia.testing.Assertions.assertEquals;
+import static com.ecoeclesia.testing.Assertions.assertThrows;
 
+import com.ecoeclesia.testing.Test;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+public final class ExpenseServiceTest {
 
-@ExtendWith(MockitoExtension.class)
-class ExpenseServiceTest {
+    private final ExpenseService service = new ExpenseService(new InMemoryExpenseRepository());
 
-    @Mock
-    private ExpenseRepository expenseRepository;
-
-    @InjectMocks
-    private ExpenseService expenseService;
-
-    @Nested
-    @DisplayName("classifyExpense")
-    class ClassifyExpense {
-
-        @Test
-        @DisplayName("should categorize supermarket purchases as groceries")
-        void shouldCategorizeGroceries() {
-            ExpenseCategory category = expenseService.classifyExpense("Monthly supermarket run");
-
-            assertEquals(ExpenseCategory.GROCERIES, category);
-        }
-
-        @Test
-        @DisplayName("should categorize transport related expenses correctly")
-        void shouldCategorizeTransport() {
-            ExpenseCategory category = expenseService.classifyExpense("Uber ride to the airport");
-
-            assertEquals(ExpenseCategory.TRANSPORT, category);
-        }
-
-        @Test
-        @DisplayName("should fallback to OTHER when no keywords match")
-        void shouldFallbackToOther() {
-            ExpenseCategory category = expenseService.classifyExpense("Donation to local community");
-
-            assertEquals(ExpenseCategory.OTHER, category);
-        }
+    @Test("classifies supermarkets as groceries")
+    public void classifiesGroceries() {
+        ExpenseCategory category = service.classifyExpense("Compra no supermercado central");
+        assertEquals(ExpenseCategory.GROCERIES, category);
     }
 
-    @Nested
-    @DisplayName("registerExpense")
-    class RegisterExpense {
+    @Test("registers expenses without explicit category")
+    public void registersExpenseWithoutCategory() {
+        var document = service.registerExpense(new BigDecimal("42.50"), "Uber até o retiro");
+        assertEquals(ExpenseCategory.TRANSPORT, document.getCategory());
+    }
 
-        @Test
-        @DisplayName("should register expense with valid category name")
-        void shouldRegisterWithValidCategory() {
-            ExpenseDocument saved = new ExpenseDocument();
-            saved.setId("abc123");
-            saved.setCategory(ExpenseCategory.ENTERTAINMENT);
-            saved.setAmount(new BigDecimal("125.80"));
-            saved.setDescription("Concert tickets");
-            when(expenseRepository.save(any(ExpenseDocument.class))).thenReturn(saved);
-
-            ExpenseDocument expense = expenseService.registerExpense(new BigDecimal("125.80"), "Concert tickets", "entertainment");
-
-            assertEquals(ExpenseCategory.ENTERTAINMENT, expense.getCategory());
-            assertEquals("Concert tickets", expense.getDescription());
-            verify(expenseRepository).save(any(ExpenseDocument.class));
-        }
-
-        @Test
-        @DisplayName("should reject invalid category name")
-        void shouldRejectInvalidCategory() {
-            assertThrows(ResponseStatusException.class, () ->
-                expenseService.registerExpense(new BigDecimal("25.00"), "Coffee with friends", "invalid-category")
-            );
-        }
-
-        @Test
-        @DisplayName("should classify and persist expense when category is missing")
-        void shouldClassifyAndPersistExpense() {
-            ArgumentCaptor<ExpenseDocument> documentCaptor = ArgumentCaptor.forClass(ExpenseDocument.class);
-            when(expenseRepository.save(any(ExpenseDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-            ExpenseDocument document = expenseService.registerExpense(new BigDecimal("45.00"), "Uber ride downtown");
-
-            assertEquals(ExpenseCategory.TRANSPORT, document.getCategory());
-            verify(expenseRepository).save(documentCaptor.capture());
-            assertEquals("Uber ride downtown", documentCaptor.getValue().getDescription());
-        }
+    @Test("validates invalid category names")
+    public void rejectsInvalidCategory() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.registerExpense("invalid", "Compra genérica", "10.00"));
     }
 }

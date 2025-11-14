@@ -1,9 +1,9 @@
 package com.ecoeclesia.user;
 
-import jakarta.validation.constraints.NotBlank;
+import java.util.Objects;
 
-public record UpdateUserPasswordRequest(
-        @NotBlank(message = "password is required")
-        String password
-) {
+public record UpdateUserPasswordRequest(String password) {
+    public UpdateUserPasswordRequest {
+        Objects.requireNonNull(password, "password");
+    }
 }

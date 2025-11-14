@@ -1,20 +1,13 @@
 package com.ecoeclesia.user;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import com.ecoeclesia.access.UserRole;
+import java.util.List;
+import java.util.Objects;
 
-import java.util.Set;
-
-public record CreateUserRequest(
-        @Email(message = "email must be valid")
-        @NotBlank(message = "email is required")
-        String email,
-
-        @NotBlank(message = "password is required")
-        String password,
-
-        @NotEmpty(message = "roles must not be empty")
-        Set<String> roles
-) {
+public record CreateUserRequest(String email, String password, List<UserRole> roles) {
+    public CreateUserRequest {
+        Objects.requireNonNull(email, "email");
+        Objects.requireNonNull(password, "password");
+        Objects.requireNonNull(roles, "roles");
+    }
 }

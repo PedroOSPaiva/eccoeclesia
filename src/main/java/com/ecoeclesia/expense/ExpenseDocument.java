@@ -1,40 +1,36 @@
 package com.ecoeclesia.expense;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
-@Document(collection = "expenses")
-public class ExpenseDocument {
-
-    @Id
-    private String id;
+/**
+ * Internal persistence representation. Even though the current implementation
+ * relies on an in-memory repository, we keep the richer model so that porting
+ * the service to a database later does not require changing the public API.
+ */
+public final class ExpenseDocument {
+    private final String id;
     private BigDecimal amount;
     private String description;
     private ExpenseCategory category;
-    private Instant createdAt;
+    private final Instant createdAt;
 
-    public ExpenseDocument() {
-        // Default constructor for persistence frameworks
+    public ExpenseDocument(BigDecimal amount, String description, ExpenseCategory category) {
+        this(UUID.randomUUID().toString(), amount, description, category, Instant.now());
     }
 
     public ExpenseDocument(String id, BigDecimal amount, String description, ExpenseCategory category, Instant createdAt) {
-        this.id = id;
-        this.amount = Objects.requireNonNull(amount, "amount must not be null");
-        this.description = Objects.requireNonNullElse(description, "");
-        this.category = Objects.requireNonNull(category, "category must not be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
+        this.id = Objects.requireNonNull(id);
+        this.amount = Objects.requireNonNull(amount);
+        this.description = Objects.requireNonNull(description);
+        this.category = Objects.requireNonNull(category);
+        this.createdAt = Objects.requireNonNull(createdAt);
     }
 
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public BigDecimal getAmount() {
@@ -42,7 +38,7 @@ public class ExpenseDocument {
     }
 
     public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+        this.amount = Objects.requireNonNull(amount);
     }
 
     public String getDescription() {
@@ -50,7 +46,7 @@ public class ExpenseDocument {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = Objects.requireNonNull(description);
     }
 
     public ExpenseCategory getCategory() {
@@ -58,14 +54,10 @@ public class ExpenseDocument {
     }
 
     public void setCategory(ExpenseCategory category) {
-        this.category = category;
+        this.category = Objects.requireNonNull(category);
     }
 
     public Instant getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
     }
 }
