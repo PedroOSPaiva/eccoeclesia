@@ -1,14 +1,9 @@
 package com.ecoeclesia.finance;
 
-import java.util.List;
+import java.math.BigDecimal;
 
-public record StatementImportResult(
-        int expensesImported,
-        int revenuesImported,
-        int skipped,
-        List<String> errors
-) {
-    public StatementImportResult {
-        errors = List.copyOf(errors);
+public record StatementImportResult(int totalLines, BigDecimal totalIncome, BigDecimal totalExpenses) {
+    public BigDecimal balance() {
+        return totalIncome.subtract(totalExpenses);
     }
 }

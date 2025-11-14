@@ -1,66 +1,22 @@
 package com.ecoeclesia.access;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.ecoeclesia.testing.Assertions.assertFalse;
+import static com.ecoeclesia.testing.Assertions.assertTrue;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import com.ecoeclesia.testing.Test;
 
-class UserAccessPolicyTest {
+public final class UserAccessPolicyTest {
 
-    @Nested
-    @DisplayName("Expense management permissions")
-    class ExpensePermissions {
+    private final UserAccessPolicy policy = new UserAccessPolicy();
 
-        @Test
-        void shouldAllowManagementRolesToManageExpenses() {
-            assertThat(UserAccessPolicy.canManageExpenses(UserRole.COORDINATION)).isTrue();
-            assertThat(UserAccessPolicy.canManageExpenses(UserRole.SECRETARIAT)).isTrue();
-            assertThat(UserAccessPolicy.canManageExpenses(UserRole.TREASURER)).isTrue();
-            assertThat(UserAccessPolicy.canManageExpenses(UserRole.PRIEST)).isTrue();
-        }
-
-        @Test
-        void shouldRejectFaithfulManagingExpenses() {
-            assertThat(UserAccessPolicy.canManageExpenses(UserRole.FAITHFUL)).isFalse();
-        }
+    @Test("allows admins to manage users")
+    public void allowsAdminActions() {
+        assertTrue(policy.isAllowed(UserRole.ADMIN, "users:write"));
     }
 
-    @Nested
-    @DisplayName("Inventory management permissions")
-    class InventoryPermissions {
-
-        @Test
-        void shouldAllowManagementRolesToManageInventory() {
-            assertThat(UserAccessPolicy.canManageInventory(UserRole.COORDINATION)).isTrue();
-            assertThat(UserAccessPolicy.canManageInventory(UserRole.SECRETARIAT)).isTrue();
-            assertThat(UserAccessPolicy.canManageInventory(UserRole.TREASURER)).isTrue();
-            assertThat(UserAccessPolicy.canManageInventory(UserRole.PRIEST)).isTrue();
-        }
-
-        @Test
-        void shouldRejectFaithfulManagingInventory() {
-            assertThat(UserAccessPolicy.canManageInventory(UserRole.FAITHFUL)).isFalse();
-        }
-    }
-
-    @Nested
-    @DisplayName("Report visualisation permissions")
-    class ReportPermissions {
-
-        @Test
-        void shouldAllowAllRolesToViewReports() {
-            for (UserRole role : UserRole.values()) {
-                assertThat(UserAccessPolicy.canViewReports(role)).as("role %s", role).isTrue();
-            }
-        }
-    }
-
-    @Test
-    void shouldValidateNullRoles() {
-        assertThatThrownBy(() -> UserAccessPolicy.canManageExpenses(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("role must not be null");
+    @Test("denies volunteers from finance data")
+    public void deniesVolunteerFinanceAccess() {
+        assertFalse(policy.isAllowed(UserRole.VOLUNTEER, "finance:read"),
+                "volunteers should not see finance data");
     }
 }

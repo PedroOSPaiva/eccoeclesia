@@ -1,11 +1,11 @@
 package com.ecoeclesia.user;
 
-import jakarta.validation.constraints.NotEmpty;
+import com.ecoeclesia.access.UserRole;
+import java.util.List;
+import java.util.Objects;
 
-import java.util.Set;
-
-public record UpdateUserRolesRequest(
-        @NotEmpty(message = "roles must not be empty")
-        Set<String> roles
-) {
+public record UpdateUserRolesRequest(List<UserRole> roles) {
+    public UpdateUserRolesRequest {
+        Objects.requireNonNull(roles, "roles");
+    }
 }

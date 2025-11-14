@@ -1,16 +1,15 @@
 package com.ecoeclesia.revenue;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
-public interface RevenueRepository extends JpaRepository<RevenueEntity, UUID> {
+public interface RevenueRepository {
+    RevenueEntity save(RevenueEntity entity);
 
-    List<RevenueEntity> findAllByCreatedAtBetween(Instant start, Instant end);
+    Optional<RevenueEntity> findById(String id);
 
-    List<RevenueEntity> findAllByCreatedAtAfter(Instant start);
+    List<RevenueEntity> findAll();
 
-    List<RevenueEntity> findAllByCreatedAtBefore(Instant end);
+    List<RevenueEntity> findByPeriod(Instant start, Instant end);
 }

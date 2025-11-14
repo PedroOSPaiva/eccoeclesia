@@ -1,89 +1,63 @@
 package com.ecoeclesia.user;
 
 import com.ecoeclesia.access.UserRole;
-import com.ecoeclesia.auth.UserAccountDetails;
-import com.ecoeclesia.auth.UserAccountEntity;
-import com.ecoeclesia.auth.UserAccountService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.EnumSet;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
-@RestController
-@RequestMapping("/api/users")
-public class UserManagementController {
+public final class UserManagementController {
 
-    private final UserAccountService userAccountService;
+    private final Map<String, UserAccount> accounts = new HashMap<>();
 
-    public UserManagementController(UserAccountService userAccountService) {
-        this.userAccountService = userAccountService;
+    public UserAccountResponse createUser(CreateUserRequest request) {
+        Objects.requireNonNull(request, "request");
+        if (accounts.values().stream().anyMatch(user -> user.getEmail().equalsIgnoreCase(request.email()))) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        UserAccount account = new UserAccount(request.email(), hash(request.password()), Set.copyOf(request.roles()));
+        accounts.put(account.getId(), account);
+        return UserAccountResponse.from(account);
     }
 
-    @GetMapping
     public List<UserAccountResponse> listUsers() {
-        return userAccountService.listUsers()
-                .stream()
-                .map(UserAccountResponse::fromEntity)
-                .toList();
+        return accounts.values().stream().map(UserAccountResponse::from).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    @PostMapping
-    public ResponseEntity<UserAccountResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        Set<UserRole> roles = parseRoles(request.roles());
-        UserAccountEntity entity = userAccountService.createUser(request.email(), request.password(), roles);
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserAccountResponse.fromEntity(entity));
+    public UserAccountResponse updatePassword(String id, UpdateUserPasswordRequest request) {
+        UserAccount account = requireAccount(id);
+        account.updatePassword(hash(request.password()));
+        return UserAccountResponse.from(account);
     }
 
-    @PutMapping("/{id}/roles")
-    public UserAccountResponse updateRoles(@PathVariable UUID id, @Valid @RequestBody UpdateUserRolesRequest request) {
-        UserAccountEntity account = userAccountService.requireById(id);
-        Set<UserRole> roles = parseRoles(request.roles());
-        UserAccountEntity updated = userAccountService.updateRoles(account, roles);
-        return UserAccountResponse.fromEntity(updated);
+    public UserAccountResponse updateRoles(String id, UpdateUserRolesRequest request) {
+        UserAccount account = requireAccount(id);
+        account.replaceRoles(Set.copyOf(request.roles()));
+        return UserAccountResponse.from(account);
     }
 
-    @PutMapping("/{id}/password")
-    public UserAccountResponse updatePassword(@PathVariable UUID id, @Valid @RequestBody UpdateUserPasswordRequest request) {
-        UserAccountEntity account = userAccountService.requireById(id);
-        UserAccountEntity updated = userAccountService.updatePassword(account, request.password());
-        return UserAccountResponse.fromEntity(updated);
-    }
-
-    @GetMapping("/me")
-    public UserAccountResponse currentUser(Authentication authentication) {
-        Objects.requireNonNull(authentication, "authentication must not be null");
-        UserAccountDetails principal = (UserAccountDetails) authentication.getPrincipal();
-        return UserAccountResponse.fromEntity(principal.getAccount());
-    }
-
-    private Set<UserRole> parseRoles(Set<String> roleNames) {
-        Objects.requireNonNull(roleNames, "roles must not be null");
-        if (roleNames.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "roles must not be empty");
+    private UserAccount requireAccount(String id) {
+        UserAccount account = accounts.get(id);
+        if (account == null) {
+            throw new IllegalArgumentException("User not found: " + id);
         }
-        EnumSet<UserRole> roles = EnumSet.noneOf(UserRole.class);
-        for (String roleName : roleNames) {
-            try {
-                roles.add(UserRole.valueOf(roleName.trim().toUpperCase(Locale.ROOT)));
-            } catch (IllegalArgumentException ex) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role: " + roleName, ex);
-            }
+        return account;
+    }
+
+    private static String hash(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashed);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
         }
-        return roles;
     }
 }

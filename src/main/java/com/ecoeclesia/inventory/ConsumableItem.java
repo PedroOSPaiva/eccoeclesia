@@ -1,36 +1,17 @@
 package com.ecoeclesia.inventory;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+public final class ConsumableItem extends InventoryItem {
 
-@Document(collection = "inventory_items")
-public class ConsumableItem extends InventoryItem {
+    private final Instant expirationDate;
 
-    @Field("expiration_date")
-    private LocalDate expirationDate;
-
-    public ConsumableItem() {
-        super();
-    }
-
-    public ConsumableItem(String name, String description, int quantity, int minimumQuantity,
-                          LocalDate expirationDate) {
-        super(name, description, quantity, minimumQuantity);
+    public ConsumableItem(String name, String description, int quantity, int minimumStock, Instant expirationDate) {
+        super(name, description, quantity, minimumStock);
         this.expirationDate = expirationDate;
     }
 
-    @Override
-    public ItemType getType() {
-        return ItemType.CONSUMABLE;
-    }
-
-    public LocalDate getExpirationDate() {
+    public Instant getExpirationDate() {
         return expirationDate;
-    }
-
-    public void setExpirationDate(LocalDate expirationDate) {
-        this.expirationDate = expirationDate;
     }
 }

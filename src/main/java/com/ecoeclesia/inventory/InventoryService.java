@@ -1,74 +1,65 @@
 package com.ecoeclesia.inventory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+public final class InventoryService {
 
-@Service
-@Transactional
-public class InventoryService {
+    private final Map<String, ConsumableItem> consumables = new ConcurrentHashMap<>();
+    private final Map<String, DurableItem> durables = new ConcurrentHashMap<>();
 
-    private final ConsumableItemRepository consumableRepository;
-    private final DurableItemRepository durableRepository;
-
-    public InventoryService(ConsumableItemRepository consumableRepository,
-                            DurableItemRepository durableRepository) {
-        this.consumableRepository = consumableRepository;
-        this.durableRepository = durableRepository;
+    public ConsumableItem registerConsumable(String name, String description, int quantity, int minimumStock, Instant expiration) {
+        var item = new ConsumableItem(name, description, quantity, minimumStock, expiration);
+        consumables.put(item.getId(), item);
+        return item;
     }
 
-    public ConsumableItem registerConsumable(ConsumableItem item) {
-        return consumableRepository.save(item);
+    public DurableItem registerDurable(String name, String description, int quantity, int minimumStock, int warrantyMonths) {
+        var item = new DurableItem(name, description, quantity, minimumStock, warrantyMonths);
+        durables.put(item.getId(), item);
+        return item;
     }
 
-    public DurableItem registerDurable(DurableItem item) {
-        return durableRepository.save(item);
+    public InventoryItem recordEntry(String id, ItemType type, int amount) {
+        InventoryItem item = requireItem(id, type);
+        item.increaseQuantity(amount);
+        return item;
     }
 
-    public InventoryItem recordEntry(String id, ItemType type, int quantity) {
-        InventoryItem item = findItem(id, type);
-        item.increaseQuantity(quantity);
-        return saveItem(item, type);
-    }
-
-    public InventoryItem recordExit(String id, ItemType type, int quantity) {
-        InventoryItem item = findItem(id, type);
-        try {
-            item.decreaseQuantity(quantity);
-        } catch (IllegalStateException ex) {
-            throw new InsufficientStockException(ex.getMessage());
+    public InventoryItem recordExit(String id, ItemType type, int amount) {
+        InventoryItem item = requireItem(id, type);
+        if (item.getQuantity() - amount < 0) {
+            throw new InsufficientStockException("Quantidade insuficiente para o item " + id);
         }
-        return saveItem(item, type);
-    }
-
-    public List<InventoryItem> findAll() {
-        List<InventoryItem> items = new ArrayList<>();
-        items.addAll(consumableRepository.findAll());
-        items.addAll(durableRepository.findAll());
-        return items;
+        item.decreaseQuantity(amount);
+        return item;
     }
 
     public List<InventoryItem> findItemsBelowMinimum() {
-        return findAll().stream()
-                .filter(InventoryItem::isBelowMinimum)
-                .toList();
+        List<InventoryItem> alerts = new ArrayList<>();
+        consumables.values().stream().filter(InventoryItem::isBelowMinimum).forEach(alerts::add);
+        durables.values().stream().filter(InventoryItem::isBelowMinimum).forEach(alerts::add);
+        return alerts;
     }
 
-    private InventoryItem findItem(String id, ItemType type) {
+    public InventoryItem findItem(String id, ItemType type) {
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(type, "type");
         return switch (type) {
-            case CONSUMABLE -> consumableRepository.findById(id)
-                    .orElseThrow(() -> new InventoryNotFoundException("Consumível não encontrado: " + id));
-            case DURABLE -> durableRepository.findById(id)
-                    .orElseThrow(() -> new InventoryNotFoundException("Bem durável não encontrado: " + id));
+            case CONSUMABLE -> consumables.getOrDefault(id, null);
+            case DURABLE -> durables.getOrDefault(id, null);
         };
     }
 
-    private InventoryItem saveItem(InventoryItem item, ItemType type) {
-        return switch (type) {
-            case CONSUMABLE -> consumableRepository.save((ConsumableItem) item);
-            case DURABLE -> durableRepository.save((DurableItem) item);
-        };
+    private InventoryItem requireItem(String id, ItemType type) {
+        InventoryItem item = findItem(id, type);
+        if (item == null) {
+            throw new InventoryNotFoundException("Item not found: " + id);
+        }
+        return item;
     }
 }

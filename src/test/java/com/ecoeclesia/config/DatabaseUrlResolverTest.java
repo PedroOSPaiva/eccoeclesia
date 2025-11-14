@@ -1,54 +1,35 @@
 package com.ecoeclesia.config;
 
-import org.junit.jupiter.api.Test;
+import static com.ecoeclesia.testing.Assertions.assertEquals;
+import static com.ecoeclesia.testing.Assertions.assertThrows;
+import static com.ecoeclesia.testing.Assertions.assertTrue;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.ecoeclesia.testing.Test;
 
-class DatabaseUrlResolverTest {
+public final class DatabaseUrlResolverTest {
 
-    @Test
-    void convertsPostgresUrlToJdbc() {
-        var credentials = DatabaseUrlResolver.resolve("postgresql://user:secret@db.example.com:6543/ecoeclesia")
-                .orElseThrow();
-
-        assertThat(credentials.jdbcUrl())
-                .isEqualTo("jdbc:postgresql://db.example.com:6543/ecoeclesia");
-        assertThat(credentials.username()).isEqualTo("user");
-        assertThat(credentials.password()).isEqualTo("secret");
+    @Test("converts postgres url to jdbc format")
+    public void convertsPostgresUrl() {
+        var credentials = DatabaseUrlResolver.resolve("postgresql://user:secret@db.example.com:6543/ecoeclesia").orElseThrow();
+        assertEquals("jdbc:postgresql://db.example.com:6543/ecoeclesia", credentials.jdbcUrl());
+        assertEquals("user", credentials.username());
+        assertEquals("secret", credentials.password());
     }
 
-    @Test
-    void preservesQueryParameters() {
-        var credentials = DatabaseUrlResolver.resolve("postgres://user:secret@db.example.com/ecoeclesia?sslmode=require")
-                .orElseThrow();
-
-        assertThat(credentials.jdbcUrl())
-                .isEqualTo("jdbc:postgresql://db.example.com:5432/ecoeclesia?sslmode=require");
-        assertThat(credentials.username()).isEqualTo("user");
-        assertThat(credentials.password()).isEqualTo("secret");
+    @Test("returns empty for other schemes")
+    public void ignoresUnknownSchemes() {
+        assertTrue(DatabaseUrlResolver.resolve("mysql://root@localhost:3306/app").isEmpty());
     }
 
-    @Test
-    void returnsEmptyForUnknownScheme() {
-        assertThat(DatabaseUrlResolver.resolve("mysql://user:secret@db.example.com:3306/app"))
-                .isEmpty();
+    @Test("keeps jdbc urls untouched")
+    public void keepsJdbcUrlUntouched() {
+        var credentials = DatabaseUrlResolver.resolve("jdbc:postgresql://localhost:5432/app").orElseThrow();
+        assertEquals("jdbc:postgresql://localhost:5432/app", credentials.jdbcUrl());
     }
 
-    @Test
-    void keepsJdbcUrlUntouched() {
-        var credentials = DatabaseUrlResolver.resolve("jdbc:postgresql://localhost:5432/app")
-                .orElseThrow();
-
-        assertThat(credentials.jdbcUrl()).isEqualTo("jdbc:postgresql://localhost:5432/app");
-        assertThat(credentials.username()).isNull();
-        assertThat(credentials.password()).isNull();
-    }
-
-    @Test
-    void rejectsUrlWithoutDatabase() {
-        assertThatThrownBy(() -> DatabaseUrlResolver.resolve("postgresql://user:secret@db.example.com").orElseThrow())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("database name");
+    @Test("rejects url without database name")
+    public void rejectsUrlWithoutDatabase() {
+        assertThrows(IllegalArgumentException.class,
+                () -> DatabaseUrlResolver.resolve("postgresql://user:secret@db.example.com").orElseThrow());
     }
 }

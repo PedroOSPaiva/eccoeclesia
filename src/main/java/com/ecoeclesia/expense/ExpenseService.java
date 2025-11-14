@@ -1,120 +1,85 @@
 package com.ecoeclesia.expense;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.EnumMap;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
- * Service responsible for registering expenses and classifying them into categories based on
- * simple keyword rules. The rules are intentionally deterministic to keep unit testing simple.
+ * Business rules related to expenses. The service performs lightweight
+ * validation and delegates storage to the repository so that it can be reused
+ * by both the CLI application and future HTTP controllers.
  */
-@Service
-public class ExpenseService {
+public final class ExpenseService {
 
-    private final ExpenseRepository expenseRepository;
-    private final Map<ExpenseCategory, List<String>> classificationRules;
+    private final ExpenseRepository repository;
 
-    public ExpenseService(ExpenseRepository expenseRepository) {
-        this.expenseRepository = expenseRepository;
-        classificationRules = new EnumMap<>(ExpenseCategory.class);
-        classificationRules.put(ExpenseCategory.GROCERIES, List.of("market", "mercado", "supermarket", "food"));
-        classificationRules.put(ExpenseCategory.TRANSPORT, List.of("uber", "taxi", "bus", "metr", "ride"));
-        classificationRules.put(ExpenseCategory.UTILITIES, List.of("energy", "water", "internet", "utility"));
-        classificationRules.put(ExpenseCategory.ENTERTAINMENT, List.of("movie", "cinema", "concert", "netflix"));
+    public ExpenseService(ExpenseRepository repository) {
+        this.repository = Objects.requireNonNull(repository);
     }
 
-    /**
-     * Registers an expense using an explicitly provided category.
-     *
-     * @throws IllegalArgumentException when the provided categoryName cannot be mapped to a known category
-     */
-    public ExpenseDocument registerExpense(BigDecimal amount, String description, String categoryName) {
+    public ExpenseDocument registerExpense(String categoryName, String description, String amount) {
         ExpenseCategory category = parseCategory(categoryName);
-        return saveExpense(amount, description, category);
+        BigDecimal value = new BigDecimal(amount);
+        ExpenseDocument document = new ExpenseDocument(value, description, category);
+        return repository.save(document);
     }
 
-    /**
-     * Registers an expense by automatically classifying it based on the description.
-     */
     public ExpenseDocument registerExpense(BigDecimal amount, String description) {
         ExpenseCategory category = classifyExpense(description);
-        return saveExpense(amount, description, category);
-    }
-
-    public List<ExpenseDocument> listExpenses() {
-        return expenseRepository.findAll()
-            .stream()
-            .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-            .collect(Collectors.toList());
-    }
-
-    public ExpenseDocument getExpense(String id) {
-        return expenseRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id));
+        ExpenseDocument document = new ExpenseDocument(amount, description, category);
+        return repository.save(document);
     }
 
     public ExpenseDocument updateExpense(String id, BigDecimal amount, String description, String categoryName) {
-        ExpenseDocument existing = getExpense(id);
-        ExpenseCategory category = categoryName == null || categoryName.isBlank()
-            ? classifyExpense(description)
-            : parseCategory(categoryName);
-        existing.setAmount(Objects.requireNonNull(amount, "amount must not be null"));
-        existing.setDescription(Objects.requireNonNullElse(description, ""));
-        existing.setCategory(category);
-        return expenseRepository.save(existing);
+        ExpenseDocument existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Expense not found: " + id));
+        existing.setAmount(amount);
+        existing.setDescription(description);
+        existing.setCategory(parseCategory(categoryName));
+        return repository.save(existing);
     }
 
-    public void deleteExpense(String id) {
-        if (!expenseRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Expense not found: " + id);
-        }
-        expenseRepository.deleteById(id);
+    public java.util.List<ExpenseDocument> listExpenses() {
+        return repository.findAll();
     }
 
-    /**
-     * Attempts to classify the given description into one of the known categories using simple keyword
-     * matching. When no rule matches, {@link ExpenseCategory#OTHER} is returned.
-     */
     public ExpenseCategory classifyExpense(String description) {
-        String normalized = normalize(description);
-        for (Map.Entry<ExpenseCategory, List<String>> entry : classificationRules.entrySet()) {
-            for (String keyword : entry.getValue()) {
-                if (normalized.contains(keyword)) {
-                    return entry.getKey();
-                }
-            }
+        String normalized = description.toLowerCase(Locale.ROOT);
+        if (containsAny(normalized, "supermercado", "mercado", "padaria", "mercearia")) {
+            return ExpenseCategory.GROCERIES;
+        }
+        if (containsAny(normalized, "uber", "combustivel", "ônibus", "transporte")) {
+            return ExpenseCategory.TRANSPORT;
+        }
+        if (containsAny(normalized, "luz", "energia", "agua", "internet")) {
+            return ExpenseCategory.UTILITIES;
+        }
+        if (containsAny(normalized, "manutenção", "reparo", "conserto")) {
+            return ExpenseCategory.MAINTENANCE;
+        }
+        if (containsAny(normalized, "cinema", "retiro", "evento")) {
+            return ExpenseCategory.ENTERTAINMENT;
+        }
+        if (containsAny(normalized, "doação", "ajuda", "assistencia")) {
+            return ExpenseCategory.DONATIONS;
         }
         return ExpenseCategory.OTHER;
     }
 
-    private ExpenseCategory parseCategory(String categoryName) {
-        Objects.requireNonNull(categoryName, "categoryName must not be null");
-        try {
-            return ExpenseCategory.valueOf(categoryName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria inválida: " + categoryName, ex);
+    private static boolean containsAny(String value, String... candidates) {
+        for (String candidate : candidates) {
+            if (value.contains(candidate)) {
+                return true;
+            }
         }
+        return false;
     }
 
-    private String normalize(String description) {
-        return description == null ? "" : description.toLowerCase(Locale.ROOT);
-    }
-
-    private ExpenseDocument saveExpense(BigDecimal amount, String description, ExpenseCategory category) {
-        ExpenseDocument document = new ExpenseDocument(null,
-            Objects.requireNonNull(amount, "amount must not be null"),
-            Objects.requireNonNullElse(description, ""),
-            category,
-            Instant.now());
-        return expenseRepository.save(document);
+    private ExpenseCategory parseCategory(String categoryName) {
+        return EnumSet.allOf(ExpenseCategory.class).stream()
+                .filter(category -> category.name().equalsIgnoreCase(categoryName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown expense category: " + categoryName));
     }
 }
