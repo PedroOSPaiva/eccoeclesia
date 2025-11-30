@@ -15,7 +15,7 @@ public final class InMemoryRevenueRepository implements RevenueRepository {
 
     @Override
     public RevenueEntity save(RevenueEntity entity) {
-        store.put(entity.getId(), entity);
+        store.put(entity.id(), entity);
         return entity;
     }
 
@@ -32,12 +32,12 @@ public final class InMemoryRevenueRepository implements RevenueRepository {
     @Override
     public List<RevenueEntity> findByPeriod(Instant start, Instant end) {
         return sorted(store.values().stream()
-                .filter(entity -> !entity.getReceivedAt().isBefore(start) && !entity.getReceivedAt().isAfter(end))
+                .filter(entity -> !entity.receivedAt().isBefore(start) && !entity.receivedAt().isAfter(end))
                 .collect(Collectors.toList()));
     }
 
     private static List<RevenueEntity> sorted(List<RevenueEntity> entities) {
-        entities.sort(Comparator.comparing(RevenueEntity::getReceivedAt).reversed());
+        entities.sort(Comparator.comparing(RevenueEntity::receivedAt).reversed());
         return entities;
     }
 }

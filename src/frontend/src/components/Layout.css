@@ -15,11 +15,12 @@
   color: #f8fafc;
 }
 
-.brand {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+.sidebar .brand {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar .brand__subtitle {
+  letter-spacing: 0.03em;
 }
 
 .sidebar nav {

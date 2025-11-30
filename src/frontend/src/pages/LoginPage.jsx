@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import Brand from '../components/Brand.jsx';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -22,8 +23,8 @@ function LoginPage() {
   return (
     <div className="login-page">
       <form className="login-card" onSubmit={handleSubmit}>
-        <h1>EcoEcclesia</h1>
-        <p>Faça login para acessar os dashboards administrativos.</p>
+        <Brand subtitle="Admin" />
+        <p className="eyebrow">Faça login para acessar os dashboards administrativos.</p>
         {error && <p className="error" role="alert">{error}</p>}
         <div className="input-group">
           <label htmlFor="email">E-mail</label>
@@ -47,6 +48,7 @@ function LoginPage() {
             required
           />
         </div>
+        <p className="helper">Sugestão para testes: tesouraria@ecoeclesia.test / finance123</p>
         <button className="primary-button" type="submit" disabled={loading}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
