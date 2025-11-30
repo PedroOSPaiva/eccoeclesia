@@ -27,4 +27,10 @@ public final class ExpenseServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.registerExpense("invalid", "Compra genérica", "10.00"));
     }
+
+    @Test("accepts lower-case visitor category")
+    public void acceptsVisitorCategory() {
+        ExpenseDocument document = service.registerExpense("visitantes", "Almoço da equipe", "100.00");
+        assertEquals(ExpenseCategory.VISITORS, document.getCategory());
+    }
 }

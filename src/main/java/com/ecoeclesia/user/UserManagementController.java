@@ -1,17 +1,15 @@
 package com.ecoeclesia.user;
 
 import com.ecoeclesia.access.UserRole;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.ecoeclesia.user.PasswordHasher.hash;
 
 public final class UserManagementController {
 
@@ -43,6 +41,21 @@ public final class UserManagementController {
         return UserAccountResponse.from(account);
     }
 
+    public UserAccount findAccountByEmail(String email) {
+        return accounts.values().stream()
+                .filter(user -> user.getEmail().equalsIgnoreCase(email))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean credentialsMatch(String email, String rawPassword) {
+        UserAccount account = findAccountByEmail(email);
+        if (account == null) {
+            return false;
+        }
+        return PasswordHasher.matches(rawPassword, account.getHashedPassword());
+    }
+
     private UserAccount requireAccount(String id) {
         UserAccount account = accounts.get(id);
         if (account == null) {
@@ -52,12 +65,6 @@ public final class UserManagementController {
     }
 
     private static String hash(String value) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(value.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hashed);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
+        return PasswordHasher.hash(value);
     }
 }

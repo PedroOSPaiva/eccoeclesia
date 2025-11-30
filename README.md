@@ -1,110 +1,64 @@
 # EcoEcclesia
 
-## Visão Geral do Projeto
+## Visão geral
+- **Backend Java 21** com script customizado `./mvnw` (usa `javac`, não depende do Maven instalado) e servidor HTTP leve (`FinanceHttpServer`) para autenticação, razão contábil e exportação de relatórios.
+- **Persistência do razão**: por padrão grava em arquivo (`data/ledger-db.csv`); quando `FINANCE_DB_URL` ou `DATABASE_URL` está definido usa JDBC Postgres e aplica o DDL auditável de `infra/sql/ledger-postgres.sql`.
+- **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`, com usuários seed `admin@ecoeclesia.test`/`admin123`, `tesouraria@ecoeclesia.test`/`finance123` e `voluntario@ecoeclesia.test`/`servir123`.
+- **Frontend React (Vite)** em `src/frontend`: protótipo de login, dashboard financeiro (filtros de período, totais, download CSV/PDF) e páginas auxiliares. Ele consome o backend em `http://localhost:8080` quando iniciado via `npm run dev`.
+- Outros módulos (despesas, receitas, inventário, aniversariantes) permanecem com repositórios em memória e testes de unidade para exercitar regras.
 
-**Nome do Projeto:** EcoEcclesia  
-**Objetivo:** Criar um sistema web para controle de gastos de uma igreja, com mapeamentos mensais de estoque de bens de consumo e inventário de bens como cadeiras, instrumentos musicais, etc.
+Consulte `docs/financial-capabilities.md` para um passo a passo detalhado do fluxo contábil já disponível.
 
-## Stakeholders
+## Requisitos
+- JDK 21+ disponível no `PATH` (o script chama `javac --release 21`).
+- Bash para executar `./mvnw`.
+- (Opcional para frontend) Node 18+ com `npm` para rodar a camada React via Vite.
+- (Opcional) Postgres acessível se quiser persistência real do razão.
 
-- **Coordenação da Igreja**
-- **Secretaria**
-- **Tesoureiro**
-- **Padre**
-- **Fiéis** (apenas visualização de relatórios)
+## Como executar o backend
+1. **Rodar testes**
+   ```sh
+   ./mvnw test
+   ```
+   Compila `src/main/java` e `src/test/java` para `target/` e executa `com.ecoeclesia.testing.TestRunner`.
 
-## Funcionalidades Principais
+2. **Subir o servidor HTTP**
+   ```sh
+   ./mvnw run
+   ```
+   Inicia `EcoEcclesiaApplication`, que liga o `FinanceHttpServer` na porta 8080. O servidor expõe:
+   - Autenticação: `POST /api/auth/login` e `POST /api/auth/refresh` (retornam tokens Bearer + permissões).
+   - Razão: `GET /api/ledger` (lista ou filtra por `start`/`end`), `POST /api/ledger` (cria lançamento; requer `finance:write`).
+   - Relatórios: `GET /api/reports/ledger` (texto), `GET /api/reports/ledger.pdf`, `GET /api/reports/ledger.csv` (todos com filtros `start`/`end`).
 
-1. **Controle de Gastos:**
-   - Registro de despesas e receitas mensais.
-   - Classificação de gastos por categorias (manutenção, eventos, salários, etc.).
+3. **Usar Postgres (opcional)**
+   ```sh
+   export FINANCE_DB_URL="postgres://usuario:senha@localhost:5432/ecoeclesia"
+   # ou DATABASE_URL no mesmo formato
+   export FINANCE_DB_USER=usuario  # opcional se não estiver no URL
+   export FINANCE_DB_PASSWORD=senha
+   ./mvnw run
+   ```
+   O servidor tentará carregar o driver JDBC do classpath, aplicará o DDL de `infra/sql/ledger-postgres.sql` e passará a persistir em `ledger_entries` com colunas de auditoria e índices.
+   - Para popular dados de teste diretamente no banco e validar o fluxo via API/PDF/CSV, siga `docs/finance-postgres-smoke-test.md`.
 
-2. **Mapeamento de Estoque:**
-   - Controle de entrada e saída de bens de consumo (materiais de limpeza, alimentos, etc.).
-   - Inventário de bens duráveis (cadeiras, instrumentos musicais, etc.).
-   - Alerta para reabastecimento de estoque.
+## Como executar o frontend (protótipo)
+```sh
+cd src/frontend
+npm install
+npm run dev -- --host --port 5173
+```
+A aplicação Vite consumirá o backend em `http://localhost:8080` para login e razão. Apenas usuários com permissões financeiras verão a navegação de "Financeiro".
 
-3. **Relatórios:**
-   - Relatórios financeiros mensais, trimestrais e anuais.
-   - Relatórios de inventário e uso de bens de consumo.
-   - Acesso restrito de fiéis para visualização de relatórios financeiros e de inventário.
+## Estrutura do repositório
+- `src/main/java/com/ecoeclesia/finance`: razão, plano de contas, serviços de relatório e servidor HTTP com autenticação.
+- `src/main/java/com/ecoeclesia/expense`, `revenue`, `inventory`, `birthday`: demais domínios com repositórios em memória e testes de apoio.
+- `src/frontend`: app React/Vite prototipado.
+- `infra/sql/ledger-postgres.sql`: DDL para a tabela `ledger_entries` com campos de auditoria.
+- `docs/financial-capabilities.md`: guia rápido do fluxo contábil e das exportações.
+- `docs/chart-of-accounts-glossary.md`: plano de contas paroquial com código, classificação, tipo e descrição já carregado no backend e disponível via `/api/ledger/chart`.
 
-4. **Gestão de Usuários:**
-   - Sistema de autenticação e autorização.
-   - Diferentes níveis de acesso (Coordenação, Secretaria, Tesoureiro, Padre, Fiéis).
-
-## Tecnologias Utilizadas
-
-- **Frontend:**
-  - HTML, CSS, JavaScript
-  - Frameworks: React.js (a estrutura para o frontend continua reservada em `src/frontend`)
-
-- **Backend:**
-  - Java 21
-  - Sem dependências externas: serviços, controladores e repositórios executam em memória
-  - Build/Test: script `./mvnw` (wrapper customizado que usa `javac` e o executor de testes interno)
-
-- **Persistência:**
-  - Implementações em memória para facilitar o desenvolvimento offline
-
-## Estrutura do Projeto
-
-> Estrutura auditada em: 2025-11-14
-
-- **README.md**: Documento atual com visão geral, instruções e mapa de diretórios.
-- **pom.xml**: Mantido apenas para referência histórica; o fluxo de build usa o script `./mvnw`.
-- **mvnw**: Script responsável por compilar o código (`javac`) e executar a suíte de testes personalizada.
-- **src/main/java/com/ecoeclesia/**: Código-fonte principal organizado em módulos (`config`, `expense`, `revenue`, `inventory`, `finance`, `access`, `user`).
-- **src/test/java/com/ecoeclesia/**: Testes automatizados escritos com o mini framework localizado em `com.ecoeclesia.testing`.
-- **src/frontend/**: Placeholder para o frontend planejado.
-
-## Instalação e Execução
-
-### Pré-requisitos
-
-- Java Development Kit (JDK) 21 ou superior disponível no `PATH`.
-- Bash (para executar o script `./mvnw`).
-
-### Passo a passo
-
-1. Clone o repositório:
-    ```sh
-    git clone https://github.com/seu-usuario/EcoEcclesia.git
-    cd EcoEcclesia
-    ```
-
-2. Execute a suíte de testes automatizados do backend:
-    ```sh
-    ./mvnw test
-    ```
-    O script irá:
-    - Limpar/gerar o diretório `target/`
-    - Compilar `src/main/java` e `src/test/java` com `javac`
-    - Executar `com.ecoeclesia.testing.TestRunner`, que reporta o status de cada teste
-
-3. (Opcional) Faça uma verificação manual executando a classe principal:
-    ```sh
-    ./mvnw run
-    ```
-    Isso irá apenas compilar os artefatos (se necessário) e executar `com.ecoeclesia.EcoEcclesiaApplication` para um pequeno smoke test em linha de comando.
-
-## Contribuição
-
-1. Faça um fork do projeto.
-2. Crie uma nova branch com sua feature ou correção de bug:
-    ```sh
-    git checkout -b minha-feature
-    ```
-3. Commit suas mudanças:
-    ```sh
-    git commit -m 'Minha nova feature'
-    ```
-4. Envie para a branch original:
-    ```sh
-    git push origin minha-feature
-    ```
-5. Crie um pull request.
-
-## Licença
-
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## Notas de contribuição
+- Use `./mvnw test` antes de enviar mudanças para validar o backend.
+- Para alterar o front, siga o fluxo Vite acima; o backend não faz build nem serve os artefatos React.
+- O `pom.xml` existe apenas para compatibilidade e define `<release>17</release>` caso alguém use Maven diretamente, mas o caminho suportado é o script `./mvnw` com JDK 21.
