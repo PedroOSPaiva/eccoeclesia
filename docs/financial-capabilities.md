@@ -8,7 +8,7 @@
 - **Importar extratos CSV** (receitas e despesas) com `FinancialStatementImportService`, que cria lançamentos já validados contra o plano de contas.
 - **Consolidar períodos** com `FinancialReportGenerator`, que calcula saldo anterior, agrupamento por contas e saldo final.
 - **Emitir relatório textual** via `FinancialReportFormatter` com áreas de assinatura e separador de contas.
-- **Gerar PDF/CSV** com cabeçalho institucional via `FinancialReportPdfExporter` (PDF manual, sem libs externas) e `FinancialReportSpreadsheetExporter`.
+- **Gerar PDF/CSV** com cabeçalho institucional via `FinancialReportPdfExporter` (PDF manual, sem libs externas) e `FinancialReportSpreadsheetExporter`, agora com tabela numerada de lançamentos, blocos de centro de custo/saldo e apêndice automático do plano de contas completo.
 - **Servir endpoints HTTP** (`FinanceHttpServer`) em `/api/ledger`, `/api/reports/ledger`, `/api/reports/ledger.pdf` e `/api/reports/ledger.csv`, agora com filtros de período (`start`/`end`), protegidos por tokens emitidos em `/api/auth/login` e `/api/auth/refresh`.
 - **Cobrir tudo com testes automatizados** já presentes em `src/test/java/com/ecoeclesia/finance/*` (persistência, consolidação e formatação).
 

@@ -13,7 +13,8 @@ public record FinancialReport(LocalDate start,
                               BigDecimal closingBalance,
                               List<FinancialReportLine> incomeLines,
                               List<FinancialReportLine> expenseLines,
-                              List<ReportSignature> signatures) {
+                              List<ReportSignature> signatures,
+                              List<LedgerEntry> entries) {
     public FinancialReport {
         Objects.requireNonNull(start, "start");
         Objects.requireNonNull(end, "end");
@@ -24,5 +25,6 @@ public record FinancialReport(LocalDate start,
         Objects.requireNonNull(incomeLines, "incomeLines");
         Objects.requireNonNull(expenseLines, "expenseLines");
         Objects.requireNonNull(signatures, "signatures");
+        Objects.requireNonNull(entries, "entries");
     }
 }

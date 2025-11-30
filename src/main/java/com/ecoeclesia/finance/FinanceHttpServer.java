@@ -56,7 +56,7 @@ public final class FinanceHttpServer {
         LedgerService ledgerService = new LedgerService(repository, chart);
         FinancialReportGenerator generator = new FinancialReportGenerator(repository, chart);
         return new FinanceHttpServer(port, ledgerService, generator,
-                new FinancialReportPdfExporter(), new FinancialReportSpreadsheetExporter(), new AuthTokenService(), chart);
+                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(), new AuthTokenService(), chart);
     }
 
     private static LedgerRepository chooseRepository() {

@@ -5,6 +5,8 @@ import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import com.ecoeclesia.finance.LedgerEntry;
+import com.ecoeclesia.finance.LedgerEntryType;
 
 public final class FinancialReportFormatter {
 
@@ -20,6 +22,24 @@ public final class FinancialReportFormatter {
         builder.append("Total de receitas: R$ ").append(format(report.totalIncome())).append("\n");
         builder.append("Total de despesas: R$ ").append(format(report.totalExpenses())).append("\n");
         builder.append("Saldo final: R$ ").append(format(report.closingBalance())).append("\n\n");
+
+        if (!report.entries().isEmpty()) {
+            builder.append("Centro(s) de custo: ")
+                    .append(report.entries().stream().map(LedgerEntry::costCenter).distinct().reduce((a, b) -> a + ", " + b).orElse(""))
+                    .append("\n\n");
+
+            builder.append(String.format("%-4s %-10s %-12s %-18s %-18s %-24s %12s %12s\n",
+                    "Nº", "Data", "Conta", "Centro de Custo", "Referência", "Histórico", "Entradas", "Saídas"));
+            int idx = 1;
+            for (LedgerEntry entry : report.entries()) {
+                String income = entry.type() == LedgerEntryType.INCOME ? format(entry.amount()) : "";
+                String expense = entry.type() == LedgerEntryType.EXPENSE ? format(entry.amount()) : "";
+                builder.append(String.format(Locale.ROOT, "%-4d %-10s %-12s %-18s %-18s %-24s %12s %12s\n",
+                        idx++, entry.occurredOn().format(DATE), entry.accountCode(),
+                        entry.costCenter(), entry.referenceCode(), abbreviate(entry.description(), 24), income, expense));
+            }
+            builder.append("\n");
+        }
 
         appendSection(builder, "Receitas", report.incomeLines());
         appendSection(builder, "Despesas", report.expenseLines());
@@ -47,6 +67,16 @@ public final class FinancialReportFormatter {
             builder.append("  (sem lançamentos)\n");
         }
         builder.append("\n");
+    }
+
+    private String abbreviate(String value, int max) {
+        if (value == null) {
+            return "";
+        }
+        if (value.length() <= max) {
+            return value;
+        }
+        return value.substring(0, max - 1) + "…";
     }
 
     private String format(BigDecimal value) {

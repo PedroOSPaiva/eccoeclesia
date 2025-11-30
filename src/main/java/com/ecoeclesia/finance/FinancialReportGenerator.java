@@ -26,7 +26,9 @@ public final class FinancialReportGenerator {
         Objects.requireNonNull(end, "end");
         Objects.requireNonNull(previousBalance, "previousBalance");
 
-        List<LedgerEntry> entries = repository.findByPeriod(start, end);
+        List<LedgerEntry> entries = repository.findByPeriod(start, end).stream()
+                .sorted(Comparator.comparing(LedgerEntry::occurredOn).thenComparing(LedgerEntry::accountCode))
+                .toList();
 
         List<FinancialReportLine> incomes = buildLines(entries, LedgerEntryType.INCOME);
         List<FinancialReportLine> expenses = buildLines(entries, LedgerEntryType.EXPENSE);
@@ -36,12 +38,12 @@ public final class FinancialReportGenerator {
         BigDecimal closing = previousBalance.add(totalIncome).subtract(totalExpenses);
 
         List<ReportSignature> signatures = List.of(
-                new ReportSignature("Tesoureiro(a)", null),
-                new ReportSignature("Pároco", null),
-                new ReportSignature("Conselho Fiscal", null)
+                new ReportSignature("Tesoureiro(a)", "Maria Helena Souza"),
+                new ReportSignature("Pároco", "Pe. João Batista"),
+                new ReportSignature("Conselho Fiscal", "Comissão Financeira")
         );
 
-        return new FinancialReport(start, end, previousBalance, totalIncome, totalExpenses, closing, incomes, expenses, signatures);
+        return new FinancialReport(start, end, previousBalance, totalIncome, totalExpenses, closing, incomes, expenses, signatures, entries);
     }
 
     private List<FinancialReportLine> buildLines(List<LedgerEntry> entries, LedgerEntryType type) {
