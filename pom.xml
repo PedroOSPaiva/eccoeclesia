@@ -8,6 +8,7 @@
     <version>0.1.0</version>
     <name>EcoEcclesia</name>
 <description>EcoEcclesia backend (dependency-free build)</description>
+    <description>EcoEcclesia backend (dependency-free build)</description>
 
     <build>
         <plugins>
