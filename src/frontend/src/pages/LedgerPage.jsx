@@ -79,10 +79,14 @@ function LedgerPage() {
     <div className="ledger-page">
       <header className="ledger-header">
         <div>
-          <h1>Razão Financeiro</h1>
-          <p>Cadastre receitas e despesas com código de conta, centro de custo e referência.</p>
+          <p className="eyebrow">Financeiro</p>
+          <h1>Razão e demonstrativo</h1>
+          <p className="lede">
+            Cadastre receitas e despesas com conta contábil, referência e centro de custo. Baixe o relatório já no
+            layout institucional.
+          </p>
         </div>
-        <div className="ledger-actions">
+        <div className="toolbar">
           <div className="period-picker">
             <label>
               Início
@@ -92,9 +96,18 @@ function LedgerPage() {
               Fim
               <input type="date" value={period.end} onChange={(e) => setPeriod({ ...period, end: e.target.value })} />
             </label>
+            <button type="button" className="ghost" onClick={refresh} disabled={loading}>
+              Atualizar
+            </button>
           </div>
-          <button type="button" onClick={() => download('pdf')}>Baixar PDF</button>
-          <button type="button" onClick={() => download('csv')}>Baixar CSV</button>
+          <div className="download-group">
+            <button type="button" className="secondary" onClick={() => download('csv')}>
+              ⇩ CSV
+            </button>
+            <button type="button" className="primary" onClick={() => download('pdf')}>
+              ⇩ PDF oficial
+            </button>
+          </div>
         </div>
       </header>
 
@@ -117,8 +130,13 @@ function LedgerPage() {
 
       <div className="ledger-grid">
         <section className="card">
-          <h2>Novo lançamento</h2>
-          {!canWrite && <p className="muted">Apenas perfis autorizados podem registrar lançamentos.</p>}
+          <div className="card-head">
+            <div>
+              <p className="eyebrow">Lançamento</p>
+              <h2>Novo registro</h2>
+            </div>
+            {!canWrite && <span className="pill muted">Somente leitura</span>}
+          </div>
           <form onSubmit={handleSubmit} className="ledger-form">
             <label>
               Tipo
@@ -147,14 +165,25 @@ function LedgerPage() {
               Centro de custo
               <input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} />
             </label>
-            <button type="submit" disabled={loading || !canWrite}>Gravar</button>
+            <div className="form-actions">
+              <button type="submit" className="primary" disabled={loading || !canWrite}>
+                Gravar lançamento
+              </button>
+              <p className="muted">O PDF refletirá as informações salvas.</p>
+            </div>
           </form>
         </section>
 
         <section className="card">
-          <h2>Lançamentos</h2>
+          <div className="card-head">
+            <div>
+              <p className="eyebrow">Lançamentos</p>
+              <h2>Movimentações do período</h2>
+            </div>
+            {loading && <span className="pill muted">Atualizando…</span>}
+          </div>
           {loading ? (
-            <p>Carregando...</p>
+            <div className="skeleton-table" aria-live="polite">Carregando...</div>
           ) : (
             <table className="ledger-table">
               <thead>
@@ -163,7 +192,7 @@ function LedgerPage() {
                   <th>Tipo</th>
                   <th>Conta</th>
                   <th>Descrição</th>
-                  <th>Valor</th>
+                  <th className="text-right">Valor</th>
                   <th>Ref.</th>
                   <th>Centro</th>
                 </tr>
@@ -172,17 +201,21 @@ function LedgerPage() {
                 {entries.map((entry) => (
                   <tr key={entry.id}>
                     <td>{entry.occurredOn}</td>
-                    <td>{entry.type}</td>
+                    <td>
+                      <span className={`pill ${entry.type === 'INCOME' ? 'success' : 'danger'}`}>
+                        {entry.type === 'INCOME' ? 'Receita' : 'Despesa'}
+                      </span>
+                    </td>
                     <td>{entry.accountCode}</td>
                     <td>{entry.description}</td>
-                    <td>R$ {Number(entry.amount).toFixed(2)}</td>
+                    <td className="text-right">R$ {Number(entry.amount).toFixed(2)}</td>
                     <td>{entry.referenceCode}</td>
                     <td>{entry.costCenter}</td>
                   </tr>
                 ))}
                 {entries.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="muted">Nenhum lançamento encontrado</td>
+                    <td colSpan="7" className="muted text-center">Nenhum lançamento encontrado</td>
                   </tr>
                 )}
               </tbody>
@@ -194,7 +227,9 @@ function LedgerPage() {
       <section className="card report-card">
         <div className="report-header">
           <h2>Demonstrativo consolidado</h2>
-          <button type="button" onClick={refresh}>Recarregar</button>
+          <button type="button" className="ghost" onClick={refresh} disabled={loading}>
+            Recarregar
+          </button>
         </div>
         <pre className="report-block">{report}</pre>
       </section>
