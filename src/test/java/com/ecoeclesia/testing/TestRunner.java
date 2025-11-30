@@ -8,6 +8,7 @@ import com.ecoeclesia.finance.FileLedgerRepositoryTest;
 import com.ecoeclesia.finance.FinancialReportGeneratorTest;
 import com.ecoeclesia.finance.LedgerServiceTest;
 import com.ecoeclesia.finance.DatabaseLedgerRepositoryTest;
+import com.ecoeclesia.finance.FinanceEndToEndFlowTest;
 import com.ecoeclesia.inventory.InventoryServiceTest;
 import com.ecoeclesia.revenue.RevenueServiceTest;
 import com.ecoeclesia.user.UserManagementControllerTest;
@@ -28,6 +29,7 @@ public final class TestRunner {
                 FinancialReportGeneratorTest.class,
                 DatabaseLedgerRepositoryTest.class,
                 FileLedgerRepositoryTest.class,
+                FinanceEndToEndFlowTest.class,
                 RevenueServiceTest.class,
                 InventoryServiceTest.class,
                 FinancialStatementImportServiceTest.class,
