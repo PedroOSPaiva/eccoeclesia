@@ -24,4 +24,9 @@ public final class UserAccessPolicy {
         Objects.requireNonNull(action, "action");
         return permissions.getOrDefault(role, Set.of()).contains(action);
     }
+
+    public Set<String> permissionsFor(UserRole role) {
+        Objects.requireNonNull(role, "role");
+        return permissions.getOrDefault(role, Set.of());
+    }
 }

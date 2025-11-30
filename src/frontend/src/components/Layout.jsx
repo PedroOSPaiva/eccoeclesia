@@ -1,21 +1,30 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import Brand from './Brand.jsx';
 import './Layout.css';
 
 function Layout() {
-  const { logout } = useAuth();
+  const { logout, hasPermission } = useAuth();
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <h1 className="brand">EcoEcclesia</h1>
+        <Brand layout="inline" size="lg" tone="inverse" subtitle="Painel" />
         <nav>
           <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
             Dashboard
           </NavLink>
+          <NavLink to="/birthdays" className={({ isActive }) => (isActive ? 'active' : '')}>
+            Aniversariantes
+          </NavLink>
           <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
             Gastos
           </NavLink>
+          {hasPermission('finance:read') && (
+            <NavLink to="/ledger" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Financeiro
+            </NavLink>
+          )}
           <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
             Estoque
           </NavLink>
