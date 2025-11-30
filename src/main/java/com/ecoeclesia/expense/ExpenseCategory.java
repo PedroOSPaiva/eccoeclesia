@@ -12,5 +12,6 @@ public enum ExpenseCategory {
     MAINTENANCE,
     ENTERTAINMENT,
     DONATIONS,
+    VISITORS,
     OTHER
 }
