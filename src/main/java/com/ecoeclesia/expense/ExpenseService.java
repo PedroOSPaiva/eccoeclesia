@@ -1,8 +1,9 @@
 package com.ecoeclesia.expense;
 
 import java.math.BigDecimal;
-import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,6 +14,16 @@ import java.util.Objects;
 public final class ExpenseService {
 
     private final ExpenseRepository repository;
+    private static final Map<String, ExpenseCategory> CATEGORY_LOOKUP;
+
+    static {
+        Map<String, ExpenseCategory> lookup = new HashMap<>();
+        for (ExpenseCategory category : ExpenseCategory.values()) {
+            lookup.put(category.name().toLowerCase(Locale.ROOT), category);
+        }
+        lookup.put("visitantes", ExpenseCategory.VISITORS);
+        CATEGORY_LOOKUP = Map.copyOf(lookup);
+    }
 
     public ExpenseService(ExpenseRepository repository) {
         this.repository = Objects.requireNonNull(repository);
@@ -77,9 +88,11 @@ public final class ExpenseService {
     }
 
     private ExpenseCategory parseCategory(String categoryName) {
-        return EnumSet.allOf(ExpenseCategory.class).stream()
-                .filter(category -> category.name().equalsIgnoreCase(categoryName))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown expense category: " + categoryName));
+        String normalized = categoryName.trim().toLowerCase(Locale.ROOT);
+        ExpenseCategory category = CATEGORY_LOOKUP.get(normalized);
+        if (category != null) {
+            return category;
+        }
+        throw new IllegalArgumentException("Unknown expense category: " + categoryName);
     }
 }
