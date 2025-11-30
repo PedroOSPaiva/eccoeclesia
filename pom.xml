@@ -2,20 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ecoeclesia</groupId>
     <artifactId>ecoeclesia</artifactId>
     <version>0.1.0</version>
     <name>EcoEcclesia</name>
-
-    <!-- Apenas uma description -->
-    <description>EcoEcclesia backend (dependency-free build)</description>
+<description>EcoEcclesia backend (dependency-free build)</description>
 
     <build>
         <plugins>
-
-            <!-- Compilação Java 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -24,8 +19,6 @@
                     <release>17</release>
                 </configuration>
             </plugin>
-
-            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -34,7 +27,6 @@
                     <mainClass>com.ecoeclesia.EcoEcclesiaApplication</mainClass>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>

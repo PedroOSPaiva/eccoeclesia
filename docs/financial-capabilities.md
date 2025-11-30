@@ -9,7 +9,7 @@
 - **Consolidar períodos** com `FinancialReportGenerator`, que calcula saldo anterior, agrupamento por contas e saldo final.
 - **Emitir relatório textual** via `FinancialReportFormatter` com áreas de assinatura e separador de contas.
 - **Gerar PDF/CSV** com cabeçalho institucional via `FinancialReportPdfExporter` (PDF manual, sem libs externas) e `FinancialReportSpreadsheetExporter`.
-- **Servir endpoints HTTP** (`FinanceHttpServer`) em `/api/ledger`, `/api/reports/ledger`, `/api/reports/ledger.pdf` e `/api/reports/ledger.csv`, protegidos por tokens emitidos em `/api/auth/login` e `/api/auth/refresh`.
+- **Servir endpoints HTTP** (`FinanceHttpServer`) em `/api/ledger`, `/api/reports/ledger`, `/api/reports/ledger.pdf` e `/api/reports/ledger.csv`, agora com filtros de período (`start`/`end`), protegidos por tokens emitidos em `/api/auth/login` e `/api/auth/refresh`.
 - **Cobrir tudo com testes automatizados** já presentes em `src/test/java/com/ecoeclesia/finance/*` (persistência, consolidação e formatação).
 
 ## Como experimentar via código
@@ -32,8 +32,8 @@ Para rodar algo parecido sem escrever código, você pode duplicar/adaptar os ce
 
 ## Próximos passos recomendados
 
-1. **Persistência em banco**: está disponível via JDBC simples, faltando apenas apontar para um Postgres real com as credenciais de produção e, se necessário, evoluir o DDL em `infra/sql/ledger-postgres.sql` para chaves e relacionamentos.
-2. **API HTTP**: já autenticada via token; os próximos passos são portar para o stack oficial (Spring/segurança padrão) e trocar o emissor de tokens pelo provedor real.
-3. **Frontend**: agora respeita permissões para exibir o módulo Financeiro; resta alinhar o layout final e conectar ao backend oficial assim que ele existir.
+1. **Persistência em banco**: agora aceita `FINANCE_DB_URL` ou `DATABASE_URL` em formato Postgres, aplica automaticamente o DDL evoluído (colunas de auditoria e índices) e tenta carregar o driver JDBC quando disponível.
+2. **API HTTP**: autenticada com o mesmo modelo de usuários/roles do módulo de contas, incluindo seed de usuários (`admin@ecoeclesia.test` e `tesouraria@ecoeclesia.test`).
+3. **Frontend**: tela financeira já filtra por período, mostra totais e usa os endpoints do backend; o próximo passo é apenas alinhar visual final com o design oficial quando estiver pronto.
 
 Enquanto esses itens não chegam, o fluxo interno acima já permite testar a lógica contábil, validar o plano de contas e revisar o layout textual.

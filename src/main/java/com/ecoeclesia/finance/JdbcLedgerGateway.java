@@ -7,6 +7,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,17 +28,21 @@ final class JdbcLedgerGateway implements LedgerGateway {
     @Override
     public void initialize() {
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(
-                     "CREATE TABLE IF NOT EXISTS ledger_entries (" +
-                             "id VARCHAR(64) PRIMARY KEY, " +
-                             "account_code VARCHAR(32) NOT NULL, " +
-                             "reference_code VARCHAR(64), " +
-                             "cost_center VARCHAR(64), " +
-                             "description TEXT NOT NULL, " +
-                             "amount NUMERIC(19,2) NOT NULL, " +
-                             "type VARCHAR(16) NOT NULL, " +
-                             "occurred_on DATE NOT NULL)")) {
-            stmt.execute();
+             Statement stmt = connection.createStatement()) {
+            stmt.execute(
+                    "CREATE TABLE IF NOT EXISTS ledger_entries (" +
+                            "id VARCHAR(64) PRIMARY KEY, " +
+                            "account_code VARCHAR(32) NOT NULL, " +
+                            "reference_code VARCHAR(64), " +
+                            "cost_center VARCHAR(64), " +
+                            "description TEXT NOT NULL, " +
+                            "amount NUMERIC(19,2) NOT NULL, " +
+                            "type VARCHAR(16) NOT NULL, " +
+                            "occurred_on DATE NOT NULL, " +
+                            "created_at TIMESTAMPTZ NOT NULL DEFAULT now(), " +
+                            "updated_at TIMESTAMPTZ NOT NULL DEFAULT now())");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_ledger_entries_date ON ledger_entries (occurred_on)");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_ledger_entries_account ON ledger_entries (account_code)");
         } catch (SQLException ex) {
             throw new IllegalStateException("Failed to initialize ledger table", ex);
         }
@@ -47,11 +52,12 @@ final class JdbcLedgerGateway implements LedgerGateway {
     public void upsert(LedgerEntry entry) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO ledger_entries (id, account_code, reference_code, cost_center, description, amount, type, occur" +
-                             "red_on) VALUES (?,?,?,?,?,?,?,?) " +
+                     "INSERT INTO ledger_entries (id, account_code, reference_code, cost_center, description, amount, type, occurred_on, created_at, updated_at) " +
+                             "VALUES (?,?,?,?,?,?,?, ?, now(), now()) " +
                              "ON CONFLICT (id) DO UPDATE SET account_code = excluded.account_code, " +
-                             "reference_code = excluded.reference_code, cost_center = excluded.cost_center, description = exclude" +
-                             "d.description, amount = excluded.amount, type = excluded.type, occurred_on = excluded.occurred_on")) {
+                             "reference_code = excluded.reference_code, cost_center = excluded.cost_center, " +
+                             "description = excluded.description, amount = excluded.amount, type = excluded.type, " +
+                             "occurred_on = excluded.occurred_on, updated_at = excluded.updated_at")) {
             stmt.setString(1, entry.id());
             stmt.setString(2, entry.accountCode());
             stmt.setString(3, entry.referenceCode());

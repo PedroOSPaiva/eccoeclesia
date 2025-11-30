@@ -48,6 +48,7 @@ function LoginPage() {
             required
           />
         </div>
+        <p className="helper">Sugestão para testes: tesouraria@ecoeclesia.test / finance123</p>
         <button className="primary-button" type="submit" disabled={loading}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
