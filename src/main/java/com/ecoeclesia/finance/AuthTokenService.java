@@ -2,40 +2,60 @@ package com.ecoeclesia.finance;
 
 import com.ecoeclesia.access.UserAccessPolicy;
 import com.ecoeclesia.access.UserRole;
+import com.ecoeclesia.user.CreateUserRequest;
+import com.ecoeclesia.user.PasswordHasher;
+import com.ecoeclesia.user.UserAccount;
+import com.ecoeclesia.user.UserManagementController;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
- * Serviço muito simples de emissão e validação de tokens para proteger os
- * endpoints do razão enquanto o stack oficial não chega. Cada token é
- * associado a um {@link UserRole} e validado contra a {@link UserAccessPolicy}.
+ * Serviço de emissão e validação de tokens que reaproveita o mesmo modelo de
+ * usuários/roles do módulo de gestão de contas, evitando heurísticas e
+ * garantindo que permissões reflitam exatamente o {@link UserAccessPolicy}.
  */
 public final class AuthTokenService {
 
-    private final Map<String, UserRole> accessTokens = new ConcurrentHashMap<>();
-    private final Map<String, UserRole> refreshTokens = new ConcurrentHashMap<>();
+    private final Map<String, UserAccount> accessTokens = new ConcurrentHashMap<>();
+    private final Map<String, UserAccount> refreshTokens = new ConcurrentHashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
+    private final UserManagementController users;
     private final SecureRandom random = new SecureRandom();
+
+    public AuthTokenService() {
+        this(new UserManagementController());
+    }
+
+    public AuthTokenService(UserManagementController users) {
+        this.users = Objects.requireNonNull(users);
+        seedDefaultAccounts();
+    }
 
     public AuthTokens login(String email, String password) {
         if (email == null || email.isBlank() || password == null || password.isBlank()) {
             throw new IllegalArgumentException("Email e senha são obrigatórios");
         }
-        UserRole role = resolveRole(email);
-        return issueTokens(role);
+        UserAccount account = users.findAccountByEmail(email);
+        if (account == null || !PasswordHasher.matches(password, account.getHashedPassword())) {
+            throw new IllegalArgumentException("Credenciais inválidas");
+        }
+        return issueTokens(account);
     }
 
     public AuthTokens refresh(String refreshToken) {
-        UserRole role = refreshTokens.get(refreshToken);
-        if (role == null) {
+        UserAccount account = refreshTokens.get(refreshToken);
+        if (account == null) {
             throw new IllegalArgumentException("Refresh token inválido");
         }
-        return issueTokens(role);
+        return issueTokens(account);
     }
 
     public boolean isAllowed(String authorizationHeader, String permission) {
@@ -43,8 +63,11 @@ public final class AuthTokenService {
             return false;
         }
         String token = authorizationHeader.replace("Bearer", "").trim();
-        UserRole role = accessTokens.get(token);
-        return role != null && accessPolicy.isAllowed(role, permission);
+        UserAccount account = accessTokens.get(token);
+        if (account == null) {
+            return false;
+        }
+        return account.getRoles().stream().anyMatch(role -> accessPolicy.isAllowed(role, permission));
     }
 
     public Set<String> permissionsFor(String authorizationHeader) {
@@ -52,48 +75,35 @@ public final class AuthTokenService {
             return Set.of();
         }
         String token = authorizationHeader.replace("Bearer", "").trim();
-        UserRole role = accessTokens.get(token);
-        if (role == null) {
+        UserAccount account = accessTokens.get(token);
+        if (account == null) {
             return Set.of();
         }
-        return rolePermissions(role);
+        return aggregatePermissions(account.getRoles());
     }
 
-    private AuthTokens issueTokens(UserRole role) {
+    private AuthTokens issueTokens(UserAccount account) {
         String accessToken = randomToken();
         String refreshToken = UUID.randomUUID().toString();
-        accessTokens.put(accessToken, role);
-        refreshTokens.put(refreshToken, role);
-        return new AuthTokens(accessToken, refreshToken, "Bearer", role.name(), rolePermissions(role));
+        accessTokens.put(accessToken, account);
+        refreshTokens.put(refreshToken, account);
+        String primaryRole = account.getRoles().stream().findFirst().map(Enum::name).orElse(UserRole.VOLUNTEER.name());
+        return new AuthTokens(accessToken, refreshToken, "Bearer", primaryRole, aggregatePermissions(account.getRoles()));
     }
 
-    private Set<String> rolePermissions(UserRole role) {
-        return accessPolicy == null
-                ? Set.of()
-                : accessPolicyPermissions(role);
+    private Set<String> aggregatePermissions(Set<UserRole> roles) {
+        return roles.stream()
+                .flatMap(role -> accessPolicy.permissionsFor(role).stream())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private Set<String> accessPolicyPermissions(UserRole role) {
-        return accessPolicy == null ? Set.of() : accessPolicyPermissionsInternal(role);
-    }
-
-    private Set<String> accessPolicyPermissionsInternal(UserRole role) {
-        return switch (Objects.requireNonNull(role)) {
-            case ADMIN -> Set.of("users:write", "users:read", "finance:write", "finance:read");
-            case FINANCE -> Set.of("finance:write", "finance:read");
-            case VOLUNTEER -> Set.of("inventory:read", "expenses:write");
-        };
-    }
-
-    private UserRole resolveRole(String email) {
-        String normalized = email.toLowerCase();
-        if (normalized.contains("admin")) {
-            return UserRole.ADMIN;
+    private void seedDefaultAccounts() {
+        if (!users.listUsers().isEmpty()) {
+            return;
         }
-        if (normalized.contains("tesour") || normalized.contains("finance")) {
-            return UserRole.FINANCE;
-        }
-        return UserRole.VOLUNTEER;
+        users.createUser(new CreateUserRequest("admin@ecoeclesia.test", "admin123", List.of(UserRole.ADMIN)));
+        users.createUser(new CreateUserRequest("tesouraria@ecoeclesia.test", "finance123", List.of(UserRole.FINANCE)));
+        users.createUser(new CreateUserRequest("voluntario@ecoeclesia.test", "servir123", List.of(UserRole.VOLUNTEER)));
     }
 
     private String randomToken() {

@@ -8,6 +8,12 @@ function LedgerPage() {
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState({ type: 'INCOME', accountCode: '1.1.01', description: '', amount: '', referenceCode: '', costCenter: '' });
   const [report, setReport] = useState('');
+  const [period, setPeriod] = useState(() => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const end = today.toISOString().split('T')[0];
+    return { start, end };
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -28,13 +34,13 @@ function LedgerPage() {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [period.start, period.end]);
 
   async function refresh() {
     setLoading(true);
     setError(null);
     try {
-      const [items, reportText] = await Promise.all([ledgerService.list(), ledgerService.fetchReportText()]);
+      const [items, reportText] = await Promise.all([ledgerService.list(period), ledgerService.fetchReportText(period)]);
       setEntries(items);
       setReport(reportText);
     } catch (err) {
@@ -56,7 +62,7 @@ function LedgerPage() {
   }
 
   async function download(kind) {
-    const blob = kind === 'pdf' ? await ledgerService.downloadPdf() : await ledgerService.downloadCsv();
+    const blob = kind === 'pdf' ? await ledgerService.downloadPdf(period) : await ledgerService.downloadCsv(period);
     const url = window.URL.createObjectURL(new Blob([blob]));
     const link = document.createElement('a');
     link.href = url;
@@ -64,6 +70,10 @@ function LedgerPage() {
     link.click();
     window.URL.revokeObjectURL(url);
   }
+
+  const totalIncome = entries.filter((e) => e.type === 'INCOME').reduce((sum, e) => sum + Number(e.amount), 0);
+  const totalExpense = entries.filter((e) => e.type === 'EXPENSE').reduce((sum, e) => sum + Number(e.amount), 0);
+  const balance = totalIncome - totalExpense;
 
   return (
     <div className="ledger-page">
@@ -73,12 +83,37 @@ function LedgerPage() {
           <p>Cadastre receitas e despesas com código de conta, centro de custo e referência.</p>
         </div>
         <div className="ledger-actions">
+          <div className="period-picker">
+            <label>
+              Início
+              <input type="date" value={period.start} onChange={(e) => setPeriod({ ...period, start: e.target.value })} />
+            </label>
+            <label>
+              Fim
+              <input type="date" value={period.end} onChange={(e) => setPeriod({ ...period, end: e.target.value })} />
+            </label>
+          </div>
           <button type="button" onClick={() => download('pdf')}>Baixar PDF</button>
           <button type="button" onClick={() => download('csv')}>Baixar CSV</button>
         </div>
       </header>
 
       {error && <div className="alert">{error}</div>}
+
+      <section className="summary-grid">
+        <div className="summary-card income">
+          <p className="label">Receitas no período</p>
+          <p className="value">R$ {totalIncome.toFixed(2)}</p>
+        </div>
+        <div className="summary-card expense">
+          <p className="label">Despesas no período</p>
+          <p className="value">R$ {totalExpense.toFixed(2)}</p>
+        </div>
+        <div className="summary-card balance">
+          <p className="label">Saldo</p>
+          <p className="value">R$ {balance.toFixed(2)}</p>
+        </div>
+      </section>
 
       <div className="ledger-grid">
         <section className="card">

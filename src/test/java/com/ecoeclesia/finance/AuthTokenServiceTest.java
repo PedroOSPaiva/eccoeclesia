@@ -9,9 +9,9 @@ public final class AuthTokenServiceTest {
 
     private final AuthTokenService service = new AuthTokenService();
 
-    @Test("issues tokens with finance permissions for tesoureiro emails")
+    @Test("issues tokens with finance permissions for seeded finance account")
     public void issuesFinanceTokens() {
-        AuthTokens tokens = service.login("tesoureiro@paroquia.org", "segredo");
+        AuthTokens tokens = service.login("tesouraria@ecoeclesia.test", "finance123");
         assertTrue(tokens.permissions().contains("finance:read"));
         assertEquals("Bearer", tokens.tokenType());
         assertTrue(service.isAllowed("Bearer " + tokens.accessToken(), "finance:write"));

@@ -22,6 +22,7 @@ final class SimpleDataSource implements DataSource {
         this.url = Objects.requireNonNull(url);
         this.user = user;
         this.password = password;
+        tryLoadPostgresDriver(url);
     }
 
     @Override
@@ -70,5 +71,15 @@ final class SimpleDataSource implements DataSource {
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
+    }
+
+    private void tryLoadPostgresDriver(String jdbcUrl) {
+        if (jdbcUrl.toLowerCase().contains("postgres")) {
+            try {
+                Class.forName("org.postgresql.Driver");
+            } catch (ClassNotFoundException ignored) {
+                // Driver não disponível no classpath – o chamador pode adicionar o jar ou usar outro backend.
+            }
+        }
     }
 }

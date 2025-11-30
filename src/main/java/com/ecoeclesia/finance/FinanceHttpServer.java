@@ -1,5 +1,7 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.config.DatabaseCredentials;
+import com.ecoeclesia.config.DatabaseUrlResolver;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -55,12 +57,18 @@ public final class FinanceHttpServer {
     }
 
     private static LedgerRepository chooseRepository() {
-        String jdbcUrl = System.getenv("FINANCE_DB_URL");
-        if (jdbcUrl != null && !jdbcUrl.isBlank()) {
-            DataSource dataSource = new SimpleDataSource(
-                    jdbcUrl,
-                    System.getenv("FINANCE_DB_USER"),
-                    System.getenv("FINANCE_DB_PASSWORD"));
+        String raw = System.getenv("FINANCE_DB_URL");
+        if (raw == null || raw.isBlank()) {
+            raw = System.getenv("DATABASE_URL");
+        }
+
+        String configuredUrl = raw;
+        if (configuredUrl != null && !configuredUrl.isBlank()) {
+            DatabaseCredentials credentials = DatabaseUrlResolver.resolve(configuredUrl)
+                    .orElseGet(() -> new DatabaseCredentials(configuredUrl, null, null));
+            String username = credentials.username() != null ? credentials.username() : System.getenv("FINANCE_DB_USER");
+            String password = credentials.password() != null ? credentials.password() : System.getenv("FINANCE_DB_PASSWORD");
+            DataSource dataSource = new SimpleDataSource(credentials.jdbcUrl(), username, password);
             return new SqlLedgerRepository(new JdbcLedgerGateway(dataSource));
         }
         return new DatabaseLedgerRepository(Path.of("data", "ledger-db.csv"));
@@ -95,7 +103,11 @@ public final class FinanceHttpServer {
                     writeCors(exchange, 401, "{\"error\":\"Unauthorized\"}");
                     return;
                 }
-                List<LedgerEntry> entries = ledgerService.listAll();
+                LocalDate start = queryDate(exchange, "start");
+                LocalDate end = queryDate(exchange, "end");
+                List<LedgerEntry> entries = start != null && end != null
+                        ? ledgerService.findByPeriod(start, end)
+                        : ledgerService.listAll();
                 writeCors(exchange, 200, toJson(entries));
                 return;
             }
@@ -129,7 +141,10 @@ public final class FinanceHttpServer {
                 writeCors(exchange, 401, "{\"error\":\"Unauthorized\"}");
                 return;
             }
-            FinancialReport report = reportGenerator.generate(LocalDate.now().withDayOfMonth(1), LocalDate.now(), BigDecimal.ZERO);
+            FinancialReport report = reportGenerator.generate(
+                    queryDate(exchange, "start", LocalDate.now().withDayOfMonth(1)),
+                    queryDate(exchange, "end", LocalDate.now()),
+                    BigDecimal.ZERO);
             String formatted = new FinancialReportFormatter().render(report);
             writeCors(exchange, 200, "{\\\"report\\\":\\\"" + escape(formatted) + "\\\"}");
         }
@@ -146,7 +161,10 @@ public final class FinanceHttpServer {
                 writeCors(exchange, 401, "{\"error\":\"Unauthorized\"}");
                 return;
             }
-            FinancialReport report = reportGenerator.generate(LocalDate.now().withDayOfMonth(1), LocalDate.now(), BigDecimal.ZERO);
+            FinancialReport report = reportGenerator.generate(
+                    queryDate(exchange, "start", LocalDate.now().withDayOfMonth(1)),
+                    queryDate(exchange, "end", LocalDate.now()),
+                    BigDecimal.ZERO);
             byte[] pdf = pdfExporter.render(report);
             Headers headers = exchange.getResponseHeaders();
             headers.add("Content-Type", "application/pdf");
@@ -169,7 +187,10 @@ public final class FinanceHttpServer {
                 writeCors(exchange, 401, "{\"error\":\"Unauthorized\"}");
                 return;
             }
-            FinancialReport report = reportGenerator.generate(LocalDate.now().withDayOfMonth(1), LocalDate.now(), BigDecimal.ZERO);
+            FinancialReport report = reportGenerator.generate(
+                    queryDate(exchange, "start", LocalDate.now().withDayOfMonth(1)),
+                    queryDate(exchange, "end", LocalDate.now()),
+                    BigDecimal.ZERO);
             String csv = spreadsheetExporter.toCsv(report);
             Headers headers = exchange.getResponseHeaders();
             headers.add("Content-Type", "text/csv; charset=utf-8");
@@ -229,6 +250,24 @@ public final class FinanceHttpServer {
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(payload);
         }
+    }
+
+    private LocalDate queryDate(HttpExchange exchange, String key) {
+        return queryDate(exchange, key, null);
+    }
+
+    private LocalDate queryDate(HttpExchange exchange, String key, LocalDate fallback) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null || query.isBlank()) {
+            return fallback;
+        }
+        for (String token : query.split("&")) {
+            String[] kv = token.split("=");
+            if (kv.length == 2 && kv[0].equalsIgnoreCase(key) && !kv[1].isBlank()) {
+                return LocalDate.parse(kv[1]);
+            }
+        }
+        return fallback;
     }
 
     private String toJson(List<LedgerEntry> entries) {

@@ -1,8 +1,9 @@
 import apiClient from './apiClient.js';
 
 const ledgerService = {
-  async list() {
-    const response = await apiClient.get('/api/ledger');
+  async list(period) {
+    const params = period?.start && period?.end ? { params: { start: period.start, end: period.end } } : undefined;
+    const response = await apiClient.get('/api/ledger', params);
     return response.data.items ?? [];
   },
 
@@ -11,18 +12,21 @@ const ledgerService = {
     return response.data.item;
   },
 
-  async fetchReportText() {
-    const response = await apiClient.get('/api/reports/ledger');
+  async fetchReportText(period) {
+    const params = period?.start && period?.end ? { params: { start: period.start, end: period.end } } : undefined;
+    const response = await apiClient.get('/api/reports/ledger', params);
     return response.data.report;
   },
 
-  async downloadPdf() {
-    const response = await apiClient.get('/api/reports/ledger.pdf', { responseType: 'blob' });
+  async downloadPdf(period) {
+    const params = period?.start && period?.end ? { params: { start: period.start, end: period.end }, responseType: 'blob' } : { responseType: 'blob' };
+    const response = await apiClient.get('/api/reports/ledger.pdf', params);
     return response.data;
   },
 
-  async downloadCsv() {
-    const response = await apiClient.get('/api/reports/ledger.csv', { responseType: 'blob' });
+  async downloadCsv(period) {
+    const params = period?.start && period?.end ? { params: { start: period.start, end: period.end }, responseType: 'blob' } : { responseType: 'blob' };
+    const response = await apiClient.get('/api/reports/ledger.csv', params);
     return response.data;
   }
 };

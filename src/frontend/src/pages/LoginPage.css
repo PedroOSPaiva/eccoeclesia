@@ -45,3 +45,9 @@
   width: 100%;
   margin-top: 0.5rem;
 }
+
+.login-card .helper {
+  font-size: 0.85rem;
+  color: #475467;
+  margin: -0.5rem 0 0.5rem;
+}
