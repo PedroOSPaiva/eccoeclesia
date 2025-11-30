@@ -55,6 +55,7 @@ A aplicação Vite consumirá o backend em `http://localhost:8080` para login e 
 - `src/frontend`: app React/Vite prototipado.
 - `infra/sql/ledger-postgres.sql`: DDL para a tabela `ledger_entries` com campos de auditoria.
 - `docs/financial-capabilities.md`: guia rápido do fluxo contábil e das exportações.
+- `docs/chart-of-accounts-glossary.md`: plano de contas paroquial com código, classificação, tipo e descrição já carregado no backend e disponível via `/api/ledger/chart`.
 
 ## Notas de contribuição
 - Use `./mvnw test` antes de enviar mudanças para validar o backend.

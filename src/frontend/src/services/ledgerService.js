@@ -28,6 +28,11 @@ const ledgerService = {
     const params = period?.start && period?.end ? { params: { start: period.start, end: period.end }, responseType: 'blob' } : { responseType: 'blob' };
     const response = await apiClient.get('/api/reports/ledger.csv', params);
     return response.data;
+  },
+
+  async listAccounts() {
+    const response = await apiClient.get('/api/ledger/chart');
+    return response.data.accounts ?? [];
   }
 };
 

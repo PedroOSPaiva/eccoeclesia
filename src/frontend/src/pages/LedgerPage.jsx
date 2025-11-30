@@ -6,6 +6,7 @@ import './LedgerPage.css';
 function LedgerPage() {
   const { hasPermission } = useAuth();
   const [entries, setEntries] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [form, setForm] = useState({ type: 'INCOME', accountCode: '1.1.01', description: '', amount: '', referenceCode: '', costCenter: '' });
   const [report, setReport] = useState('');
   const [period, setPeriod] = useState(() => {
@@ -36,6 +37,10 @@ function LedgerPage() {
     refresh();
   }, [period.start, period.end]);
 
+  useEffect(() => {
+    loadAccounts();
+  }, []);
+
   async function refresh() {
     setLoading(true);
     setError(null);
@@ -47,6 +52,18 @@ function LedgerPage() {
       setError(err?.message ?? 'Falha ao carregar lançamentos');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadAccounts() {
+    try {
+      const all = await ledgerService.listAccounts();
+      setAccounts(all);
+      if (all.length > 0) {
+        setForm((prev) => ({ ...prev, accountCode: prev.accountCode || all[0].code }));
+      }
+    } catch (err) {
+      setError(err?.message ?? 'Falha ao carregar plano de contas');
     }
   }
 
@@ -147,7 +164,13 @@ function LedgerPage() {
             </label>
             <label>
               Código da conta
-              <input value={form.accountCode} onChange={(e) => setForm({ ...form, accountCode: e.target.value })} required />
+              <select value={form.accountCode} onChange={(e) => setForm({ ...form, accountCode: e.target.value })}>
+                {accounts.map((account) => (
+                  <option key={account.code} value={account.code}>
+                    {account.code} · {account.description}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               Descrição
@@ -223,6 +246,57 @@ function LedgerPage() {
           )}
         </section>
       </div>
+
+      <section className="card plan-card">
+        <div className="plan-header">
+          <div>
+            <p className="eyebrow">Plano de contas</p>
+            <h2>Glossário paroquial</h2>
+            <p className="muted">
+              Lista oficial com código, classificação, tipo e descrição — use-a como referência para lançar receitas e despesas
+              na conta correta.
+            </p>
+          </div>
+          <button type="button" className="ghost" onClick={loadAccounts} disabled={loading}>
+            Recarregar
+          </button>
+        </div>
+        <div className="plan-grid">
+          <div className="plan-legend">
+            <p className="pill muted">Receitas</p>
+            <p className="pill danger">Despesas</p>
+          </div>
+          <div className="plan-table-wrapper">
+            <table className="plan-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Classificação</th>
+                  <th>Tipo</th>
+                  <th>Descrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((account) => (
+                  <tr key={account.code}>
+                    <td>{account.code}</td>
+                    <td>{account.classification}</td>
+                    <td>
+                      <span className={`pill ${account.nature === 'INCOME' ? 'success' : 'danger'}`}>{account.type}</span>
+                    </td>
+                    <td>{account.description}</td>
+                  </tr>
+                ))}
+                {accounts.length === 0 && (
+                  <tr>
+                    <td colSpan="4" className="muted text-center">Nenhum plano de contas carregado</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <section className="card report-card">
         <div className="report-header">

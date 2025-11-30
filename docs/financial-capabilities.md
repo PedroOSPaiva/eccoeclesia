@@ -4,7 +4,7 @@
 
 ## O que dá para executar agora
 
-- **Registrar lançamentos com códigos de conta, referência e centro de custo** usando `LedgerService` + `ChartOfAccounts` com os repositórios `InMemoryLedgerRepository`, `FileLedgerRepository`, `DatabaseLedgerRepository` (persistência em arquivo) ou `SqlLedgerRepository` (JDBC/Postgres via `FINANCE_DB_URL`).
+- **Registrar lançamentos com códigos de conta, referência e centro de custo** usando `LedgerService` + `ChartOfAccounts` com os repositórios `InMemoryLedgerRepository`, `FileLedgerRepository`, `DatabaseLedgerRepository` (persistência em arquivo) ou `SqlLedgerRepository` (JDBC/Postgres via `FINANCE_DB_URL`). O plano de contas pré-definido segue o glossário de `docs/chart-of-accounts-glossary.md` e pode ser consumido via `/api/ledger/chart`.
 - **Importar extratos CSV** (receitas e despesas) com `FinancialStatementImportService`, que cria lançamentos já validados contra o plano de contas.
 - **Consolidar períodos** com `FinancialReportGenerator`, que calcula saldo anterior, agrupamento por contas e saldo final.
 - **Emitir relatório textual** via `FinancialReportFormatter` com áreas de assinatura e separador de contas.
@@ -16,7 +16,7 @@
 
 ```java
 // Exemplo mínimo em um método main
-var chart = ChartOfAccounts.defaultAccounts();
+var chart = ChartOfAccounts.defaultPlan();
 var repo = new InMemoryLedgerRepository();
 var ledger = new LedgerService(chart, repo);
 

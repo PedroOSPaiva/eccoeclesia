@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -33,10 +34,11 @@ public final class FinanceHttpServer {
     private final FinancialReportPdfExporter pdfExporter;
     private final FinancialReportSpreadsheetExporter spreadsheetExporter;
     private final AuthTokenService authTokenService;
+    private final ChartOfAccounts chart;
 
     public FinanceHttpServer(int port, LedgerService ledgerService, FinancialReportGenerator reportGenerator,
                              FinancialReportPdfExporter pdfExporter, FinancialReportSpreadsheetExporter spreadsheetExporter,
-                             AuthTokenService authTokenService)
+                             AuthTokenService authTokenService, ChartOfAccounts chart)
             throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
         this.ledgerService = Objects.requireNonNull(ledgerService);
@@ -44,6 +46,7 @@ public final class FinanceHttpServer {
         this.pdfExporter = Objects.requireNonNull(pdfExporter);
         this.spreadsheetExporter = Objects.requireNonNull(spreadsheetExporter);
         this.authTokenService = Objects.requireNonNull(authTokenService);
+        this.chart = Objects.requireNonNull(chart);
         registerRoutes();
     }
 
@@ -53,7 +56,7 @@ public final class FinanceHttpServer {
         LedgerService ledgerService = new LedgerService(repository, chart);
         FinancialReportGenerator generator = new FinancialReportGenerator(repository, chart);
         return new FinanceHttpServer(port, ledgerService, generator,
-                new FinancialReportPdfExporter(), new FinancialReportSpreadsheetExporter(), new AuthTokenService());
+                new FinancialReportPdfExporter(), new FinancialReportSpreadsheetExporter(), new AuthTokenService(), chart);
     }
 
     private static LedgerRepository chooseRepository() {
@@ -86,9 +89,25 @@ public final class FinanceHttpServer {
         server.createContext("/api/auth/login", new LoginHandler());
         server.createContext("/api/auth/refresh", new RefreshHandler());
         server.createContext("/api/ledger", new LedgerHandler());
+        server.createContext("/api/ledger/chart", new ChartHandler());
         server.createContext("/api/reports/ledger", new ReportHandler());
         server.createContext("/api/reports/ledger.pdf", new PdfHandler());
         server.createContext("/api/reports/ledger.csv", new CsvHandler());
+    }
+
+    private final class ChartHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+                writeCors(exchange, 405, "{\\\"error\\\":\\\"Method not allowed\\\"}");
+                return;
+            }
+            if (!authTokenService.isAllowed(exchange.getRequestHeaders().getFirst("Authorization"), "finance:read")) {
+                writeCors(exchange, 401, "{\"error\":\"Unauthorized\"}");
+                return;
+            }
+            writeCors(exchange, 200, toJsonChart(chart.all()));
+        }
     }
 
     private final class LedgerHandler implements HttpHandler {
@@ -274,6 +293,20 @@ public final class FinanceHttpServer {
         StringJoiner joiner = new StringJoiner(",", "{\"items\":[", "]}");
         for (LedgerEntry entry : entries) {
             joiner.add(toJsonEntry(entry));
+        }
+        return joiner.toString();
+    }
+
+    private String toJsonChart(Collection<ChartOfAccount> accounts) {
+        StringJoiner joiner = new StringJoiner(",", "{\"accounts\":[", "]}");
+        for (ChartOfAccount account : accounts) {
+            joiner.add(new StringBuilder("{")
+                    .append("\"code\":\"").append(escape(account.code())).append("\",")
+                    .append("\"classification\":\"").append(escape(account.classification())).append("\",")
+                    .append("\"type\":\"").append(escape(account.type())).append("\",")
+                    .append("\"description\":\"").append(escape(account.description())).append("\",")
+                    .append("\"nature\":\"").append(account.nature().name()).append("\"")
+                    .append("}").toString());
         }
         return joiner.toString();
     }
