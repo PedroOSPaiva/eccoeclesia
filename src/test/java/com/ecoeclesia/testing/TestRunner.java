@@ -4,6 +4,10 @@ import com.ecoeclesia.access.UserAccessPolicyTest;
 import com.ecoeclesia.config.DatabaseUrlResolverTest;
 import com.ecoeclesia.expense.ExpenseServiceTest;
 import com.ecoeclesia.finance.FinancialStatementImportServiceTest;
+import com.ecoeclesia.finance.FileLedgerRepositoryTest;
+import com.ecoeclesia.finance.FinancialReportGeneratorTest;
+import com.ecoeclesia.finance.LedgerServiceTest;
+import com.ecoeclesia.finance.DatabaseLedgerRepositoryTest;
 import com.ecoeclesia.inventory.InventoryServiceTest;
 import com.ecoeclesia.revenue.RevenueServiceTest;
 import com.ecoeclesia.user.UserManagementControllerTest;
@@ -20,6 +24,10 @@ public final class TestRunner {
         List<Class<?>> tests = List.of(
                 DatabaseUrlResolverTest.class,
                 ExpenseServiceTest.class,
+                LedgerServiceTest.class,
+                FinancialReportGeneratorTest.class,
+                DatabaseLedgerRepositoryTest.class,
+                FileLedgerRepositoryTest.class,
                 RevenueServiceTest.class,
                 InventoryServiceTest.class,
                 FinancialStatementImportServiceTest.class,

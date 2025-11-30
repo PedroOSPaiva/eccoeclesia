@@ -38,8 +38,8 @@ const authService = {
   },
   async login(email, password) {
     const response = await apiClient.post('/api/auth/login', { email, password });
-    const { accessToken, refreshToken, tokenType } = response.data;
-    const tokens = { accessToken, refreshToken, tokenType };
+    const { accessToken, refreshToken, tokenType, permissions, role } = response.data;
+    const tokens = { accessToken, refreshToken, tokenType, permissions, role, email };
     saveTokens(tokens);
     return tokens;
   },
@@ -57,7 +57,10 @@ const authService = {
     const refreshed = {
       accessToken: response.data.accessToken,
       refreshToken: response.data.refreshToken,
-      tokenType: response.data.tokenType
+      tokenType: response.data.tokenType,
+      permissions: response.data.permissions,
+      role: response.data.role,
+      email: tokens.email
     };
     saveTokens(refreshed);
     return refreshed;

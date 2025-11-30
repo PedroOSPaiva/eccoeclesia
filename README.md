@@ -28,6 +28,7 @@
    - Relatórios financeiros mensais, trimestrais e anuais.
    - Relatórios de inventário e uso de bens de consumo.
    - Acesso restrito de fiéis para visualização de relatórios financeiros e de inventário.
+   - (Draft) Razão contábil com plano de contas e gerador de relatório textual – veja `docs/financial-capabilities.md` para ver o que já pode ser exercitado enquanto a API/telas não chegam.
 
 4. **Gestão de Usuários:**
    - Sistema de autenticação e autorização.
@@ -41,11 +42,13 @@
 
 - **Backend:**
   - Java 21
-  - Sem dependências externas: serviços, controladores e repositórios executam em memória
+  - HTTP server leve (`FinanceHttpServer`) com endpoints JSON/PDF/CSV para o razão e consolidado
+  - Autenticação simplificada via `/api/auth/login` e `/api/auth/refresh` com tokens Bearer
   - Build/Test: script `./mvnw` (wrapper customizado que usa `javac` e o executor de testes interno)
 
 - **Persistência:**
-  - Implementações em memória para facilitar o desenvolvimento offline
+  - Implementações em memória e repositório em arquivo (`DatabaseLedgerRepository`) para manter trilhas auditáveis do razão
+  - Repositório JDBC (`SqlLedgerRepository` + `JdbcLedgerGateway`) que escreve na tabela `ledger_entries` (DDL em `infra/sql/ledger-postgres.sql`), ativado ao definir `FINANCE_DB_URL`
 
 ## Estrutura do Projeto
 
@@ -87,6 +90,15 @@
     ./mvnw run
     ```
     Isso irá apenas compilar os artefatos (se necessário) e executar `com.ecoeclesia.EcoEcclesiaApplication` para um pequeno smoke test em linha de comando.
+
+4. (Opcional) Usar Postgres real para o razão:
+    ```sh
+    export FINANCE_DB_URL="jdbc:postgresql://localhost:5432/ecoeclesia"
+    export FINANCE_DB_USER=seu_usuario
+    export FINANCE_DB_PASSWORD=senha
+    ./mvnw run
+    ```
+    O servidor HTTP irá aplicar automaticamente o DDL de `infra/sql/ledger-postgres.sql` para criar a tabela `ledger_entries` caso ela não exista.
 
 ## Contribuição
 
