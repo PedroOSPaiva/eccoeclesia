@@ -40,6 +40,7 @@ Consulte `docs/financial-capabilities.md` para um passo a passo detalhado do flu
    ./mvnw run
    ```
    O servidor tentará carregar o driver JDBC do classpath, aplicará o DDL de `infra/sql/ledger-postgres.sql` e passará a persistir em `ledger_entries` com colunas de auditoria e índices.
+   - Para popular dados de teste diretamente no banco e validar o fluxo via API/PDF/CSV, siga `docs/finance-postgres-smoke-test.md`.
 
 ## Como executar o frontend (protótipo)
 ```sh
