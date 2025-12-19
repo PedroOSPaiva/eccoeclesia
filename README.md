@@ -9,6 +9,8 @@
 
 Consulte `docs/financial-capabilities.md` para um passo a passo detalhado do fluxo contábil já disponível.
 
+Para evidências de qualidade e operação alinhadas ao front, veja `docs/frontend-iso9001-readiness.md` (checklist de build, testes manuais, rastreabilidade e aceitação de release).
+
 ## Requisitos
 - JDK 21+ disponível no `PATH` (o script chama `javac --release 21`).
 - Bash para executar `./mvnw`.
