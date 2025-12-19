@@ -4,9 +4,11 @@ import Layout from './components/Layout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import BirthdaysPage from './pages/BirthdaysPage.jsx';
 import ExpensesPage from './pages/ExpensesPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
+import LedgerPage from './pages/LedgerPage.jsx';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -18,7 +20,9 @@ function App() {
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/birthdays" element={<BirthdaysPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/ledger" element={<LedgerPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/reports" element={<ReportsPage />} />
         </Route>
