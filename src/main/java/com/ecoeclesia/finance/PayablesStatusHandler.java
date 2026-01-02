@@ -13,13 +13,15 @@ final class PayablesStatusHandler implements HttpHandler {
     private final AuthTokenService authTokenService;
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
+    private final FinanceHttpLogger logger;
 
     PayablesStatusHandler(PayableService payableService, AuthTokenService authTokenService,
-                          FinanceHttpResponseWriter responseWriter, FinanceHttpJson json) {
+                          FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, FinanceHttpLogger logger) {
         this.payableService = payableService;
         this.authTokenService = authTokenService;
         this.responseWriter = responseWriter;
         this.json = json;
+        this.logger = logger;
     }
 
     @Override
@@ -48,6 +50,7 @@ final class PayablesStatusHandler implements HttpHandler {
             }
             PayableStatus status = PayableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
             PayableEntry updated = payableService.updateStatus(id, status);
+            logger.logEvent("Payable status updated: " + id + " -> " + status);
             responseWriter.writeJson(exchange, 200, json.payable(updated));
         } catch (IllegalArgumentException ex) {
             responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");

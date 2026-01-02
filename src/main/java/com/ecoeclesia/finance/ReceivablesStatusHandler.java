@@ -13,13 +13,15 @@ final class ReceivablesStatusHandler implements HttpHandler {
     private final AuthTokenService authTokenService;
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
+    private final FinanceHttpLogger logger;
 
     ReceivablesStatusHandler(ReceivableService receivableService, AuthTokenService authTokenService,
-                             FinanceHttpResponseWriter responseWriter, FinanceHttpJson json) {
+                             FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, FinanceHttpLogger logger) {
         this.receivableService = receivableService;
         this.authTokenService = authTokenService;
         this.responseWriter = responseWriter;
         this.json = json;
+        this.logger = logger;
     }
 
     @Override
@@ -48,6 +50,7 @@ final class ReceivablesStatusHandler implements HttpHandler {
             }
             ReceivableStatus status = ReceivableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
             ReceivableEntry updated = receivableService.updateStatus(id, status);
+            logger.logEvent("Receivable status updated: " + id + " -> " + status);
             responseWriter.writeJson(exchange, 200, json.receivable(updated));
         } catch (IllegalArgumentException ex) {
             responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
