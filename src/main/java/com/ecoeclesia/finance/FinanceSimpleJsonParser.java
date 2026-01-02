@@ -28,11 +28,19 @@ final class FinanceSimpleJsonParser {
         List<String> parts = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;
+        int bracketDepth = 0;
         for (char ch : input.toCharArray()) {
             if (ch == '"') {
                 inQuotes = !inQuotes;
             }
-            if (ch == ',' && !inQuotes) {
+            if (!inQuotes) {
+                if (ch == '[') {
+                    bracketDepth += 1;
+                } else if (ch == ']') {
+                    bracketDepth = Math.max(0, bracketDepth - 1);
+                }
+            }
+            if (ch == ',' && !inQuotes && bracketDepth == 0) {
                 parts.add(current.toString());
                 current.setLength(0);
             } else {

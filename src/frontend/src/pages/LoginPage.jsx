@@ -48,7 +48,7 @@ function LoginPage() {
             required
           />
         </div>
-        <p className="helper">Sugestão para testes: tesouraria@ecoeclesia.test / finance123</p>
+        <p className="helper">Use uma conta configurada via variáveis de ambiente.</p>
         <button className="primary-button" type="submit" disabled={loading}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
