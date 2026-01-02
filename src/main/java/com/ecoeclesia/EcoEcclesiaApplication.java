@@ -17,14 +17,11 @@ public final class EcoEcclesiaApplication {
         var service = new ExpenseService(repository);
         service.registerExpense("visitantes", "Coffee for visitors", "25.00");
         System.out.println("""
-                █████████████████████████████
-                ████████ EcoEcclesia █████████
-                █████████████████████████████
-                       ██
-                      ████
-                     ██████
-                      ████
-                       ██
+                 _____          _____          _      _           _
+                | ____|_ __ ___ | ____|___  ___| | ___| | ___  ___(_)
+                |  _| | '_ ` _ \\|  _| / __|/ __| |/ _ \\ |/ _ \\/ __| |
+                | |___| | | | | | |___\\__ \\ (__| |  __/ |  __/\\__ \\ |
+                |_____|_| |_| |_|_____|___/\\___|_|\\___|_|\\___||___/_|
                 """);
         System.out.println("EcoEcclesia backend is ready – stored " + service.listExpenses().size() + " expense(s).");
         System.out.println("Projeto criado por Pedro Henrique Oliveira Souza Paiva.");
