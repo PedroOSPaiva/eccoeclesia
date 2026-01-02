@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,12 +32,16 @@ public final class AuthTokenService {
     private final SecureRandom random = new SecureRandom();
 
     public AuthTokenService() {
-        this(new UserManagementController());
+        this(new UserManagementController(), loadSeedUsersFromEnv());
     }
 
     public AuthTokenService(UserManagementController users) {
+        this(users, loadSeedUsersFromEnv());
+    }
+
+    public AuthTokenService(UserManagementController users, List<CreateUserRequest> seedUsers) {
         this.users = Objects.requireNonNull(users);
-        seedDefaultAccounts();
+        seedDefaultAccounts(seedUsers);
     }
 
     public AuthTokens login(String email, String password) {
@@ -97,18 +102,52 @@ public final class AuthTokenService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private void seedDefaultAccounts() {
+    private void seedDefaultAccounts(List<CreateUserRequest> seedUsers) {
         if (!users.listUsers().isEmpty()) {
             return;
         }
-        users.createUser(new CreateUserRequest("admin@ecoeclesia.test", "admin123", List.of(UserRole.ADMIN)));
-        users.createUser(new CreateUserRequest("tesouraria@ecoeclesia.test", "finance123", List.of(UserRole.FINANCE)));
-        users.createUser(new CreateUserRequest("voluntario@ecoeclesia.test", "servir123", List.of(UserRole.VOLUNTEER)));
+        if (seedUsers == null || seedUsers.isEmpty()) {
+            return;
+        }
+        seedUsers.forEach(users::createUser);
     }
 
     private String randomToken() {
         byte[] bytes = new byte[24];
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private static List<CreateUserRequest> loadSeedUsersFromEnv() {
+        String raw = Optional.ofNullable(System.getenv("ECOECCLESIA_SEED_USERS")).orElse("").trim();
+        if (raw.isBlank()) {
+            return List.of();
+        }
+        return List.of(raw.split(";")).stream()
+                .map(String::trim)
+                .filter(entry -> !entry.isBlank())
+                .map(AuthTokenService::parseSeedUser)
+                .collect(Collectors.toList());
+    }
+
+    private static CreateUserRequest parseSeedUser(String entry) {
+        String[] parts = entry.split("\\|");
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("Seed users devem seguir o formato email|senha|ROLE[,ROLE]");
+        }
+        String email = parts[0].trim();
+        String password = parts[1].trim();
+        if (email.isBlank() || password.isBlank()) {
+            throw new IllegalArgumentException("Seed users requerem email e senha não vazios");
+        }
+        List<UserRole> roles = List.of(parts[2].split(",")).stream()
+                .map(String::trim)
+                .filter(role -> !role.isBlank())
+                .map(role -> UserRole.valueOf(role.toUpperCase()))
+                .collect(Collectors.toList());
+        if (roles.isEmpty()) {
+            throw new IllegalArgumentException("Seed users requerem ao menos um role válido");
+        }
+        return new CreateUserRequest(email, password, roles, null, null, null, null);
     }
 }

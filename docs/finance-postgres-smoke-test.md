@@ -27,12 +27,12 @@ psql "$FINANCE_DB_URL" -f infra/sql/ledger-sample-data.sql
 Isso insere receitas e despesas usando códigos do plano de contas (1.1.01 dízimos, 1.1.02 ofertas, 1.1.08 catequese, 2.1.01 utilidades, 2.3.01 liturgia, 2.4.01 ação social).
 
 ## 3. Conferir via API protegida
-Autentique com um usuário de finanças (ex.: `tesouraria@ecoeclesia.test / finance123`) e consulte:
+Autentique com um usuário de finanças configurado via `ECOECCLESIA_SEED_USERS` e consulte:
 ```bash
 # Login para obter o token
 curl -X POST http://localhost:8080/api/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"tesouraria@ecoeclesia.test","password":"finance123"}'
+  -d '{"email":"financeiro@exemplo.org","password":"SENHA_FORTE_AQUI"}'
 
 # Listar lançamentos (período opcional)
 curl -H "Authorization: Bearer $TOKEN" \

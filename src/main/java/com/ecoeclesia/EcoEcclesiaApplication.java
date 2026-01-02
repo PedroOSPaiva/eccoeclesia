@@ -17,6 +17,9 @@ public final class EcoEcclesiaApplication {
         var service = new ExpenseService(repository);
         service.registerExpense("visitantes", "Coffee for visitors", "25.00");
         System.out.println("EcoEcclesia backend is ready – stored " + service.listExpenses().size() + " expense(s).");
+        System.out.println("Projeto criado por Pedro Henrique Oliveira Souza Paiva.");
+        System.out.println("Desenvolvido e idealizado na comunidade São João Bosco,");
+        System.out.println("na Paróquia da Imaculada Conceição.");
         try {
             var server = FinanceHttpServer.startDefault(8080);
             server.start();
