@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 import com.ecoeclesia.config.DatabaseCredentials;
 import com.ecoeclesia.config.DatabaseUrlResolver;
+import com.ecoeclesia.user.UserManagementController;
 
 /**
  * Minimal HTTP server to expose ledger operations to the React frontend.
@@ -26,10 +27,14 @@ public final class FinanceHttpServer {
     private final FinanceHttpJson json;
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpQueryParams queryParams;
+    private final UserManagementController users;
+    private final PayableService payableService;
+    private final ReceivableService receivableService;
 
     public FinanceHttpServer(int port, LedgerService ledgerService, FinancialReportGenerator reportGenerator,
                              FinancialReportPdfExporter pdfExporter, FinancialReportSpreadsheetExporter spreadsheetExporter,
-                             AuthTokenService authTokenService, ChartOfAccounts chart)
+                             AuthTokenService authTokenService, ChartOfAccounts chart, UserManagementController users,
+                             PayableService payableService, ReceivableService receivableService)
             throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
         this.ledgerService = Objects.requireNonNull(ledgerService);
@@ -38,6 +43,9 @@ public final class FinanceHttpServer {
         this.spreadsheetExporter = Objects.requireNonNull(spreadsheetExporter);
         this.authTokenService = Objects.requireNonNull(authTokenService);
         this.chart = Objects.requireNonNull(chart);
+        this.users = Objects.requireNonNull(users);
+        this.payableService = Objects.requireNonNull(payableService);
+        this.receivableService = Objects.requireNonNull(receivableService);
         this.json = new FinanceHttpJson();
         this.responseWriter = new FinanceHttpResponseWriter();
         this.queryParams = new FinanceHttpQueryParams();
@@ -49,8 +57,13 @@ public final class FinanceHttpServer {
         ChartOfAccounts chart = ChartOfAccounts.defaultPlan();
         LedgerService ledgerService = new LedgerService(repository, chart);
         FinancialReportGenerator generator = new FinancialReportGenerator(repository, chart);
+        UserManagementController users = new UserManagementController();
+        AuthTokenService authTokenService = new AuthTokenService(users);
+        PayableService payableService = new PayableService(new InMemoryPayableRepository());
+        ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
         return new FinanceHttpServer(port, ledgerService, generator,
-                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(), new AuthTokenService(), chart);
+                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
+                authTokenService, chart, users, payableService, receivableService);
     }
 
     private static LedgerRepository chooseRepository() {
@@ -90,5 +103,10 @@ public final class FinanceHttpServer {
                 new PdfHandler(reportGenerator, pdfExporter, authTokenService, responseWriter, queryParams));
         server.createContext("/api/reports/ledger.csv",
                 new CsvHandler(reportGenerator, spreadsheetExporter, authTokenService, responseWriter, queryParams));
+        server.createContext("/api/users", new UsersHandler(authTokenService, users, responseWriter, json));
+        server.createContext("/api/payables", new PayablesHandler(payableService, authTokenService, responseWriter, json));
+        server.createContext("/api/payables/", new PayablesStatusHandler(payableService, authTokenService, responseWriter, json));
+        server.createContext("/api/receivables", new ReceivablesHandler(receivableService, authTokenService, responseWriter, json));
+        server.createContext("/api/receivables/", new ReceivablesStatusHandler(receivableService, authTokenService, responseWriter, json));
     }
 }
