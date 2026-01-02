@@ -33,7 +33,7 @@ Para rodar algo parecido sem escrever código, você pode duplicar/adaptar os ce
 ## Próximos passos recomendados
 
 1. **Persistência em banco**: agora aceita `FINANCE_DB_URL` ou `DATABASE_URL` em formato Postgres, aplica automaticamente o DDL evoluído (colunas de auditoria e índices) e tenta carregar o driver JDBC quando disponível.
-2. **API HTTP**: autenticada com o mesmo modelo de usuários/roles do módulo de contas, incluindo seed de usuários (`admin@ecoeclesia.test` e `tesouraria@ecoeclesia.test`).
+2. **API HTTP**: autenticada com o mesmo modelo de usuários/roles do módulo de contas, com seed opcional configurado por `ECOECCLESIA_SEED_USERS`.
 3. **Frontend**: tela financeira já filtra por período, mostra totais e usa os endpoints do backend; o próximo passo é apenas alinhar visual final com o design oficial quando estiver pronto.
 
 Enquanto esses itens não chegam, o fluxo interno acima já permite testar a lógica contábil, validar o plano de contas e revisar o layout textual.
