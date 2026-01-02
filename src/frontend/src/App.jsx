@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuth } from './contexts/AuthContext.jsx';
 import Layout from './components/Layout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -9,9 +10,20 @@ import ExpensesPage from './pages/ExpensesPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import LedgerPage from './pages/LedgerPage.jsx';
+import SplashScreen from './components/SplashScreen.jsx';
 
 function App() {
   const { isAuthenticated } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
 
   return (
     <Routes>
