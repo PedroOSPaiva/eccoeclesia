@@ -23,7 +23,7 @@ Este guia descreve como executar o frontend e como evidenciar conformidade com p
   O build deve concluir sem warnings bloqueantes. Armazene o artefato `dist/` junto do hash do commit para rastreabilidade.
 
 - **Teste manual guiado (checklist):**
-  1. Autenticação com usuários seed (`admin@ecoeclesia.test`/`admin123`, `tesouraria@ecoeclesia.test`/`finance123`).
+1. Autenticação com usuários seed configurados via `ECOECCLESIA_SEED_USERS`.
   2. Acesso condicional ao menu **Financeiro** apenas para perfis com permissão.
   3. Na página Financeiro: filtros de período, totais de receitas/despesas/saldo, tabela com código/conta/ref./centro de custo, download CSV/PDF e exibição do plano de contas/glossário.
   4. Estado de carregamento, mensagens de erro e placeholders (skeleton) presentes.
