@@ -3,11 +3,13 @@
 ## Visão geral
 - **Backend Java 21** com script customizado `./mvnw` (usa `javac`, não depende do Maven instalado) e servidor HTTP leve (`FinanceHttpServer`) para autenticação, razão contábil e exportação de relatórios.
 - **Persistência do razão**: por padrão grava em arquivo (`data/ledger-db.csv`); quando `FINANCE_DB_URL` ou `DATABASE_URL` está definido usa JDBC Postgres e aplica o DDL auditável de `infra/sql/ledger-postgres.sql`.
-- **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`, com usuários seed `admin@ecoeclesia.test`/`admin123`, `tesouraria@ecoeclesia.test`/`finance123` e `voluntario@ecoeclesia.test`/`servir123`.
+- **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`. Contas seed podem ser configuradas via `ECOECCLESIA_SEED_USERS` (formato `email|senha|ROLE[,ROLE];email|senha|ROLE`).
 - **Frontend React (Vite)** em `src/frontend`: protótipo de login, dashboard financeiro (filtros de período, totais, download CSV/PDF) e páginas auxiliares. Ele consome o backend em `http://localhost:8080` quando iniciado via `npm run dev`.
 - Outros módulos (despesas, receitas, inventário, aniversariantes) permanecem com repositórios em memória e testes de unidade para exercitar regras.
 
 Consulte `docs/financial-capabilities.md` para um passo a passo detalhado do fluxo contábil já disponível.
+
+Para um roadmap da versão excelente, veja `docs/financial-excellence.md`.
 
 Para evidências de qualidade e operação alinhadas ao front, veja `docs/frontend-iso9001-readiness.md` (checklist de build, testes manuais, rastreabilidade e aceitação de release).
 
@@ -32,6 +34,9 @@ Para evidências de qualidade e operação alinhadas ao front, veja `docs/fronte
    - Autenticação: `POST /api/auth/login` e `POST /api/auth/refresh` (retornam tokens Bearer + permissões).
    - Razão: `GET /api/ledger` (lista ou filtra por `start`/`end`), `POST /api/ledger` (cria lançamento; requer `finance:write`).
    - Relatórios: `GET /api/reports/ledger` (texto), `GET /api/reports/ledger.pdf`, `GET /api/reports/ledger.csv` (todos com filtros `start`/`end`).
+   - Contas a pagar: `GET /api/payables`, `POST /api/payables`, `PUT /api/payables/{id}/status`.
+   - Contas a receber: `GET /api/receivables`, `POST /api/receivables`, `PUT /api/receivables/{id}/status`.
+   - Para seed de usuários (opcional), use `ECOECCLESIA_SEED_USERS` no formato `email|senha|ROLE[,ROLE];email|senha|ROLE`.
 
 3. **Usar Postgres (opcional)**
    ```sh
