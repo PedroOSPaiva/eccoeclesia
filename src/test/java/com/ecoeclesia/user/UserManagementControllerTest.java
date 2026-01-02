@@ -14,22 +14,24 @@ public final class UserManagementControllerTest {
     @Test("creates users with hashed passwords")
     public void createsUsers() {
         var response = controller.createUser(new CreateUserRequest("admin@ecoeclesia.org", "secret",
-                List.of(UserRole.ADMIN)));
+                List.of(UserRole.ADMIN), "Admin", "1980-01-01", "Rua Central, 100", null));
         assertEquals("admin@ecoeclesia.org", response.email());
         assertEquals(1, controller.listUsers().size());
     }
 
     @Test("prevents duplicated emails")
     public void preventsDuplicates() {
-        controller.createUser(new CreateUserRequest("finance@ecoeclesia.org", "secret", List.of(UserRole.FINANCE)));
+        controller.createUser(new CreateUserRequest("finance@ecoeclesia.org", "secret",
+                List.of(UserRole.FINANCE), null, null, null, null));
         assertThrows(IllegalArgumentException.class, () -> controller.createUser(
-                new CreateUserRequest("finance@ecoeclesia.org", "another", List.of(UserRole.FINANCE))));
+                new CreateUserRequest("finance@ecoeclesia.org", "another",
+                        List.of(UserRole.FINANCE), null, null, null, null)));
     }
 
     @Test("updates passwords")
     public void updatesPasswords() {
         var response = controller.createUser(new CreateUserRequest("volunteer@ecoeclesia.org", "123",
-                List.of(UserRole.VOLUNTEER)));
+                List.of(UserRole.VOLUNTEER), null, null, null, null));
         var updated = controller.updatePassword(response.id(), new UpdateUserPasswordRequest("456"));
         assertEquals(response.id(), updated.id());
     }
