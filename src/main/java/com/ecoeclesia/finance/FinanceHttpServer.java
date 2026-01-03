@@ -99,6 +99,7 @@ public final class FinanceHttpServer {
     private void registerRoutes() {
         createContext("/api/auth/login", new LoginHandler(authTokenService, responseWriter, json));
         createContext("/api/auth/refresh", new RefreshHandler(authTokenService, responseWriter, json));
+        createContext("/api/auth/password", new PasswordChangeHandler(authTokenService, responseWriter, json));
         createContext("/api/ledger", new LedgerHandler(ledgerService, authTokenService, responseWriter, json, queryParams));
         createContext("/api/ledger/chart", new ChartHandler(chart, authTokenService, responseWriter, json));
         createContext("/api/reports/ledger",
