@@ -28,6 +28,7 @@ public final class EcoEcclesiaApplication {
         System.out.println("Projeto criado por Pedro Henrique Oliveira Souza Paiva.");
         System.out.println("Desenvolvido e idealizado na comunidade São João Bosco,");
         System.out.println("na Paróquia da Imaculada Conceição.");
+        System.out.println("em memória de minha avó Arlete, com gratidão.");
         try {
             var server = FinanceHttpServer.startDefault(8080);
             server.start();

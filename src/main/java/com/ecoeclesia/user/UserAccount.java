@@ -125,6 +125,33 @@ public final class UserAccount {
         }
     }
 
+    public void updateProfile(String email, String fullName, String birthDate, String address, String photoUrl) {
+        boolean changed = false;
+        if (email != null) {
+            this.email = email;
+            changed = true;
+        }
+        if (fullName != null) {
+            this.fullName = fullName;
+            changed = true;
+        }
+        if (birthDate != null) {
+            this.birthDate = birthDate;
+            changed = true;
+        }
+        if (address != null) {
+            this.address = address;
+            changed = true;
+        }
+        if (photoUrl != null) {
+            this.photoUrl = photoUrl;
+            changed = true;
+        }
+        if (changed) {
+            this.updatedAt = Instant.now();
+        }
+    }
+
     public void replaceRoles(Set<UserRole> newRoles) {
         roles.clear();
         roles.addAll(newRoles);
