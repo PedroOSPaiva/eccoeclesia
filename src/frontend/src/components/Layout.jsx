@@ -4,7 +4,9 @@ import Brand from './Brand.jsx';
 import './Layout.css';
 
 function Layout() {
-  const { logout, hasPermission } = useAuth();
+  const { logout, hasPermission, tokens } = useAuth();
+  const warningDays = tokens?.daysUntilPasswordExpiry ?? null;
+  const showWarning = warningDays !== null && warningDays <= 30 && warningDays > 0;
 
   return (
     <div className="app-shell">
@@ -37,6 +39,11 @@ function Layout() {
         </button>
       </aside>
       <main className="content">
+        {showWarning && (
+          <div className="warning-banner">
+            Sua senha expira em {warningDays} dia(s). Atualize-a para manter o acesso seguro.
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

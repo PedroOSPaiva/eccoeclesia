@@ -3,7 +3,7 @@
 ## Visão geral
 - **Backend Java 21** com script customizado `./mvnw` (usa `javac`, não depende do Maven instalado) e servidor HTTP leve (`FinanceHttpServer`) para autenticação, razão contábil e exportação de relatórios.
 - **Persistência do razão**: por padrão grava em arquivo (`data/ledger-db.csv`); quando `FINANCE_DB_URL` ou `DATABASE_URL` está definido usa JDBC Postgres e aplica o DDL auditável de `infra/sql/ledger-postgres.sql`.
-- **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`. Contas seed podem ser configuradas via `ECOECCLESIA_SEED_USERS` (formato `email|senha|ROLE[,ROLE];email|senha|ROLE`).
+- **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`. Contas seed podem ser configuradas via `ECOECCLESIA_SEED_USERS` (formato `email|senha|ROLE[,ROLE];email|senha|ROLE`). O primeiro acesso exige atualização de senha e há expiração a cada 120 dias.
 - **Frontend React (Vite)** em `src/frontend`: protótipo de login, dashboard financeiro (filtros de período, totais, download CSV/PDF) e páginas auxiliares. Ele consome o backend em `http://localhost:8080` quando iniciado via `npm run dev`.
 - Outros módulos (despesas, receitas, inventário, aniversariantes) permanecem com repositórios em memória e testes de unidade para exercitar regras.
 

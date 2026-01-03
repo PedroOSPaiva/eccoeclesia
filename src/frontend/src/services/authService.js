@@ -38,10 +38,23 @@ const authService = {
   },
   async login(email, password) {
     const response = await apiClient.post('/api/auth/login', { email, password });
-    const { accessToken, refreshToken, tokenType, permissions, role } = response.data;
-    const tokens = { accessToken, refreshToken, tokenType, permissions, role, email };
+    const { accessToken, refreshToken, tokenType, permissions, role, mustChangePassword, daysUntilPasswordExpiry, passwordExpiresAt } = response.data;
+    const tokens = { accessToken, refreshToken, tokenType, permissions, role, email, mustChangePassword, daysUntilPasswordExpiry, passwordExpiresAt };
     saveTokens(tokens);
     return tokens;
+  },
+  async changePassword(password) {
+    const response = await apiClient.post('/api/auth/password', { password });
+    return response.data;
+  },
+  updateStoredTokens(update) {
+    const current = authService.loadTokens();
+    if (!current) {
+      return null;
+    }
+    const next = { ...current, ...update };
+    saveTokens(next);
+    return next;
   },
   logout() {
     saveTokens(null);
@@ -60,6 +73,9 @@ const authService = {
       tokenType: response.data.tokenType,
       permissions: response.data.permissions,
       role: response.data.role,
+      mustChangePassword: response.data.mustChangePassword ?? tokens.mustChangePassword,
+      daysUntilPasswordExpiry: response.data.daysUntilPasswordExpiry ?? tokens.daysUntilPasswordExpiry,
+      passwordExpiresAt: response.data.passwordExpiresAt ?? tokens.passwordExpiresAt,
       email: tokens.email
     };
     saveTokens(refreshed);

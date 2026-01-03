@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  */
 public final class AuthTokenService {
 
+    private static final long PASSWORD_MAX_AGE_DAYS = 120;
     private final Map<String, UserAccount> accessTokens = new ConcurrentHashMap<>();
     private final Map<String, UserAccount> refreshTokens = new ConcurrentHashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
@@ -93,7 +94,9 @@ public final class AuthTokenService {
         accessTokens.put(accessToken, account);
         refreshTokens.put(refreshToken, account);
         String primaryRole = account.getRoles().stream().findFirst().map(Enum::name).orElse(UserRole.VOLUNTEER.name());
-        return new AuthTokens(accessToken, refreshToken, "Bearer", primaryRole, aggregatePermissions(account.getRoles()));
+        PasswordStatus passwordStatus = passwordStatus(account);
+        return new AuthTokens(accessToken, refreshToken, "Bearer", primaryRole, aggregatePermissions(account.getRoles()),
+                passwordStatus.mustChangePassword(), passwordStatus.daysUntilExpiry(), passwordStatus.expiresAt());
     }
 
     private Set<String> aggregatePermissions(Set<UserRole> roles) {
@@ -149,5 +152,40 @@ public final class AuthTokenService {
             throw new IllegalArgumentException("Seed users requerem ao menos um role válido");
         }
         return new CreateUserRequest(email, password, roles, null, null, null, null);
+    }
+
+    public UserAccount accountFor(String authorizationHeader) {
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return null;
+        }
+        String token = authorizationHeader.replace("Bearer", "").trim();
+        return accessTokens.get(token);
+    }
+
+    public void changePassword(String authorizationHeader, String newPassword) {
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("Senha é obrigatória");
+        }
+        UserAccount account = accountFor(authorizationHeader);
+        if (account == null) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+        users.updatePassword(account.getId(), new com.ecoeclesia.user.UpdateUserPasswordRequest(newPassword));
+    }
+
+    private PasswordStatus passwordStatus(UserAccount account) {
+        boolean mustChange = account.isMustChangePassword();
+        java.time.Instant updatedAt = account.getPasswordUpdatedAt();
+        java.time.LocalDate updatedDate = updatedAt.atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        java.time.LocalDate expiresAt = updatedDate.plusDays(PASSWORD_MAX_AGE_DAYS);
+        long daysUntilExpiry = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), expiresAt);
+        if (daysUntilExpiry <= 0) {
+            mustChange = true;
+            daysUntilExpiry = 0;
+        }
+        return new PasswordStatus(mustChange, daysUntilExpiry, expiresAt.toString());
+    }
+
+    private record PasswordStatus(boolean mustChangePassword, long daysUntilExpiry, String expiresAt) {
     }
 }

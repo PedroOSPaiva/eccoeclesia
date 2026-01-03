@@ -19,6 +19,7 @@ O EcoEcclesia é um protótipo funcional para gestão administrativa de uma par�
 - Endpoints: `POST /api/auth/login` e `POST /api/auth/refresh`.
 - Contas seed são opcionais e configuradas via variável de ambiente `ECOECCLESIA_SEED_USERS` no formato
   `email|senha|ROLE[,ROLE];email|senha|ROLE`.
+- Primeiro acesso exige atualização de senha; expiração a cada 120 dias com aviso no painel.
 
 ### Razão contábil
 - `GET /api/ledger` com filtros por período (`start`/`end`).
