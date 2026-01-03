@@ -1,5 +1,6 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.user.UserAccountResponse;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -48,9 +49,86 @@ final class FinanceHttpJson {
                 .append("\"refreshToken\":\"").append(escape(tokens.refreshToken())).append("\",")
                 .append("\"tokenType\":\"").append(tokens.tokenType()).append("\",")
                 .append("\"role\":\"").append(tokens.role()).append("\",")
+                .append("\"mustChangePassword\":").append(tokens.mustChangePassword()).append(",")
+                .append("\"daysUntilPasswordExpiry\":").append(tokens.daysUntilPasswordExpiry()).append(",")
+                .append("\"passwordExpiresAt\":\"").append(tokens.passwordExpiresAt()).append("\",")
                 .append("\"permissions\":[")
                 .append(String.join(",", tokens.permissions().stream().map(p -> "\"" + escape(p) + "\"").toList()))
                 .append("]}")
+                .toString();
+    }
+
+    String users(List<UserAccountResponse> users) {
+        StringJoiner joiner = new StringJoiner(",", "{\"items\":[", "]}");
+        for (UserAccountResponse user : users) {
+            joiner.add(user(user));
+        }
+        return joiner.toString();
+    }
+
+    String user(UserAccountResponse user) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(user.id())).append("\",")
+                .append("\"email\":\"").append(escape(user.email())).append("\",")
+                .append("\"fullName\":").append(nullable(user.fullName())).append(",")
+                .append("\"birthDate\":").append(nullable(user.birthDate())).append(",")
+                .append("\"address\":").append(nullable(user.address())).append(",")
+                .append("\"photoUrl\":").append(nullable(user.photoUrl())).append(",")
+                .append("\"roles\":[")
+                .append(String.join(",", user.roles().stream().map(role -> "\"" + escape(role.name()) + "\"").toList()))
+                .append("],")
+                .append("\"authorities\":[")
+                .append(String.join(",", user.authorities().stream().map(value -> "\"" + escape(value) + "\"").toList()))
+                .append("],")
+                .append("\"updatedAt\":\"").append(user.updatedAt()).append("\"")
+                .append("}")
+                .toString();
+    }
+
+    private String nullable(String value) {
+        if (value == null) {
+            return "null";
+        }
+        return "\"" + escape(value) + "\"";
+    }
+
+    String payables(List<PayableEntry> entries) {
+        StringJoiner joiner = new StringJoiner(",", "{\"items\":[", "]}");
+        for (PayableEntry entry : entries) {
+            joiner.add(payable(entry));
+        }
+        return joiner.toString();
+    }
+
+    String payable(PayableEntry entry) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(entry.id())).append("\",")
+                .append("\"description\":\"").append(escape(entry.description())).append("\",")
+                .append("\"amount\":\"").append(entry.amount().toPlainString()).append("\",")
+                .append("\"dueDate\":\"").append(entry.dueDate()).append("\",")
+                .append("\"status\":\"").append(entry.status().name()).append("\",")
+                .append("\"createdAt\":\"").append(entry.createdAt()).append("\"")
+                .append("}")
+                .toString();
+    }
+
+    String receivables(List<ReceivableEntry> entries) {
+        StringJoiner joiner = new StringJoiner(",", "{\"items\":[", "]}");
+        for (ReceivableEntry entry : entries) {
+            joiner.add(receivable(entry));
+        }
+        return joiner.toString();
+    }
+
+    String receivable(ReceivableEntry entry) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(entry.id())).append("\",")
+                .append("\"description\":\"").append(escape(entry.description())).append("\",")
+                .append("\"amount\":\"").append(entry.amount().toPlainString()).append("\",")
+                .append("\"dueDate\":\"").append(entry.dueDate()).append("\",")
+                .append("\"status\":\"").append(entry.status().name()).append("\",")
+                .append("\"createdAt\":\"").append(entry.createdAt()).append("\"")
+                .append("}")
                 .toString();
     }
 
