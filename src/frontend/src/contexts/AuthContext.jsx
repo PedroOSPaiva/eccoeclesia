@@ -25,7 +25,11 @@ export function AuthProvider({ children }) {
       const result = await authService.login(email, password);
       setTokens(result);
       setProfile({ email: result.email, role: result.role, permissions: result.permissions ?? [] });
-      navigate('/dashboard', { replace: true });
+      if (result.mustChangePassword) {
+        navigate('/password-reset', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } finally {
       setLoading(false);
     }

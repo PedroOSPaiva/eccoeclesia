@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import userService from '../services/userService.js';
 
-const ROLE_OPTIONS = ['COORDINATION', 'SECRETARIAT', 'TREASURER', 'PRIEST', 'FAITHFUL'];
+const ROLE_OPTIONS = ['ADMIN', 'FINANCE', 'VOLUNTEER'];
 
 function UsersPage() {
   const { profile } = useAuth();
@@ -12,9 +12,25 @@ function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [form, setForm] = useState({ email: '', password: '', roles: ['FAITHFUL'] });
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    roles: ['VOLUNTEER'],
+    fullName: '',
+    birthDate: '',
+    address: '',
+    photoUrl: ''
+  });
   const [editingId, setEditingId] = useState(null);
   const [editingRoles, setEditingRoles] = useState([]);
+  const [profileEditingId, setProfileEditingId] = useState(null);
+  const [profileForm, setProfileForm] = useState({
+    email: '',
+    fullName: '',
+    birthDate: '',
+    address: '',
+    photoUrl: ''
+  });
 
   useEffect(() => {
     if (!canManage) {
@@ -65,10 +81,14 @@ function UsersPage() {
       const created = await userService.create({
         email: form.email,
         password: form.password,
-        roles: form.roles
+        roles: form.roles,
+        fullName: form.fullName,
+        birthDate: form.birthDate,
+        address: form.address,
+        photoUrl: form.photoUrl
       });
       setUsers((current) => [...current, created]);
-      setForm({ email: '', password: '', roles: ['FAITHFUL'] });
+      setForm({ email: '', password: '', roles: ['VOLUNTEER'], fullName: '', birthDate: '', address: '', photoUrl: '' });
     } catch (err) {
       const message = err.response?.data?.message ?? 'Erro ao criar o usuário.';
       setError(message);
@@ -95,6 +115,38 @@ function UsersPage() {
   const cancelEditing = () => {
     setEditingId(null);
     setEditingRoles([]);
+  };
+
+  const startProfileEditing = (user) => {
+    setProfileEditingId(user.id);
+    setProfileForm({
+      email: user.email ?? '',
+      fullName: user.fullName ?? '',
+      birthDate: user.birthDate ?? '',
+      address: user.address ?? '',
+      photoUrl: user.photoUrl ?? ''
+    });
+  };
+
+  const cancelProfileEditing = () => {
+    setProfileEditingId(null);
+    setProfileForm({ email: '', fullName: '', birthDate: '', address: '', photoUrl: '' });
+  };
+
+  const handleProfileChange = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const saveProfile = async () => {
+    try {
+      const updated = await userService.updateProfile(profileEditingId, profileForm);
+      setUsers((current) => current.map((user) => (user.id === updated.id ? updated : user)));
+      cancelProfileEditing();
+    } catch (err) {
+      const message = err.response?.data?.message ?? 'Erro ao atualizar o perfil.';
+      setError(message);
+    }
   };
 
   const saveRoles = async () => {
@@ -136,12 +188,28 @@ function UsersPage() {
         <h2>Novo usuário</h2>
         <form className="form-grid" onSubmit={handleSubmit}>
           <div className="input-group">
+            <label htmlFor="fullName">Nome completo</label>
+            <input id="fullName" name="fullName" value={form.fullName} onChange={handleFormChange} />
+          </div>
+          <div className="input-group">
             <label htmlFor="email">E-mail</label>
             <input id="email" name="email" type="email" required value={form.email} onChange={handleFormChange} />
           </div>
           <div className="input-group">
             <label htmlFor="password">Senha provisória</label>
             <input id="password" name="password" type="password" required value={form.password} onChange={handleFormChange} />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthDate">Data de nascimento</label>
+            <input id="birthDate" name="birthDate" type="date" value={form.birthDate} onChange={handleFormChange} />
+          </div>
+          <div className="input-group">
+            <label htmlFor="address">Endereço</label>
+            <input id="address" name="address" value={form.address} onChange={handleFormChange} />
+          </div>
+          <div className="input-group">
+            <label htmlFor="photoUrl">Foto (URL)</label>
+            <input id="photoUrl" name="photoUrl" value={form.photoUrl} onChange={handleFormChange} />
           </div>
           <div className="input-group" style={{ gridColumn: '1 / -1' }}>
             <span>Perfis</span>
@@ -179,6 +247,10 @@ function UsersPage() {
             <thead>
               <tr>
                 <th>E-mail</th>
+                <th>Nome</th>
+                <th>Nascimento</th>
+                <th>Endereço</th>
+                <th>Foto</th>
                 <th>Papéis</th>
                 <th>Autoridades</th>
                 <th>Ações</th>
@@ -188,6 +260,20 @@ function UsersPage() {
               {users.map((user) => (
                 <tr key={user.id}>
                   <td>{user.email}</td>
+                  <td>{user.fullName ?? '-'}</td>
+                  <td>{user.birthDate ?? '-'}</td>
+                  <td>{user.address ?? '-'}</td>
+                  <td>
+                    {user.photoUrl ? (
+                      <img
+                        src={user.photoUrl}
+                        alt={`Foto de ${user.fullName ?? user.email}`}
+                        style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td>
                     {editingId === user.id ? (
                       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
@@ -222,6 +308,9 @@ function UsersPage() {
                         Editar papéis
                       </button>
                     )}
+                    <button type="button" onClick={() => startProfileEditing(user)} style={{ padding: '0.25rem 0.75rem' }}>
+                      Editar perfil
+                    </button>
                     <button type="button" onClick={() => handlePasswordReset(user)} style={{ padding: '0.25rem 0.75rem' }}>
                       Redefinir senha
                     </button>
@@ -232,6 +321,54 @@ function UsersPage() {
           </table>
         )}
       </section>
+
+      {profileEditingId && (
+        <section className="section">
+          <h2>Editar perfil</h2>
+          <div className="form-grid">
+            <div className="input-group">
+              <label htmlFor="profileEmail">E-mail</label>
+              <input
+                id="profileEmail"
+                name="email"
+                type="email"
+                value={profileForm.email}
+                onChange={handleProfileChange}
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="profileFullName">Nome completo</label>
+              <input id="profileFullName" name="fullName" value={profileForm.fullName} onChange={handleProfileChange} />
+            </div>
+            <div className="input-group">
+              <label htmlFor="profileBirthDate">Data de nascimento</label>
+              <input
+                id="profileBirthDate"
+                name="birthDate"
+                type="date"
+                value={profileForm.birthDate}
+                onChange={handleProfileChange}
+              />
+            </div>
+            <div className="input-group">
+              <label htmlFor="profileAddress">Endereço</label>
+              <input id="profileAddress" name="address" value={profileForm.address} onChange={handleProfileChange} />
+            </div>
+            <div className="input-group">
+              <label htmlFor="profilePhotoUrl">Foto (URL)</label>
+              <input id="profilePhotoUrl" name="photoUrl" value={profileForm.photoUrl} onChange={handleProfileChange} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
+              <button type="button" className="primary-button" onClick={saveProfile}>
+                Salvar perfil
+              </button>
+              <button type="button" onClick={cancelProfileEditing}>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

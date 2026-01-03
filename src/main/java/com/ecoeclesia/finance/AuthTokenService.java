@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
  */
 public final class AuthTokenService {
 
+    private static final long PASSWORD_MAX_AGE_DAYS = 120;
     private final Map<String, UserAccount> accessTokens = new ConcurrentHashMap<>();
     private final Map<String, UserAccount> refreshTokens = new ConcurrentHashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
@@ -31,12 +33,16 @@ public final class AuthTokenService {
     private final SecureRandom random = new SecureRandom();
 
     public AuthTokenService() {
-        this(new UserManagementController());
+        this(new UserManagementController(), loadSeedUsersFromEnv());
     }
 
     public AuthTokenService(UserManagementController users) {
+        this(users, loadSeedUsersFromEnv());
+    }
+
+    public AuthTokenService(UserManagementController users, List<CreateUserRequest> seedUsers) {
         this.users = Objects.requireNonNull(users);
-        seedDefaultAccounts();
+        seedDefaultAccounts(seedUsers);
     }
 
     public AuthTokens login(String email, String password) {
@@ -88,7 +94,9 @@ public final class AuthTokenService {
         accessTokens.put(accessToken, account);
         refreshTokens.put(refreshToken, account);
         String primaryRole = account.getRoles().stream().findFirst().map(Enum::name).orElse(UserRole.VOLUNTEER.name());
-        return new AuthTokens(accessToken, refreshToken, "Bearer", primaryRole, aggregatePermissions(account.getRoles()));
+        PasswordStatus passwordStatus = passwordStatus(account);
+        return new AuthTokens(accessToken, refreshToken, "Bearer", primaryRole, aggregatePermissions(account.getRoles()),
+                passwordStatus.mustChangePassword(), passwordStatus.daysUntilExpiry(), passwordStatus.expiresAt());
     }
 
     private Set<String> aggregatePermissions(Set<UserRole> roles) {
@@ -97,18 +105,87 @@ public final class AuthTokenService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private void seedDefaultAccounts() {
+    private void seedDefaultAccounts(List<CreateUserRequest> seedUsers) {
         if (!users.listUsers().isEmpty()) {
             return;
         }
-        users.createUser(new CreateUserRequest("admin@ecoeclesia.test", "admin123", List.of(UserRole.ADMIN)));
-        users.createUser(new CreateUserRequest("tesouraria@ecoeclesia.test", "finance123", List.of(UserRole.FINANCE)));
-        users.createUser(new CreateUserRequest("voluntario@ecoeclesia.test", "servir123", List.of(UserRole.VOLUNTEER)));
+        if (seedUsers == null || seedUsers.isEmpty()) {
+            return;
+        }
+        seedUsers.forEach(users::createUser);
     }
 
     private String randomToken() {
         byte[] bytes = new byte[24];
         random.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private static List<CreateUserRequest> loadSeedUsersFromEnv() {
+        String raw = Optional.ofNullable(System.getenv("ECOECCLESIA_SEED_USERS")).orElse("").trim();
+        if (raw.isBlank()) {
+            return List.of();
+        }
+        return List.of(raw.split(";")).stream()
+                .map(String::trim)
+                .filter(entry -> !entry.isBlank())
+                .map(AuthTokenService::parseSeedUser)
+                .collect(Collectors.toList());
+    }
+
+    private static CreateUserRequest parseSeedUser(String entry) {
+        String[] parts = entry.split("\\|");
+        if (parts.length < 3) {
+            throw new IllegalArgumentException("Seed users devem seguir o formato email|senha|ROLE[,ROLE]");
+        }
+        String email = parts[0].trim();
+        String password = parts[1].trim();
+        if (email.isBlank() || password.isBlank()) {
+            throw new IllegalArgumentException("Seed users requerem email e senha não vazios");
+        }
+        List<UserRole> roles = List.of(parts[2].split(",")).stream()
+                .map(String::trim)
+                .filter(role -> !role.isBlank())
+                .map(role -> UserRole.valueOf(role.toUpperCase()))
+                .collect(Collectors.toList());
+        if (roles.isEmpty()) {
+            throw new IllegalArgumentException("Seed users requerem ao menos um role válido");
+        }
+        return new CreateUserRequest(email, password, roles, null, null, null, null);
+    }
+
+    public UserAccount accountFor(String authorizationHeader) {
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return null;
+        }
+        String token = authorizationHeader.replace("Bearer", "").trim();
+        return accessTokens.get(token);
+    }
+
+    public void changePassword(String authorizationHeader, String newPassword) {
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("Senha é obrigatória");
+        }
+        UserAccount account = accountFor(authorizationHeader);
+        if (account == null) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+        users.updatePassword(account.getId(), new com.ecoeclesia.user.UpdateUserPasswordRequest(newPassword));
+    }
+
+    private PasswordStatus passwordStatus(UserAccount account) {
+        boolean mustChange = account.isMustChangePassword();
+        java.time.Instant updatedAt = account.getPasswordUpdatedAt();
+        java.time.LocalDate updatedDate = updatedAt.atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        java.time.LocalDate expiresAt = updatedDate.plusDays(PASSWORD_MAX_AGE_DAYS);
+        long daysUntilExpiry = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), expiresAt);
+        if (daysUntilExpiry <= 0) {
+            mustChange = true;
+            daysUntilExpiry = 0;
+        }
+        return new PasswordStatus(mustChange, daysUntilExpiry, expiresAt.toString());
+    }
+
+    private record PasswordStatus(boolean mustChangePassword, long daysUntilExpiry, String expiresAt) {
     }
 }

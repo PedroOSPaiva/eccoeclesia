@@ -3,10 +3,14 @@ import apiClient from './apiClient.js';
 const userService = {
   async list() {
     const response = await apiClient.get('/api/users');
-    return response.data;
+    return response.data?.items ?? response.data;
   },
   async create(user) {
     const response = await apiClient.post('/api/users', user);
+    return response.data;
+  },
+  async updateProfile(id, profile) {
+    const response = await apiClient.put(`/api/users/${id}/profile`, profile);
     return response.data;
   },
   async updateRoles(id, roles) {
