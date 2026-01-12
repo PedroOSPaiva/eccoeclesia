@@ -100,51 +100,29 @@ public final class UserAccount {
 
     public void updateProfile(String email, String fullName, String birthDate, String address, String photoUrl) {
         boolean changed = false;
-        if (email != null) {
-            this.email = email;
+        String normalizedEmail = normalize(email);
+        if (normalizedEmail != null) {
+            this.email = normalizedEmail;
             changed = true;
         }
-        if (fullName != null) {
-            this.fullName = fullName;
+        String normalizedFullName = normalize(fullName);
+        if (normalizedFullName != null) {
+            this.fullName = normalizedFullName;
             changed = true;
         }
-        if (birthDate != null) {
-            this.birthDate = birthDate;
+        String normalizedBirthDate = normalize(birthDate);
+        if (normalizedBirthDate != null) {
+            this.birthDate = normalizedBirthDate;
             changed = true;
         }
-        if (address != null) {
-            this.address = address;
+        String normalizedAddress = normalize(address);
+        if (normalizedAddress != null) {
+            this.address = normalizedAddress;
             changed = true;
         }
-        if (photoUrl != null) {
-            this.photoUrl = photoUrl;
-            changed = true;
-        }
-        if (changed) {
-            this.updatedAt = Instant.now();
-        }
-    }
-
-    public void updateProfile(String email, String fullName, String birthDate, String address, String photoUrl) {
-        boolean changed = false;
-        if (email != null) {
-            this.email = email;
-            changed = true;
-        }
-        if (fullName != null) {
-            this.fullName = fullName;
-            changed = true;
-        }
-        if (birthDate != null) {
-            this.birthDate = birthDate;
-            changed = true;
-        }
-        if (address != null) {
-            this.address = address;
-            changed = true;
-        }
-        if (photoUrl != null) {
-            this.photoUrl = photoUrl;
+        String normalizedPhotoUrl = normalize(photoUrl);
+        if (normalizedPhotoUrl != null) {
+            this.photoUrl = normalizedPhotoUrl;
             changed = true;
         }
         if (changed) {
@@ -161,5 +139,13 @@ public final class UserAccount {
     public void requirePasswordChange() {
         this.mustChangePassword = true;
         this.updatedAt = Instant.now();
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 }
