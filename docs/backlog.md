@@ -224,3 +224,54 @@ Este backlog transforma as recomendações de análise em épicos e histórias c
 | P2 | Dashboards KPIs | Indicadores financeiros chave |
 | P2 | Telas completas de contas a pagar/receber | CRUD completo com filtros |
 | P2 | Integração OFX/CSV | Importação automática de extratos |
+
+## Desdobramento técnico — Story "Completar contas a pagar"
+**Objetivo:** transformar a story em tarefas executáveis para backend, frontend e QA.
+
+### Backend (API + domínio + persistência)
+1. Modelar entidade `Payable` com recorrência, anexos e status de aprovação.
+2. Criar endpoints:
+   - `POST /api/payables` (criação com recorrência/anexos)
+   - `GET /api/payables` (filtros por centro de custo, status e período)
+   - `PUT /api/payables/{id}/status` (aprovação/pagamento)
+3. Persistência:
+   - Ajustar repositório para salvar recorrência e metadados de anexos.
+4. Auditoria:
+   - Registrar usuário + timestamp em cada alteração de status.
+
+### Frontend (UI + fluxo)
+1. Formulário de criação com recorrência e upload de anexos.
+2. Lista com filtros (centro de custo, status, período).
+3. Tela de aprovação com ações (aprovar/pagar/reprovar) e histórico.
+4. Feedback visual (estado, mensagens de erro, loading).
+
+### QA/Testes
+1. Casos de teste: criação, aprovação, pagamento, recorrência e filtros.
+2. Testes automatizados de integração para endpoints críticos.
+3. Checklist manual de UI (fluxo completo).
+
+## Checklist de Definition of Done (DoD) — módulo financeiro
+- Funcionalidade implementada e revisada por pares.
+- Critérios de aceitação executados e aprovados.
+- Testes automatizados cobrindo cenários críticos.
+- Logs/auditoria verificados quando aplicável.
+- Documentação atualizada (README/guia/rotas).
+- Evidência de validação manual para UI.
+
+## Mini-sprint sugerido (2 semanas) — Marco 1
+**Foco:** contas a pagar + contas a receber (core financeiro).
+
+### Semana 1
+- Backend: endpoints e persistência de contas a pagar.
+- Frontend: formulário e listagem com filtros.
+- QA: roteiro de testes e casos automatizados base.
+
+### Semana 2
+- Backend: fluxo de aprovação + auditoria.
+- Frontend: tela de aprovação + feedbacks.
+- QA: execução de testes e ajuste de defeitos.
+
+### Entregáveis do sprint
+- Contas a pagar completas (recorrência, anexos, aprovação).
+- Contas a receber com origem/categoria e filtros básicos.
+- Testes de integração mínimos cobrindo criação e aprovação.
