@@ -101,13 +101,22 @@ final class FinanceHttpJson {
     }
 
     String payable(PayableEntry entry) {
+        String attachments = entry.attachments().stream()
+                .map(value -> "\"" + escape(value) + "\"")
+                .collect(java.util.stream.Collectors.joining(","));
         return new StringBuilder("{")
                 .append("\"id\":\"").append(escape(entry.id())).append("\",")
                 .append("\"description\":\"").append(escape(entry.description())).append("\",")
                 .append("\"amount\":\"").append(entry.amount().toPlainString()).append("\",")
                 .append("\"dueDate\":\"").append(entry.dueDate()).append("\",")
+                .append("\"costCenter\":").append(nullable(entry.costCenter())).append(",")
+                .append("\"recurrence\":").append(nullable(entry.recurrence())).append(",")
+                .append("\"attachments\":[").append(attachments).append("],")
                 .append("\"status\":\"").append(entry.status().name()).append("\",")
-                .append("\"createdAt\":\"").append(entry.createdAt()).append("\"")
+                .append("\"createdAt\":\"").append(entry.createdAt()).append("\",")
+                .append("\"createdBy\":").append(nullable(entry.createdBy())).append(",")
+                .append("\"updatedAt\":\"").append(entry.updatedAt()).append("\",")
+                .append("\"updatedBy\":").append(nullable(entry.updatedBy()))
                 .append("}")
                 .toString();
     }
@@ -126,8 +135,14 @@ final class FinanceHttpJson {
                 .append("\"description\":\"").append(escape(entry.description())).append("\",")
                 .append("\"amount\":\"").append(entry.amount().toPlainString()).append("\",")
                 .append("\"dueDate\":\"").append(entry.dueDate()).append("\",")
+                .append("\"origin\":").append(nullable(entry.origin())).append(",")
+                .append("\"category\":").append(nullable(entry.category())).append(",")
+                .append("\"project\":").append(nullable(entry.project())).append(",")
                 .append("\"status\":\"").append(entry.status().name()).append("\",")
-                .append("\"createdAt\":\"").append(entry.createdAt()).append("\"")
+                .append("\"createdAt\":\"").append(entry.createdAt()).append("\",")
+                .append("\"createdBy\":").append(nullable(entry.createdBy())).append(",")
+                .append("\"updatedAt\":\"").append(entry.updatedAt()).append("\",")
+                .append("\"updatedBy\":").append(nullable(entry.updatedBy()))
                 .append("}")
                 .toString();
     }
