@@ -147,6 +147,23 @@ final class FinanceHttpJson {
                 .toString();
     }
 
+    String cashflow(CashflowSnapshot snapshot) {
+        String payables = snapshot.payables().stream()
+                .map(this::payable)
+                .collect(java.util.stream.Collectors.joining(","));
+        String receivables = snapshot.receivables().stream()
+                .map(this::receivable)
+                .collect(java.util.stream.Collectors.joining(","));
+        return new StringBuilder("{")
+                .append("\"totalPayables\":\"").append(snapshot.totalPayables().toPlainString()).append("\",")
+                .append("\"totalReceivables\":\"").append(snapshot.totalReceivables().toPlainString()).append("\",")
+                .append("\"netBalance\":\"").append(snapshot.netBalance().toPlainString()).append("\",")
+                .append("\"payables\":[").append(payables).append("],")
+                .append("\"receivables\":[").append(receivables).append("]")
+                .append("}")
+                .toString();
+    }
+
     String escape(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
     }
