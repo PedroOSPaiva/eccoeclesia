@@ -54,4 +54,28 @@ public final class FinanceEndToEndFlowTest {
         assertNotNull(pdf);
         assertTrue(pdf.length > 200, "Expected PDF-like content to be generated");
     }
+
+    @Test("manages payables, receivables and cashflow snapshot")
+    public void managesPayablesReceivablesAndCashflow() {
+        PayableService payableService = new PayableService(new InMemoryPayableRepository());
+        ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
+
+        PayableEntry payable = payableService.create("Energia elétrica", new BigDecimal("180.00"),
+                LocalDate.of(2024, 4, 10), "Manutenção", "MONTHLY", java.util.List.of("boleto.pdf"), "finance@parish.org");
+        ReceivableEntry receivable = receivableService.create("Dízimos", new BigDecimal("600.00"),
+                LocalDate.of(2024, 4, 5), "Ofertas", "Dízimo", "Projeto Social", "finance@parish.org");
+
+        PayableEntry approved = payableService.updateStatus(payable.id(), PayableStatus.APPROVED, "tesouraria@parish.org");
+        ReceivableEntry received = receivableService.updateStatus(receivable.id(), ReceivableStatus.RECEIVED, "tesouraria@parish.org");
+
+        CashflowService cashflowService = new CashflowService(payableService, receivableService);
+        CashflowSnapshot snapshot = cashflowService.snapshot(LocalDate.of(2024, 4, 1), LocalDate.of(2024, 4, 30),
+                null, null);
+
+        assertEquals("tesouraria@parish.org", approved.updatedBy());
+        assertEquals("tesouraria@parish.org", received.updatedBy());
+        assertEquals(new BigDecimal("180.00"), snapshot.totalPayables());
+        assertEquals(new BigDecimal("600.00"), snapshot.totalReceivables());
+        assertEquals(new BigDecimal("420.00"), snapshot.netBalance());
+    }
 }

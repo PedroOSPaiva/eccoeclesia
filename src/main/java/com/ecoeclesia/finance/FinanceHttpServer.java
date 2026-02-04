@@ -30,12 +30,14 @@ public final class FinanceHttpServer {
     private final UserManagementController users;
     private final PayableService payableService;
     private final ReceivableService receivableService;
+    private final CashflowService cashflowService;
     private final FinanceHttpLogger logger;
 
     public FinanceHttpServer(int port, LedgerService ledgerService, FinancialReportGenerator reportGenerator,
                              FinancialReportPdfExporter pdfExporter, FinancialReportSpreadsheetExporter spreadsheetExporter,
                              AuthTokenService authTokenService, ChartOfAccounts chart, UserManagementController users,
                              PayableService payableService, ReceivableService receivableService,
+                             CashflowService cashflowService,
                              FinanceHttpLogger logger)
             throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -48,6 +50,7 @@ public final class FinanceHttpServer {
         this.users = Objects.requireNonNull(users);
         this.payableService = Objects.requireNonNull(payableService);
         this.receivableService = Objects.requireNonNull(receivableService);
+        this.cashflowService = Objects.requireNonNull(cashflowService);
         this.logger = Objects.requireNonNull(logger);
         this.json = new FinanceHttpJson();
         this.responseWriter = new FinanceHttpResponseWriter();
@@ -64,10 +67,11 @@ public final class FinanceHttpServer {
         AuthTokenService authTokenService = new AuthTokenService(users);
         PayableService payableService = new PayableService(new InMemoryPayableRepository());
         ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
+        CashflowService cashflowService = new CashflowService(payableService, receivableService);
         FinanceHttpLogger logger = new FinanceHttpLogger();
         return new FinanceHttpServer(port, ledgerService, generator,
                 new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
-                authTokenService, chart, users, payableService, receivableService, logger);
+                authTokenService, chart, users, payableService, receivableService, cashflowService, logger);
     }
 
     private static LedgerRepository chooseRepository() {
@@ -113,6 +117,7 @@ public final class FinanceHttpServer {
         createContext("/api/payables/", new PayablesStatusHandler(payableService, authTokenService, responseWriter, json, logger));
         createContext("/api/receivables", new ReceivablesHandler(receivableService, authTokenService, responseWriter, json, logger));
         createContext("/api/receivables/", new ReceivablesStatusHandler(receivableService, authTokenService, responseWriter, json, logger));
+        createContext("/api/cashflow", new CashflowHandler(cashflowService, authTokenService, responseWriter, json));
     }
 
     private void createContext(String path, com.sun.net.httpserver.HttpHandler handler) {

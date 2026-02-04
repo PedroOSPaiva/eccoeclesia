@@ -13,15 +13,19 @@ public final class ReceivableServiceTest {
 
     @Test("creates receivable entries with open status")
     public void createsReceivable() {
-        ReceivableEntry entry = service.create("Dízimos", new BigDecimal("1200.00"), LocalDate.now().plusDays(3));
+        ReceivableEntry entry = service.create("Dízimos", new BigDecimal("1200.00"),
+                LocalDate.now().plusDays(3), "Ofertas", "Dízimo", "Projeto Social", "tester");
         assertEquals(ReceivableStatus.OPEN, entry.status());
+        assertEquals("Ofertas", entry.origin());
         assertEquals(1, service.list().size());
     }
 
     @Test("updates receivable status")
     public void updatesStatus() {
-        ReceivableEntry entry = service.create("Oferta especial", new BigDecimal("450.00"), LocalDate.now().plusDays(2));
-        ReceivableEntry updated = service.updateStatus(entry.id(), ReceivableStatus.RECEIVED);
+        ReceivableEntry entry = service.create("Oferta especial", new BigDecimal("450.00"),
+                LocalDate.now().plusDays(2), "Campanha", "Especial", null, "tester");
+        ReceivableEntry updated = service.updateStatus(entry.id(), ReceivableStatus.RECEIVED, "approver");
         assertTrue(updated.status() == ReceivableStatus.RECEIVED);
+        assertEquals("approver", updated.updatedBy());
     }
 }

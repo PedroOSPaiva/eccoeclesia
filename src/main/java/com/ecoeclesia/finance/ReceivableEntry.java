@@ -7,7 +7,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 public record ReceivableEntry(String id, String description, BigDecimal amount, LocalDate dueDate,
-                              ReceivableStatus status, OffsetDateTime createdAt) {
+                              String origin, String category, String project,
+                              ReceivableStatus status, OffsetDateTime createdAt, String createdBy,
+                              OffsetDateTime updatedAt, String updatedBy) {
 
     public ReceivableEntry {
         Objects.requireNonNull(id, "id");
@@ -18,12 +20,15 @@ public record ReceivableEntry(String id, String description, BigDecimal amount, 
         Objects.requireNonNull(createdAt, "createdAt");
     }
 
-    public static ReceivableEntry open(String description, BigDecimal amount, LocalDate dueDate) {
+    public static ReceivableEntry open(String description, BigDecimal amount, LocalDate dueDate,
+                                       String origin, String category, String project, String createdBy) {
+        OffsetDateTime now = OffsetDateTime.now();
         return new ReceivableEntry(UUID.randomUUID().toString(), description, amount, dueDate,
-                ReceivableStatus.OPEN, OffsetDateTime.now());
+                origin, category, project, ReceivableStatus.OPEN, now, createdBy, now, createdBy);
     }
 
-    public ReceivableEntry withStatus(ReceivableStatus newStatus) {
-        return new ReceivableEntry(id, description, amount, dueDate, newStatus, createdAt);
+    public ReceivableEntry withStatus(ReceivableStatus newStatus, String updatedBy) {
+        return new ReceivableEntry(id, description, amount, dueDate, origin, category, project,
+                newStatus, createdAt, createdBy, OffsetDateTime.now(), updatedBy);
     }
 }

@@ -183,6 +183,12 @@
   color: #888;
 }
 
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .alert {
   background: #fff3cd;
   color: #7a5c00;
