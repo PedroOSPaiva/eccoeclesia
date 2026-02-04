@@ -49,7 +49,7 @@ final class ReceivablesStatusHandler implements HttpHandler {
                 throw new IllegalArgumentException("Status é obrigatório");
             }
             ReceivableStatus status = ReceivableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
-            ReceivableEntry updated = receivableService.updateStatus(id, status);
+            ReceivableEntry updated = receivableService.updateStatus(id, status, currentUser(exchange));
             logger.logEvent("Receivable status updated: " + id + " -> " + status);
             responseWriter.writeJson(exchange, 200, json.receivable(updated));
         } catch (IllegalArgumentException ex) {
@@ -60,5 +60,13 @@ final class ReceivablesStatusHandler implements HttpHandler {
     private boolean isAllowed(HttpExchange exchange, String permission) {
         String authorization = exchange.getRequestHeaders().getFirst("Authorization");
         return authTokenService.isAllowed(authorization, permission);
+    }
+
+    private String currentUser(HttpExchange exchange) {
+        var account = authTokenService.accountFor(exchange.getRequestHeaders().getFirst("Authorization"));
+        if (account == null) {
+            return "system";
+        }
+        return account.getEmail();
     }
 }

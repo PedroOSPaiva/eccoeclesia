@@ -5,7 +5,7 @@ import java.util.List;
 public interface ReceivableRepository {
     ReceivableEntry save(ReceivableEntry entry);
 
-    ReceivableEntry updateStatus(String id, ReceivableStatus status);
+    ReceivableEntry updateStatus(String id, ReceivableStatus status, String updatedBy);
 
     List<ReceivableEntry> list();
 }
