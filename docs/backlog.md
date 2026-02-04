@@ -17,6 +17,9 @@ Este backlog transforma as recomendações de análise em épicos e histórias c
 - Testes automatizados relevantes passando.
 - Documentação mínima atualizada (README/guia de operação quando aplicável).
 - Evidência de validação manual (quando UI).
+- Objetivo: evoluir o protótipo financeiro para um produto auditável, com fluxo completo de contas a pagar/receber, relatórios avançados, compliance e UX consolidada.
+- Horizonte sugerido: 90–120 dias, dividido em 3 fases.
+- Prioridade: fluxo financeiro core + qualidade operacional + UX crítica.
 
 ## Épico 1 — Fluxo financeiro core (P0)
 **Objetivo:** tornar contas a pagar/receber completas e confiáveis, habilitando fluxo de caixa e lançamentos auditáveis.
@@ -275,3 +278,17 @@ Este backlog transforma as recomendações de análise em épicos e histórias c
 - Contas a pagar completas (recorrência, anexos, aprovação).
 - Contas a receber com origem/categoria e filtros básicos.
 - Testes de integração mínimos cobrindo criação e aprovação.
+
+## Backlog priorizado (resumo)
+1. P0 — Completar contas a pagar
+2. P0 — Completar contas a receber
+3. P0 — Fluxo de caixa consolidado
+4. P0 — Testes de integração automatizados
+5. P1 — DRE
+6. P1 — Balancete
+7. P1 — Trilha de auditoria
+8. P1 — Controle de acesso por unidade
+9. P1 — OpenAPI/Swagger
+10. P2 — Dashboards KPIs
+11. P2 — Telas completas de contas a pagar/receber
+12. P2 — Integração OFX/CSV
