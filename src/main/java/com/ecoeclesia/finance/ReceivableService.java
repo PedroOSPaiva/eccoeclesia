@@ -13,16 +13,18 @@ public final class ReceivableService {
         this.repository = Objects.requireNonNull(repository);
     }
 
-    public ReceivableEntry create(String description, BigDecimal amount, LocalDate dueDate) {
+    public ReceivableEntry create(String description, BigDecimal amount, LocalDate dueDate,
+                                  String origin, String category, String project, String createdBy) {
         validate(description, amount, dueDate);
-        ReceivableEntry entry = ReceivableEntry.open(description.trim(), amount, dueDate);
+        ReceivableEntry entry = ReceivableEntry.open(description.trim(), amount, dueDate,
+                origin, category, project, createdBy);
         return repository.save(entry);
     }
 
-    public ReceivableEntry updateStatus(String id, ReceivableStatus status) {
+    public ReceivableEntry updateStatus(String id, ReceivableStatus status, String updatedBy) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(status, "status");
-        return repository.updateStatus(id, status);
+        return repository.updateStatus(id, status, updatedBy);
     }
 
     public List<ReceivableEntry> list() {
