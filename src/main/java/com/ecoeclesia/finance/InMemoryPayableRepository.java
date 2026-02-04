@@ -16,12 +16,12 @@ public final class InMemoryPayableRepository implements PayableRepository {
     }
 
     @Override
-    public PayableEntry updateStatus(String id, PayableStatus status) {
+    public PayableEntry updateStatus(String id, PayableStatus status, String updatedBy) {
         PayableEntry entry = storage.get(id);
         if (entry == null) {
             throw new IllegalArgumentException("Payable not found: " + id);
         }
-        PayableEntry updated = entry.withStatus(status);
+        PayableEntry updated = entry.withStatus(status, updatedBy);
         storage.put(id, updated);
         return updated;
     }

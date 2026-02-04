@@ -16,12 +16,12 @@ public final class InMemoryReceivableRepository implements ReceivableRepository 
     }
 
     @Override
-    public ReceivableEntry updateStatus(String id, ReceivableStatus status) {
+    public ReceivableEntry updateStatus(String id, ReceivableStatus status, String updatedBy) {
         ReceivableEntry entry = storage.get(id);
         if (entry == null) {
             throw new IllegalArgumentException("Receivable not found: " + id);
         }
-        ReceivableEntry updated = entry.withStatus(status);
+        ReceivableEntry updated = entry.withStatus(status, updatedBy);
         storage.put(id, updated);
         return updated;
     }

@@ -49,7 +49,7 @@ final class PayablesStatusHandler implements HttpHandler {
                 throw new IllegalArgumentException("Status é obrigatório");
             }
             PayableStatus status = PayableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
-            PayableEntry updated = payableService.updateStatus(id, status);
+            PayableEntry updated = payableService.updateStatus(id, status, currentUser(exchange));
             logger.logEvent("Payable status updated: " + id + " -> " + status);
             responseWriter.writeJson(exchange, 200, json.payable(updated));
         } catch (IllegalArgumentException ex) {
@@ -60,5 +60,13 @@ final class PayablesStatusHandler implements HttpHandler {
     private boolean isAllowed(HttpExchange exchange, String permission) {
         String authorization = exchange.getRequestHeaders().getFirst("Authorization");
         return authTokenService.isAllowed(authorization, permission);
+    }
+
+    private String currentUser(HttpExchange exchange) {
+        var account = authTokenService.accountFor(exchange.getRequestHeaders().getFirst("Authorization"));
+        if (account == null) {
+            return "system";
+        }
+        return account.getEmail();
     }
 }
