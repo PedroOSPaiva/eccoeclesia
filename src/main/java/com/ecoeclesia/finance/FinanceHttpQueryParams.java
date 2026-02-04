@@ -22,4 +22,18 @@ final class FinanceHttpQueryParams {
         }
         return fallback;
     }
+
+    String getString(HttpExchange exchange, String key) {
+        String query = exchange.getRequestURI().getQuery();
+        if (query == null || query.isBlank()) {
+            return null;
+        }
+        for (String token : query.split("&")) {
+            String[] kv = token.split("=");
+            if (kv.length == 2 && kv[0].equalsIgnoreCase(key) && !kv[1].isBlank()) {
+                return kv[1];
+            }
+        }
+        return null;
+    }
 }

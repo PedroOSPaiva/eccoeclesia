@@ -13,16 +13,19 @@ public final class PayableService {
         this.repository = Objects.requireNonNull(repository);
     }
 
-    public PayableEntry create(String description, BigDecimal amount, LocalDate dueDate) {
+    public PayableEntry create(String description, BigDecimal amount, LocalDate dueDate,
+                               String costCenter, String recurrence, List<String> attachments,
+                               String createdBy) {
         validate(description, amount, dueDate);
-        PayableEntry entry = PayableEntry.open(description.trim(), amount, dueDate);
+        PayableEntry entry = PayableEntry.open(description.trim(), amount, dueDate,
+                costCenter, recurrence, attachments, createdBy);
         return repository.save(entry);
     }
 
-    public PayableEntry updateStatus(String id, PayableStatus status) {
+    public PayableEntry updateStatus(String id, PayableStatus status, String updatedBy) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(status, "status");
-        return repository.updateStatus(id, status);
+        return repository.updateStatus(id, status, updatedBy);
     }
 
     public List<PayableEntry> list() {

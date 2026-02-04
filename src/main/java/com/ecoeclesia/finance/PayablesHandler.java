@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 final class PayablesHandler implements HttpHandler {
 
@@ -15,6 +18,7 @@ final class PayablesHandler implements HttpHandler {
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
     private final FinanceHttpLogger logger;
+    private final FinanceHttpQueryParams queryParams = new FinanceHttpQueryParams();
 
     PayablesHandler(PayableService payableService, AuthTokenService authTokenService,
                     FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, FinanceHttpLogger logger) {
@@ -37,7 +41,7 @@ final class PayablesHandler implements HttpHandler {
                 responseWriter.writeJson(exchange, 403, "{\"error\":\"Forbidden\"}");
                 return;
             }
-            responseWriter.writeJson(exchange, 200, json.payables(payableService.list()));
+            responseWriter.writeJson(exchange, 200, json.payables(filterPayables(exchange)));
             return;
         }
         if (!isAllowed(exchange, "finance:write")) {
@@ -50,7 +54,11 @@ final class PayablesHandler implements HttpHandler {
             PayableEntry created = payableService.create(
                     values.get("description"),
                     parseAmount(values.get("amount")),
-                    parseDate(values.get("dueDate")));
+                    parseDate(values.get("dueDate")),
+                    emptyToNull(values.get("costCenter")),
+                    emptyToNull(values.get("recurrence")),
+                    parseAttachments(values.get("attachments")),
+                    currentUser(exchange));
             logger.logEvent("Payable created: " + created.id());
             responseWriter.writeJson(exchange, 201, json.payable(created));
         } catch (IllegalArgumentException ex) {
@@ -75,5 +83,49 @@ final class PayablesHandler implements HttpHandler {
             throw new IllegalArgumentException("Data de vencimento é obrigatória");
         }
         return LocalDate.parse(value);
+    }
+
+    private List<String> parseAttachments(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        return Stream.of(value.split(","))
+                .map(String::trim)
+                .filter(item -> !item.isBlank())
+                .toList();
+    }
+
+    private String emptyToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String currentUser(HttpExchange exchange) {
+        var account = authTokenService.accountFor(exchange.getRequestHeaders().getFirst("Authorization"));
+        if (account == null) {
+            return "system";
+        }
+        return account.getEmail();
+    }
+
+    private List<PayableEntry> filterPayables(HttpExchange exchange) {
+        String rawStatus = queryParams.getString(exchange, "status");
+        String costCenter = queryParams.getString(exchange, "costCenter");
+        LocalDate start = queryParams.getDate(exchange, "start");
+        LocalDate end = queryParams.getDate(exchange, "end");
+        PayableStatus status = null;
+        if (rawStatus != null && !rawStatus.isBlank()) {
+            status = PayableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+        }
+        PayableStatus finalStatus = status;
+        return payableService.list().stream()
+                .filter(entry -> finalStatus == null || entry.status() == finalStatus)
+                .filter(entry -> costCenter == null
+                        || (entry.costCenter() != null && costCenter.equalsIgnoreCase(entry.costCenter())))
+                .filter(entry -> start == null || !entry.dueDate().isBefore(start))
+                .filter(entry -> end == null || !entry.dueDate().isAfter(end))
+                .toList();
     }
 }
