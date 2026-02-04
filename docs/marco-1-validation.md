@@ -21,3 +21,4 @@ Este documento registra a validação final do Marco 1 conforme o DoD e o checkl
 
 ## Observações
 - `npm install` falhou com erro 403 ao acessar registry.npmjs.org, impedindo o build/execução do frontend.
+- Solução sugerida: configurar `.npmrc` para usar o registry interno (Artifactory/Nexus) liberado pela infraestrutura.
