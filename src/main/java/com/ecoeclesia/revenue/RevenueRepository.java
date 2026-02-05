@@ -12,4 +12,6 @@ public interface RevenueRepository {
     List<RevenueEntity> findAll();
 
     List<RevenueEntity> findByPeriod(Instant start, Instant end);
+
+    void deleteById(String id);
 }

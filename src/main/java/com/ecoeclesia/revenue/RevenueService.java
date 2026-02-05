@@ -27,11 +27,27 @@ public final class RevenueService {
         return repository.save(entity);
     }
 
+    public RevenueEntity updateRevenue(String id, BigDecimal amount, String description, String categoryName) {
+        RevenueEntity existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Revenue not found: " + id));
+        RevenueCategory category = (categoryName == null || categoryName.isBlank())
+                ? classifyRevenue(description)
+                : parseCategory(categoryName);
+        RevenueEntity updated = new RevenueEntity(existing.id(), amount, description, category, existing.receivedAt());
+        return repository.save(updated);
+    }
+
     public List<RevenueEntity> listRevenues(Instant start, Instant end) {
         if (start != null && end != null) {
             return repository.findByPeriod(start, end);
         }
         return repository.findAll();
+    }
+
+    public void deleteRevenue(String id) {
+        RevenueEntity existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Revenue not found: " + id));
+        repository.deleteById(existing.id());
     }
 
     public RevenueCategory classifyRevenue(String description) {
