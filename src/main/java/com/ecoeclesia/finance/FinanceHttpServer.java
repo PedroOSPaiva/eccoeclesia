@@ -121,6 +121,8 @@ public final class FinanceHttpServer {
         createContext("/api/auth/login", new LoginHandler(authTokenService, responseWriter, json));
         createContext("/api/auth/refresh", new RefreshHandler(authTokenService, responseWriter, json));
         createContext("/api/auth/password", new PasswordChangeHandler(authTokenService, responseWriter, json));
+        createContext("/api/auth/forgot-password", new ForgotPasswordHandler(authTokenService, responseWriter, json));
+        createContext("/api/auth/reset-password", new ResetPasswordHandler(authTokenService, responseWriter, json));
         createContext("/api/ledger", new LedgerHandler(ledgerService, authTokenService, responseWriter, json, queryParams));
         createContext("/api/ledger/chart", new ChartHandler(chart, authTokenService, responseWriter, json));
         createContext("/api/reports/ledger",

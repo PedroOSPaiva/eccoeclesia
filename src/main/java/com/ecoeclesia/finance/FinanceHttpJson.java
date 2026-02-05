@@ -48,6 +48,16 @@ final class FinanceHttpJson {
                 .toString();
     }
 
+
+    String passwordResetToken(PasswordResetToken token) {
+        return new StringBuilder("{")
+                .append("\"status\":\"ok\",")
+                .append("\"resetToken\":\"").append(escape(token.token())).append("\",")
+                .append("\"expiresAt\":\"").append(escape(token.expiresAt())).append("\"")
+                .append("}")
+                .toString();
+    }
+
     String tokens(AuthTokens tokens) {
         return new StringBuilder("{")
                 .append("\"accessToken\":\"").append(escape(tokens.accessToken())).append("\",")
