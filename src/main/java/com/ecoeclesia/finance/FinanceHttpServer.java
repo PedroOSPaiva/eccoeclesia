@@ -12,7 +12,6 @@ import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.InMemoryExpenseRepository;
 import com.ecoeclesia.inventory.InventoryService;
 import com.ecoeclesia.revenue.FileRevenueRepository;
-import com.ecoeclesia.revenue.InMemoryRevenueRepository;
 import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.UserManagementController;
 
@@ -84,17 +83,11 @@ public final class FinanceHttpServer {
         ExpenseService expenseService = new ExpenseService(new InMemoryExpenseRepository());
         RevenueService revenueService = new RevenueService(new FileRevenueRepository(Path.of("data", "revenues.csv")));
         InventoryService inventoryService = new InventoryService(Path.of("data", "inventory.csv"));
-        RevenueService revenueService = new RevenueService(new InMemoryRevenueRepository());
-        InventoryService inventoryService = new InventoryService();
         FinanceHttpLogger logger = new FinanceHttpLogger();
         return new FinanceHttpServer(port, ledgerService, generator,
                 new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
                 authTokenService, chart, users, payableService, receivableService, cashflowService,
                 expenseService, revenueService, inventoryService, logger);
-        FinanceHttpLogger logger = new FinanceHttpLogger();
-        return new FinanceHttpServer(port, ledgerService, generator,
-                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
-                authTokenService, chart, users, payableService, receivableService, cashflowService, expenseService, logger);
     }
 
     private static LedgerRepository chooseRepository() {
@@ -146,9 +139,8 @@ public final class FinanceHttpServer {
         createContext("/api/revenues", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/revenues/", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter, expenseService, revenueService, json));
-        createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv")));
-        createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter));
-        createContext("/api/birthdays", new BirthdaysHandler(responseWriter));
+        createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv"), authTokenService));
+        createContext("/api/birthdays/", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv"), authTokenService));
         createContext("/inventory", new InventoryHandler(inventoryService, authTokenService, responseWriter, json));
     }
 

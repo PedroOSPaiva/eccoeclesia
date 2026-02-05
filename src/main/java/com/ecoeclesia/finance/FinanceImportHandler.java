@@ -9,9 +9,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import java.io.IOException;
 
 final class FinanceImportHandler implements HttpHandler {
 
@@ -28,10 +25,6 @@ final class FinanceImportHandler implements HttpHandler {
         this.expenseService = expenseService;
         this.revenueService = revenueService;
         this.json = json;
-
-    FinanceImportHandler(AuthTokenService authTokenService, FinanceHttpResponseWriter responseWriter) {
-        this.authTokenService = authTokenService;
-        this.responseWriter = responseWriter;
     }
 
     @Override
@@ -55,9 +48,6 @@ final class FinanceImportHandler implements HttpHandler {
         } catch (IllegalArgumentException ex) {
             responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
         }
-        exchange.getRequestBody().readAllBytes();
-        responseWriter.writeJson(exchange, 200,
-                "{\"expensesImported\":0,\"revenuesImported\":0,\"skipped\":0,\"errors\":[]}");
     }
 
     private boolean isAllowed(HttpExchange exchange, String permission) {
