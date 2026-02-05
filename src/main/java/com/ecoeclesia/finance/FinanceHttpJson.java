@@ -1,6 +1,7 @@
 package com.ecoeclesia.finance;
 
 import com.ecoeclesia.user.UserAccountResponse;
+import com.ecoeclesia.expense.ExpenseDocument;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -160,6 +161,25 @@ final class FinanceHttpJson {
                 .append("\"netBalance\":\"").append(snapshot.netBalance().toPlainString()).append("\",")
                 .append("\"payables\":[").append(payables).append("],")
                 .append("\"receivables\":[").append(receivables).append("]")
+                .append("}")
+                .toString();
+    }
+
+    String expenses(List<ExpenseDocument> expenses) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        for (ExpenseDocument expense : expenses) {
+            joiner.add(expense(expense));
+        }
+        return joiner.toString();
+    }
+
+    String expense(ExpenseDocument expense) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(expense.getId())).append("\",")
+                .append("\"amount\":\"").append(expense.getAmount().toPlainString()).append("\",")
+                .append("\"description\":\"").append(escape(expense.getDescription())).append("\",")
+                .append("\"category\":\"").append(expense.getCategory().name()).append("\",")
+                .append("\"createdAt\":\"").append(expense.getCreatedAt()).append("\"")
                 .append("}")
                 .toString();
     }
