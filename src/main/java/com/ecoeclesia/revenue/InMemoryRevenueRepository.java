@@ -36,6 +36,11 @@ public final class InMemoryRevenueRepository implements RevenueRepository {
                 .collect(Collectors.toList()));
     }
 
+    @Override
+    public void deleteById(String id) {
+        store.remove(id);
+    }
+
     private static List<RevenueEntity> sorted(List<RevenueEntity> entities) {
         entities.sort(Comparator.comparing(RevenueEntity::receivedAt).reversed());
         return entities;
