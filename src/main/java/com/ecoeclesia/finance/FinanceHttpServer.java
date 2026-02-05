@@ -88,6 +88,10 @@ public final class FinanceHttpServer {
                 new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
                 authTokenService, chart, users, payableService, receivableService, cashflowService,
                 expenseService, revenueService, inventoryService, logger);
+        FinanceHttpLogger logger = new FinanceHttpLogger();
+        return new FinanceHttpServer(port, ledgerService, generator,
+                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
+                authTokenService, chart, users, payableService, receivableService, cashflowService, expenseService, logger);
     }
 
     private static LedgerRepository chooseRepository() {
