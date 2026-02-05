@@ -31,7 +31,7 @@ Para evidências de qualidade e operação alinhadas ao front, veja `docs/fronte
    ./mvnw run
    ```
    Inicia `EcoEcclesiaApplication`, que liga o `FinanceHttpServer` na porta 8080. O servidor expõe:
-   - Autenticação: `POST /api/auth/login` e `POST /api/auth/refresh` (retornam tokens Bearer + permissões).
+   - Autenticação: `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/forgot-password` e `POST /api/auth/reset-password` (retornam tokens Bearer + permissões, além de fluxo de recuperação de senha).
    - Razão: `GET /api/ledger` (lista ou filtra por `start`/`end`), `POST /api/ledger` (cria lançamento; requer `finance:write`).
    - Relatórios: `GET /api/reports/ledger` (texto), `GET /api/reports/ledger.pdf`, `GET /api/reports/ledger.csv` (todos com filtros `start`/`end`).
    - Contas a pagar: `GET /api/payables`, `POST /api/payables`, `PUT /api/payables/{id}/status`.
