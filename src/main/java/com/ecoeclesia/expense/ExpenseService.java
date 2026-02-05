@@ -47,12 +47,22 @@ public final class ExpenseService {
                 .orElseThrow(() -> new IllegalArgumentException("Expense not found: " + id));
         existing.setAmount(amount);
         existing.setDescription(description);
-        existing.setCategory(parseCategory(categoryName));
+        if (categoryName == null || categoryName.isBlank()) {
+            existing.setCategory(classifyExpense(description));
+        } else {
+            existing.setCategory(parseCategory(categoryName));
+        }
         return repository.save(existing);
     }
 
     public java.util.List<ExpenseDocument> listExpenses() {
         return repository.findAll();
+    }
+
+    public void deleteExpense(String id) {
+        ExpenseDocument existing = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Expense not found: " + id));
+        repository.deleteById(existing.getId());
     }
 
     public ExpenseCategory classifyExpense(String description) {
