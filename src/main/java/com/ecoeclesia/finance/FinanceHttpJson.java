@@ -1,6 +1,11 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.inventory.ConsumableItem;
+import com.ecoeclesia.inventory.DurableItem;
+import com.ecoeclesia.inventory.InventoryItem;
+import com.ecoeclesia.revenue.RevenueEntity;
 import com.ecoeclesia.user.UserAccountResponse;
+import com.ecoeclesia.expense.ExpenseDocument;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -162,6 +167,72 @@ final class FinanceHttpJson {
                 .append("\"receivables\":[").append(receivables).append("]")
                 .append("}")
                 .toString();
+    }
+
+    String expenses(List<ExpenseDocument> expenses) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        for (ExpenseDocument expense : expenses) {
+            joiner.add(expense(expense));
+        }
+        return joiner.toString();
+    }
+
+    String expense(ExpenseDocument expense) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(expense.getId())).append("\",")
+                .append("\"amount\":\"").append(expense.getAmount().toPlainString()).append("\",")
+                .append("\"description\":\"").append(escape(expense.getDescription())).append("\",")
+                .append("\"category\":\"").append(expense.getCategory().name()).append("\",")
+                .append("\"createdAt\":\"").append(expense.getCreatedAt()).append("\"")
+                .append("}")
+                .toString();
+    }
+
+    String revenues(List<RevenueEntity> revenues) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        for (RevenueEntity revenue : revenues) {
+            joiner.add(revenue(revenue));
+        }
+        return joiner.toString();
+    }
+
+    String revenue(RevenueEntity revenue) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(revenue.id())).append("\",")
+                .append("\"amount\":\"").append(revenue.amount().toPlainString()).append("\",")
+                .append("\"description\":\"").append(escape(revenue.description())).append("\",")
+                .append("\"category\":\"").append(revenue.category().name()).append("\",")
+                .append("\"receivedAt\":\"").append(revenue.receivedAt()).append("\"")
+                .append("}")
+                .toString();
+    }
+
+    String inventoryItems(List<InventoryItem> items) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        for (InventoryItem item : items) {
+            joiner.add(inventoryItem(item));
+        }
+        return joiner.toString();
+    }
+
+    String inventoryItem(InventoryItem item) {
+        StringBuilder builder = new StringBuilder("{")
+                .append("\"id\":\"").append(escape(item.getId())).append("\",")
+                .append("\"name\":\"").append(escape(item.getName())).append("\",")
+                .append("\"description\":\"").append(escape(item.getDescription())).append("\",")
+                .append("\"quantity\":").append(item.getQuantity()).append(",")
+                .append("\"minimumQuantity\":").append(item.getMinimumStock()).append(",")
+                .append("\"lastUpdated\":\"").append(item.getLastUpdated()).append("\",");
+        if (item instanceof ConsumableItem consumable) {
+            builder.append("\"type\":\"CONSUMABLE\",")
+                    .append("\"expirationDate\":\"").append(consumable.getExpirationDate()).append("\"");
+        } else if (item instanceof DurableItem durable) {
+            builder.append("\"type\":\"DURABLE\",")
+                    .append("\"warrantyMonths\":").append(durable.getWarrantyMonths());
+        } else {
+            builder.append("\"type\":\"UNKNOWN\"");
+        }
+        return builder.append("}").toString();
     }
 
     String escape(String value) {
