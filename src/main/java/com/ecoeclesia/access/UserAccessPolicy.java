@@ -19,6 +19,9 @@ public final class UserAccessPolicy {
         permissions.put(UserRole.FINANCE, Set.of("finance:write", "finance:read", "expenses:read", "expenses:write",
                 "expenses:manage", "inventory:read", "inventory:write"));
         permissions.put(UserRole.VOLUNTEER, Set.of("inventory:read", "inventory:write", "expenses:read", "expenses:write"));
+                "expenses:read", "expenses:write"));
+        permissions.put(UserRole.FINANCE, Set.of("finance:write", "finance:read", "expenses:read", "expenses:write"));
+        permissions.put(UserRole.VOLUNTEER, Set.of("inventory:read", "expenses:read", "expenses:write"));
     }
 
     public boolean isAllowed(UserRole role, String action) {
