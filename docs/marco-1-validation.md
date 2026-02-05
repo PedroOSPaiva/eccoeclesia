@@ -10,6 +10,7 @@ Este documento registra a validação final do Marco 1 conforme o DoD e o checkl
 
 ### Frontend (UI)
 - [ ] Build/execução local do frontend (`npm install` + `npm run dev`).
+- [ ] Validação manual dos fluxos (responsável: usuário):
 - [ ] Validação manual dos fluxos:
   - [ ] Criar contas a pagar (recorrência/anexos).
   - [ ] Criar contas a receber (origem/categoria/projeto).
@@ -17,6 +18,7 @@ Este documento registra a validação final do Marco 1 conforme o DoD e o checkl
   - [ ] Visualização de fluxo de caixa.
 
 ### Evidências
+- [ ] Screenshot da tela Financeiro com payables/receivables/cashflow (responsável: usuário).
 - [ ] Screenshot da tela Financeiro com payables/receivables/cashflow.
 
 ## Observações
