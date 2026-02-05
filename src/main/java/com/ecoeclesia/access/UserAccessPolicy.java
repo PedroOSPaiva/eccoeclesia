@@ -15,6 +15,10 @@ public final class UserAccessPolicy {
 
     public UserAccessPolicy() {
         permissions.put(UserRole.ADMIN, Set.of("users:write", "users:read", "finance:write", "finance:read",
+                "expenses:read", "expenses:write", "expenses:manage", "inventory:read", "inventory:write"));
+        permissions.put(UserRole.FINANCE, Set.of("finance:write", "finance:read", "expenses:read", "expenses:write",
+                "expenses:manage", "inventory:read", "inventory:write"));
+        permissions.put(UserRole.VOLUNTEER, Set.of("inventory:read", "inventory:write", "expenses:read", "expenses:write"));
                 "expenses:read", "expenses:write"));
         permissions.put(UserRole.FINANCE, Set.of("finance:write", "finance:read", "expenses:read", "expenses:write"));
         permissions.put(UserRole.VOLUNTEER, Set.of("inventory:read", "expenses:read", "expenses:write"));

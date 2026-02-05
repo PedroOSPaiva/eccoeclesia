@@ -10,6 +10,9 @@ import com.ecoeclesia.config.DatabaseCredentials;
 import com.ecoeclesia.config.DatabaseUrlResolver;
 import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.InMemoryExpenseRepository;
+import com.ecoeclesia.inventory.InventoryService;
+import com.ecoeclesia.revenue.InMemoryRevenueRepository;
+import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.UserManagementController;
 
 /**
@@ -34,6 +37,8 @@ public final class FinanceHttpServer {
     private final ReceivableService receivableService;
     private final CashflowService cashflowService;
     private final ExpenseService expenseService;
+    private final RevenueService revenueService;
+    private final InventoryService inventoryService;
     private final FinanceHttpLogger logger;
 
     public FinanceHttpServer(int port, LedgerService ledgerService, FinancialReportGenerator reportGenerator,
@@ -41,6 +46,7 @@ public final class FinanceHttpServer {
                              AuthTokenService authTokenService, ChartOfAccounts chart, UserManagementController users,
                              PayableService payableService, ReceivableService receivableService,
                              CashflowService cashflowService, ExpenseService expenseService,
+                             RevenueService revenueService, InventoryService inventoryService,
                              FinanceHttpLogger logger)
             throws IOException {
         this.server = HttpServer.create(new InetSocketAddress(port), 0);
@@ -55,6 +61,8 @@ public final class FinanceHttpServer {
         this.receivableService = Objects.requireNonNull(receivableService);
         this.cashflowService = Objects.requireNonNull(cashflowService);
         this.expenseService = Objects.requireNonNull(expenseService);
+        this.revenueService = Objects.requireNonNull(revenueService);
+        this.inventoryService = Objects.requireNonNull(inventoryService);
         this.logger = Objects.requireNonNull(logger);
         this.json = new FinanceHttpJson();
         this.responseWriter = new FinanceHttpResponseWriter();
@@ -73,6 +81,13 @@ public final class FinanceHttpServer {
         ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
         CashflowService cashflowService = new CashflowService(payableService, receivableService);
         ExpenseService expenseService = new ExpenseService(new InMemoryExpenseRepository());
+        RevenueService revenueService = new RevenueService(new InMemoryRevenueRepository());
+        InventoryService inventoryService = new InventoryService();
+        FinanceHttpLogger logger = new FinanceHttpLogger();
+        return new FinanceHttpServer(port, ledgerService, generator,
+                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
+                authTokenService, chart, users, payableService, receivableService, cashflowService,
+                expenseService, revenueService, inventoryService, logger);
         FinanceHttpLogger logger = new FinanceHttpLogger();
         return new FinanceHttpServer(port, ledgerService, generator,
                 new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
@@ -125,6 +140,11 @@ public final class FinanceHttpServer {
         createContext("/api/cashflow", new CashflowHandler(cashflowService, authTokenService, responseWriter, json));
         createContext("/api/expenses", new ExpensesHandler(expenseService, authTokenService, responseWriter, json));
         createContext("/api/expenses/", new ExpensesHandler(expenseService, authTokenService, responseWriter, json));
+        createContext("/api/revenues", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
+        createContext("/api/revenues/", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
+        createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter));
+        createContext("/api/birthdays", new BirthdaysHandler(responseWriter));
+        createContext("/inventory", new InventoryHandler(inventoryService, authTokenService, responseWriter, json));
     }
 
     private void createContext(String path, com.sun.net.httpserver.HttpHandler handler) {

@@ -46,6 +46,13 @@ public final class InventoryService {
         return alerts;
     }
 
+    public List<InventoryItem> listItems() {
+        List<InventoryItem> items = new ArrayList<>();
+        items.addAll(consumables.values());
+        items.addAll(durables.values());
+        return items;
+    }
+
     public InventoryItem findItem(String id, ItemType type) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
