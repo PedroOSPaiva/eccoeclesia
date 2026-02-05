@@ -11,6 +11,7 @@ import com.ecoeclesia.config.DatabaseUrlResolver;
 import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.InMemoryExpenseRepository;
 import com.ecoeclesia.inventory.InventoryService;
+import com.ecoeclesia.revenue.FileRevenueRepository;
 import com.ecoeclesia.revenue.InMemoryRevenueRepository;
 import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.UserManagementController;
@@ -81,6 +82,8 @@ public final class FinanceHttpServer {
         ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
         CashflowService cashflowService = new CashflowService(payableService, receivableService);
         ExpenseService expenseService = new ExpenseService(new InMemoryExpenseRepository());
+        RevenueService revenueService = new RevenueService(new FileRevenueRepository(Path.of("data", "revenues.csv")));
+        InventoryService inventoryService = new InventoryService(Path.of("data", "inventory.csv"));
         RevenueService revenueService = new RevenueService(new InMemoryRevenueRepository());
         InventoryService inventoryService = new InventoryService();
         FinanceHttpLogger logger = new FinanceHttpLogger();
@@ -142,6 +145,8 @@ public final class FinanceHttpServer {
         createContext("/api/expenses/", new ExpensesHandler(expenseService, authTokenService, responseWriter, json));
         createContext("/api/revenues", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/revenues/", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
+        createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter, expenseService, revenueService, json));
+        createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv")));
         createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter));
         createContext("/api/birthdays", new BirthdaysHandler(responseWriter));
         createContext("/inventory", new InventoryHandler(inventoryService, authTokenService, responseWriter, json));
