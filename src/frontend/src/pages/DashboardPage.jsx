@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import StatCard from '../components/StatCard.jsx';
 import reportService from '../services/reportService.js';
@@ -39,10 +40,32 @@ function DashboardPage() {
     <div className="grid" style={{ gap: '2rem' }}>
       <header>
         <h1 className="page-title">Visão Geral</h1>
-        <p>Resumo financeiro e de estoque da paróquia.</p>
+        <p>Resumo financeiro e de estoque da paróquia com atalhos para ações do dia a dia.</p>
       </header>
 
       {error && <p className="error" role="alert">{error}</p>}
+
+      <section className="section">
+        <h2>Ações rápidas</h2>
+        <div className="quick-actions-grid">
+          <Link className="quick-action" to="/expenses">
+            <strong>Registrar gasto</strong>
+            <span>Abra o formulário de novo gasto.</span>
+          </Link>
+          <Link className="quick-action" to="/ledger">
+            <strong>Ir para financeiro</strong>
+            <span>Veja lançamentos completos e histórico.</span>
+          </Link>
+          <Link className="quick-action" to="/inventory">
+            <strong>Atualizar estoque</strong>
+            <span>Registrar entrada e saída de itens.</span>
+          </Link>
+          <Link className="quick-action" to="/birthdays">
+            <strong>Ver aniversariantes</strong>
+            <span>Acompanhe próximos aniversários.</span>
+          </Link>
+        </div>
+      </section>
 
       <section className="grid cols-2">
         <StatCard title="Total de Gastos" value={`R$ ${data.expenseTotal.toFixed(2)}`} description="Despesas registradas no período" />

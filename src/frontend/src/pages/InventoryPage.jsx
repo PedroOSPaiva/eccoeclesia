@@ -17,6 +17,26 @@ const durableDefaults = {
   warrantyMonths: ''
 };
 
+function formatItemType(type) {
+  if (type === 'CONSUMABLE') {
+    return 'Consumível';
+  }
+  if (type === 'DURABLE') {
+    return 'Durável';
+  }
+  return type;
+}
+
+function detailForItem(item) {
+  if (item.type === 'CONSUMABLE') {
+    return item.expirationDate ? `Validade: ${item.expirationDate}` : 'Sem validade informada';
+  }
+  if (item.type === 'DURABLE') {
+    return item.warrantyMonths != null ? `Garantia: ${item.warrantyMonths} mês(es)` : 'Sem garantia informada';
+  }
+  return '—';
+}
+
 function InventoryPage() {
   const [items, setItems] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -252,6 +272,8 @@ function InventoryPage() {
               <tr>
                 <th>Nome</th>
                 <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Detalhes</th>
                 <th>Quantidade</th>
                 <th>Mínimo</th>
                 <th>Ações</th>
@@ -264,7 +286,9 @@ function InventoryPage() {
                     {item.name}
                     {item.quantity <= item.minimumQuantity && <span className="badge warning" style={{ marginLeft: '0.5rem' }}>Alerta</span>}
                   </td>
-                  <td>{item.type}</td>
+                  <td>{formatItemType(item.type)}</td>
+                  <td>{item.description || 'Sem descrição'}</td>
+                  <td>{detailForItem(item)}</td>
                   <td>{item.quantity}</td>
                   <td>{item.minimumQuantity}</td>
                   <td>

@@ -11,29 +11,42 @@ function Layout() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Brand layout="inline" size="lg" tone="inverse" subtitle="Painel" />
-        <nav>
-          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/birthdays" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Aniversariantes
-          </NavLink>
-          <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Gastos
-          </NavLink>
-          {hasPermission('finance:read') && (
-            <NavLink to="/ledger" className={({ isActive }) => (isActive ? 'active' : '')}>
-              Financeiro
+        <NavLink to="/dashboard" className="brand-link" aria-label="Ir para o dashboard">
+          <Brand layout="inline" size="lg" tone="inverse" subtitle="Painel" />
+        </NavLink>
+
+        <nav aria-label="Navegação principal">
+          <div className="nav-group">
+            <p className="nav-group__title">Geral</p>
+            <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Dashboard
             </NavLink>
-          )}
-          <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Estoque
-          </NavLink>
-          <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Relatórios
-          </NavLink>
+            <NavLink to="/birthdays" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Aniversariantes
+            </NavLink>
+            <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Estoque
+            </NavLink>
+          </div>
+
+          <div className="nav-group">
+            <p className="nav-group__title">Financeiro</p>
+            <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
+              Gastos
+            </NavLink>
+            {hasPermission('finance:read') && (
+              <>
+                <NavLink to="/ledger" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Lançamentos
+                </NavLink>
+                <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : '')}>
+                  Relatórios
+                </NavLink>
+              </>
+            )}
+          </div>
         </nav>
+
         <button type="button" className="logout" onClick={logout}>
           Sair
         </button>
