@@ -43,7 +43,37 @@ function DashboardPage() {
         <p>Resumo financeiro e de estoque da paróquia com atalhos para ações do dia a dia.</p>
       </header>
 
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && (
+        <div className="error" role="alert">
+          <strong>Não conseguimos atualizar os indicadores agora.</strong>
+          <div style={{ fontSize: '0.95rem', marginTop: '0.25rem' }}>
+            Você ainda pode usar os atalhos abaixo para continuar operando normalmente.
+          </div>
+        </div>
+      )}
+
+      <section className="section">
+        <h2>Ações rápidas</h2>
+        <p className="muted" style={{ marginTop: "-0.4rem" }}>Escolha uma ação para ir direto ao ponto.</p>
+        <div className="quick-actions-grid">
+          <Link className="quick-action" to="/expenses">
+            <strong>Registrar gasto</strong>
+            <span>Abra o formulário de novo gasto.</span>
+          </Link>
+          <Link className="quick-action" to="/ledger">
+            <strong>Ir para financeiro</strong>
+            <span>Veja lançamentos completos e histórico.</span>
+          </Link>
+          <Link className="quick-action" to="/inventory">
+            <strong>Atualizar estoque</strong>
+            <span>Registrar entrada e saída de itens.</span>
+          </Link>
+          <Link className="quick-action" to="/birthdays">
+            <strong>Ver aniversariantes</strong>
+            <span>Acompanhe próximos aniversários.</span>
+          </Link>
+        </div>
+      </section>
 
       <section className="section">
         <h2>Ações rápidas</h2>
