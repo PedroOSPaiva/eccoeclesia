@@ -51,7 +51,15 @@ function BirthdaysPage() {
         <p>Visualize quem está prestes a celebrar mais um ano de vida e combine homenagens.</p>
       </header>
 
-      {error && <p className="error" role="alert">{error}</p>}
+{error && <p className="error" role="alert">{error}</p>}
+
+      <section className="section" style={{ borderLeft: '4px solid #f59e0b' }}>
+        <h2 style={{ marginBottom: '0.35rem' }}>Cadastro de aniversariantes</h2>
+        <p className="muted" style={{ margin: 0 }}>
+          No momento este painel está em modo de consulta. O endpoint de cadastro ainda não está disponível no backend.
+          Como alternativa, mantenha os dados atualizados via arquivo/integração até liberarmos o formulário de cadastro.
+        </p>
+      </section>
 
       <section className="section">
         <div className="birthdays-header">

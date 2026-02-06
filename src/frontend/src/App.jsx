@@ -12,6 +12,7 @@ import ReportsPage from './pages/ReportsPage.jsx';
 import LedgerPage from './pages/LedgerPage.jsx';
 import SplashScreen from './components/SplashScreen.jsx';
 import PasswordResetPage from './pages/PasswordResetPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 
 function App() {
   const { isAuthenticated, tokens } = useAuth();
@@ -39,6 +40,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/password-reset" element={<PasswordResetPage />} />
         <Route element={<Layout />}>

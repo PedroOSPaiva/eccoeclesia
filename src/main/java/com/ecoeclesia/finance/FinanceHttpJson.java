@@ -1,5 +1,6 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.birthday.BirthdayPerson;
 import com.ecoeclesia.inventory.ConsumableItem;
 import com.ecoeclesia.inventory.DurableItem;
 import com.ecoeclesia.inventory.InventoryItem;
@@ -48,6 +49,16 @@ final class FinanceHttpJson {
                 .toString();
     }
 
+
+    String passwordResetToken(PasswordResetToken token) {
+        return new StringBuilder("{")
+                .append("\"status\":\"ok\",")
+                .append("\"resetToken\":\"").append(escape(token.token())).append("\",")
+                .append("\"expiresAt\":\"").append(escape(token.expiresAt())).append("\"")
+                .append("}")
+                .toString();
+    }
+
     String tokens(AuthTokens tokens) {
         return new StringBuilder("{")
                 .append("\"accessToken\":\"").append(escape(tokens.accessToken())).append("\",")
@@ -60,6 +71,25 @@ final class FinanceHttpJson {
                 .append("\"permissions\":[")
                 .append(String.join(",", tokens.permissions().stream().map(p -> "\"" + escape(p) + "\"").toList()))
                 .append("]}")
+                .toString();
+    }
+
+    String birthdays(List<BirthdayPerson> people) {
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        for (BirthdayPerson person : people) {
+            joiner.add(birthday(person));
+        }
+        return joiner.toString();
+    }
+
+    String birthday(BirthdayPerson person) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(escape(person.id())).append("\",")
+                .append("\"name\":\"").append(escape(person.name())).append("\",")
+                .append("\"birthDate\":\"").append(person.birthDate()).append("\",")
+                .append("\"ministry\":").append(nullable(person.ministry())).append(",")
+                .append("\"contact\":").append(nullable(person.contact()))
+                .append("}")
                 .toString();
     }
 

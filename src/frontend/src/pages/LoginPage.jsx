@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import Brand from '../components/Brand.jsx';
 import './LoginPage.css';
@@ -49,6 +50,9 @@ function LoginPage() {
           />
         </div>
         <p className="helper">Use uma conta configurada via variáveis de ambiente.</p>
+        <Link to="/forgot-password" className="helper" style={{ textAlign: 'center' }}>
+          Esqueci minha senha
+        </Link>
         <button className="primary-button" type="submit" disabled={loading}>
           {loading ? 'Entrando…' : 'Entrar'}
         </button>

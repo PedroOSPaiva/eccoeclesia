@@ -1,27 +1,23 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.birthday.BirthdayPerson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.Map;
 
 final class BirthdaysHandler implements HttpHandler {
 
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
-    private final Path dataFile;
+    private final BirthdayCatalog catalog;
 
     BirthdaysHandler(FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, Path dataFile) {
         this.responseWriter = responseWriter;
         this.json = json;
-        this.dataFile = dataFile;
-
-    BirthdaysHandler(FinanceHttpResponseWriter responseWriter) {
-        this.responseWriter = responseWriter;
+        this.catalog = new BirthdayCatalog(dataFile);
     }
 
     @Override
@@ -30,45 +26,85 @@ final class BirthdaysHandler implements HttpHandler {
             responseWriter.writeJson(exchange, 204, "");
             return;
         }
-        if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-            responseWriter.writeJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
+        String method = exchange.getRequestMethod();
+        String path = exchange.getRequestURI().getPath();
+
+        if ("GET".equalsIgnoreCase(method)) {
+            responseWriter.writeJson(exchange, 200, json.birthdays(catalog.list()));
             return;
         }
-        responseWriter.writeJson(exchange, 200, birthdaysJson());
+
+        if ("POST".equalsIgnoreCase(method)) {
+            Map<String, String> values = parseBody(exchange);
+            try {
+                BirthdayPerson created = catalog.create(
+                        values.get("name"),
+                        values.get("birthDate"),
+                        values.get("ministry"),
+                        values.get("contact"));
+                responseWriter.writeJson(exchange, 201, json.birthday(created));
+            } catch (IllegalArgumentException ex) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            }
+            return;
+        }
+
+        if ("PUT".equalsIgnoreCase(method)) {
+            String id = extractId(path);
+            if (id == null) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"Invalid path\"}");
+                return;
+            }
+            Map<String, String> values = parseBody(exchange);
+            try {
+                BirthdayPerson updated = catalog.update(
+                        id,
+                        values.get("name"),
+                        values.get("birthDate"),
+                        values.get("ministry"),
+                        values.get("contact"));
+                responseWriter.writeJson(exchange, 200, json.birthday(updated));
+            } catch (IllegalArgumentException ex) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            }
+            return;
+        }
+
+        if ("DELETE".equalsIgnoreCase(method)) {
+            String id = extractId(path);
+            if (id == null) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"Invalid path\"}");
+                return;
+            }
+            try {
+                catalog.delete(id);
+                responseWriter.writeJson(exchange, 204, "");
+            } catch (IllegalArgumentException ex) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            }
+            return;
+        }
+
+        responseWriter.writeJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
     }
 
-    private String birthdaysJson() throws IOException {
-        if (!Files.exists(dataFile)) {
-            return "[]";
+    private Map<String, String> parseBody(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        return FinanceSimpleJsonParser.parse(body);
+    }
+
+    private String extractId(String path) {
+        if (path == null) {
+            return null;
         }
-        List<String> lines = Files.readAllLines(dataFile, StandardCharsets.UTF_8);
-        StringJoiner joiner = new StringJoiner(",", "[", "]");
-        for (String line : lines) {
-            String trimmed = line.trim();
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                continue;
-            }
-            String[] parts = trimmed.split(",");
-            if (parts.length < 5) {
-                continue;
-            }
-            joiner.add(new StringBuilder("{")
-                    .append("\"id\":\"").append(json.escape(parts[0].trim())).append("\",")
-                    .append("\"name\":\"").append(json.escape(parts[1].trim())).append("\",")
-                    .append("\"birthDate\":\"").append(json.escape(parts[2].trim())).append("\",")
-                    .append("\"ministry\":\"").append(json.escape(parts[3].trim())).append("\",")
-                    .append("\"contact\":\"").append(json.escape(parts[4].trim())).append("\"")
-                    .append("}")
-                    .toString());
+        String[] parts = path.split("/");
+        if (parts.length < 4) {
+            return null;
         }
-        return joiner.toString();
-        responseWriter.writeJson(exchange, 200,
-                "[" +
-                        "{\"id\":\"a1\",\"name\":\"Ana Bezerra\",\"birthDate\":\"1992-05-15\",\"ministry\":\"Pastoral Infantil\",\"contact\":\"(11) 99999-1234\"}," +
-                        "{\"id\":\"b2\",\"name\":\"Bruno Carvalho\",\"birthDate\":\"1987-06-03\",\"ministry\":\"Liturgia\",\"contact\":\"bruno@paroquia.com\"}," +
-                        "{\"id\":\"c3\",\"name\":\"Carla Dias\",\"birthDate\":\"1995-04-28\",\"ministry\":\"Música\",\"contact\":\"(11) 98888-4321\"}," +
-                        "{\"id\":\"d4\",\"name\":\"Daniel Souza\",\"birthDate\":\"1980-05-30\",\"ministry\":\"Juventude\",\"contact\":\"daniel@paroquia.com\"}," +
-                        "{\"id\":\"e5\",\"name\":\"Elisa Tavares\",\"birthDate\":\"1999-12-02\",\"ministry\":\"Acolhida\",\"contact\":\"(11) 97777-0000\"}" +
-                        "]");
+        String id = parts[3];
+        if (id == null || id.isBlank()) {
+            return null;
+        }
+        return id;
     }
 }
