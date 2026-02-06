@@ -105,6 +105,16 @@
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
+  .nav-group {
+    flex-direction: row;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .nav-group__title {
+    margin-right: 0.35rem;
+  }
+
   .content {
     padding: 1.25rem;
   }

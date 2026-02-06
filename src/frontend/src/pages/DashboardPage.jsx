@@ -75,6 +75,28 @@ function DashboardPage() {
         </div>
       </section>
 
+      <section className="section">
+        <h2>Ações rápidas</h2>
+        <div className="quick-actions-grid">
+          <Link className="quick-action" to="/expenses">
+            <strong>Registrar gasto</strong>
+            <span>Abra o formulário de novo gasto.</span>
+          </Link>
+          <Link className="quick-action" to="/ledger">
+            <strong>Ir para financeiro</strong>
+            <span>Veja lançamentos completos e histórico.</span>
+          </Link>
+          <Link className="quick-action" to="/inventory">
+            <strong>Atualizar estoque</strong>
+            <span>Registrar entrada e saída de itens.</span>
+          </Link>
+          <Link className="quick-action" to="/birthdays">
+            <strong>Ver aniversariantes</strong>
+            <span>Acompanhe próximos aniversários.</span>
+          </Link>
+        </div>
+      </section>
+
       <section className="grid cols-2">
         <StatCard title="Total de Gastos" value={`R$ ${data.expenseTotal.toFixed(2)}`} description="Despesas registradas no período" />
         <StatCard title="Itens no estoque" value={data.inventorySummary.totalItems} description="Itens cadastrados" />
