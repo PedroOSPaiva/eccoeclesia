@@ -1,7 +1,7 @@
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 260px 1fr;
   background: #f6f7fb;
   color: #1f2933;
 }
@@ -15,6 +15,10 @@
   color: #f8fafc;
 }
 
+.brand-link {
+  text-decoration: none;
+}
+
 .sidebar .brand {
   margin-bottom: 0.5rem;
 }
@@ -26,8 +30,23 @@
 .sidebar nav {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 2rem;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.nav-group__title {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.75);
+  font-weight: 700;
 }
 
 .sidebar a {
@@ -79,8 +98,18 @@
   .sidebar nav {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-top: 0;
+  }
+
+  .nav-group {
+    flex-direction: row;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .nav-group__title {
+    margin-right: 0.35rem;
   }
 
   .content {
