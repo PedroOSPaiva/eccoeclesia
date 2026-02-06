@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import Brand from './Brand.jsx';
 import './Layout.css';
 
+const linkClassName = ({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`;
+
 function Layout() {
   const { logout, hasPermission, tokens } = useAuth();
   const warningDays = tokens?.daysUntilPasswordExpiry ?? null;
@@ -11,29 +13,42 @@ function Layout() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Brand layout="inline" size="lg" tone="inverse" subtitle="Painel" />
-        <nav>
-          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/birthdays" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Aniversariantes
-          </NavLink>
-          <NavLink to="/expenses" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Gastos
-          </NavLink>
-          {hasPermission('finance:read') && (
-            <NavLink to="/ledger" className={({ isActive }) => (isActive ? 'active' : '')}>
-              Financeiro
+        <NavLink to="/dashboard" className="brand-link" aria-label="Ir para o dashboard">
+          <Brand layout="inline" size="lg" tone="inverse" subtitle="Painel" />
+        </NavLink>
+
+        <nav aria-label="Navegação principal" className="sidebar-nav">
+          <section className="nav-group" aria-label="Módulos gerais">
+            <p className="nav-group__title">Geral</p>
+            <NavLink to="/dashboard" className={linkClassName}>
+              Dashboard
             </NavLink>
-          )}
-          <NavLink to="/inventory" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Estoque
-          </NavLink>
-          <NavLink to="/reports" className={({ isActive }) => (isActive ? 'active' : '')}>
-            Relatórios
-          </NavLink>
+            <NavLink to="/birthdays" className={linkClassName}>
+              Aniversariantes
+            </NavLink>
+            <NavLink to="/inventory" className={linkClassName}>
+              Estoque
+            </NavLink>
+          </section>
+
+          <section className="nav-group" aria-label="Módulos financeiros">
+            <p className="nav-group__title">Financeiro</p>
+            <NavLink to="/expenses" className={linkClassName}>
+              Gastos
+            </NavLink>
+            {hasPermission('finance:read') && (
+              <>
+                <NavLink to="/ledger" className={linkClassName}>
+                  Lançamentos
+                </NavLink>
+                <NavLink to="/reports" className={linkClassName}>
+                  Relatórios
+                </NavLink>
+              </>
+            )}
+          </section>
         </nav>
+
         <button type="button" className="logout" onClick={logout}>
           Sair
         </button>

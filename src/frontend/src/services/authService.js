@@ -47,6 +47,14 @@ const authService = {
     const response = await apiClient.post('/api/auth/password', { password });
     return response.data;
   },
+  async forgotPassword(email) {
+    const response = await apiClient.post('/api/auth/forgot-password', { email });
+    return response.data;
+  },
+  async resetPassword(token, password) {
+    const response = await apiClient.post('/api/auth/reset-password', { token, password });
+    return response.data;
+  },
   updateStoredTokens(update) {
     const current = authService.loadTokens();
     if (!current) {

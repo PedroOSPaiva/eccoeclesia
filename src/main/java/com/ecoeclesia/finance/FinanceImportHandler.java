@@ -9,9 +9,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import java.io.IOException;
+import java.util.stream.Collectors;
 
 final class FinanceImportHandler implements HttpHandler {
 
@@ -28,10 +26,6 @@ final class FinanceImportHandler implements HttpHandler {
         this.expenseService = expenseService;
         this.revenueService = revenueService;
         this.json = json;
-
-    FinanceImportHandler(AuthTokenService authTokenService, FinanceHttpResponseWriter responseWriter) {
-        this.authTokenService = authTokenService;
-        this.responseWriter = responseWriter;
     }
 
     @Override
@@ -55,9 +49,6 @@ final class FinanceImportHandler implements HttpHandler {
         } catch (IllegalArgumentException ex) {
             responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
         }
-        exchange.getRequestBody().readAllBytes();
-        responseWriter.writeJson(exchange, 200,
-                "{\"expensesImported\":0,\"revenuesImported\":0,\"skipped\":0,\"errors\":[]}");
     }
 
     private boolean isAllowed(HttpExchange exchange, String permission) {
@@ -94,7 +85,8 @@ final class FinanceImportHandler implements HttpHandler {
         int expensesImported = 0;
         int revenuesImported = 0;
         int skipped = 0;
-        for (String line : csv.lines()) {
+
+        for (String line : csv.lines().collect(Collectors.toList())) {
             String trimmed = line.trim();
             if (trimmed.isEmpty() || trimmed.startsWith("#")) {
                 continue;
@@ -128,7 +120,7 @@ final class FinanceImportHandler implements HttpHandler {
         String toJson(FinanceHttpJson json) {
             String errorList = errors.stream()
                     .map(value -> "\"" + json.escape(value) + "\"")
-                    .collect(java.util.stream.Collectors.joining(","));
+                    .collect(Collectors.joining(","));
             return new StringBuilder("{")
                     .append("\"expensesImported\":").append(expensesImported).append(",")
                     .append("\"revenuesImported\":").append(revenuesImported).append(",")

@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -26,8 +27,10 @@ import java.util.stream.Collectors;
 public final class AuthTokenService {
 
     private static final long PASSWORD_MAX_AGE_DAYS = 120;
+    private static final long PASSWORD_RESET_TOKEN_MINUTES = 30;
     private final Map<String, UserAccount> accessTokens = new ConcurrentHashMap<>();
     private final Map<String, UserAccount> refreshTokens = new ConcurrentHashMap<>();
+    private final Map<String, ResetTokenEntry> passwordResetTokens = new ConcurrentHashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
     private final UserManagementController users;
     private final SecureRandom random = new SecureRandom();
@@ -74,6 +77,38 @@ public final class AuthTokenService {
             return false;
         }
         return account.getRoles().stream().anyMatch(role -> accessPolicy.isAllowed(role, permission));
+    }
+
+
+    public PasswordResetToken requestPasswordReset(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email é obrigatório");
+        }
+        UserAccount account = users.findAccountByEmail(email);
+        if (account == null) {
+            throw new IllegalArgumentException("Usuário não encontrado");
+        }
+        String token = randomToken();
+        Instant expiresAt = Instant.now().plusSeconds(PASSWORD_RESET_TOKEN_MINUTES * 60);
+        passwordResetTokens.put(token, new ResetTokenEntry(account.getId(), expiresAt));
+        return new PasswordResetToken(token, expiresAt.toString());
+    }
+
+    public void resetPassword(String resetToken, String newPassword) {
+        if (resetToken == null || resetToken.isBlank()) {
+            throw new IllegalArgumentException("Token de recuperação é obrigatório");
+        }
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("Senha é obrigatória");
+        }
+        ResetTokenEntry tokenEntry = passwordResetTokens.remove(resetToken);
+        if (tokenEntry == null) {
+            throw new IllegalArgumentException("Token de recuperação inválido");
+        }
+        if (tokenEntry.expiresAt().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Token de recuperação expirado");
+        }
+        users.updatePassword(tokenEntry.userId(), new com.ecoeclesia.user.UpdateUserPasswordRequest(newPassword));
     }
 
     public Set<String> permissionsFor(String authorizationHeader) {
@@ -184,6 +219,9 @@ public final class AuthTokenService {
             daysUntilExpiry = 0;
         }
         return new PasswordStatus(mustChange, daysUntilExpiry, expiresAt.toString());
+    }
+
+    private record ResetTokenEntry(String userId, Instant expiresAt) {
     }
 
     private record PasswordStatus(boolean mustChangePassword, long daysUntilExpiry, String expiresAt) {

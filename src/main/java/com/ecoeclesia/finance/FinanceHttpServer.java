@@ -84,17 +84,11 @@ public final class FinanceHttpServer {
         ExpenseService expenseService = new ExpenseService(new InMemoryExpenseRepository());
         RevenueService revenueService = new RevenueService(new FileRevenueRepository(Path.of("data", "revenues.csv")));
         InventoryService inventoryService = new InventoryService(Path.of("data", "inventory.csv"));
-        RevenueService revenueService = new RevenueService(new InMemoryRevenueRepository());
-        InventoryService inventoryService = new InventoryService();
         FinanceHttpLogger logger = new FinanceHttpLogger();
         return new FinanceHttpServer(port, ledgerService, generator,
                 new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
                 authTokenService, chart, users, payableService, receivableService, cashflowService,
                 expenseService, revenueService, inventoryService, logger);
-        FinanceHttpLogger logger = new FinanceHttpLogger();
-        return new FinanceHttpServer(port, ledgerService, generator,
-                new FinancialReportPdfExporter(chart), new FinancialReportSpreadsheetExporter(),
-                authTokenService, chart, users, payableService, receivableService, cashflowService, expenseService, logger);
     }
 
     private static LedgerRepository chooseRepository() {
@@ -127,6 +121,8 @@ public final class FinanceHttpServer {
         createContext("/api/auth/login", new LoginHandler(authTokenService, responseWriter, json));
         createContext("/api/auth/refresh", new RefreshHandler(authTokenService, responseWriter, json));
         createContext("/api/auth/password", new PasswordChangeHandler(authTokenService, responseWriter, json));
+        createContext("/api/auth/forgot-password", new ForgotPasswordHandler(authTokenService, responseWriter, json));
+        createContext("/api/auth/reset-password", new ResetPasswordHandler(authTokenService, responseWriter, json));
         createContext("/api/ledger", new LedgerHandler(ledgerService, authTokenService, responseWriter, json, queryParams));
         createContext("/api/ledger/chart", new ChartHandler(chart, authTokenService, responseWriter, json));
         createContext("/api/reports/ledger",
@@ -147,8 +143,6 @@ public final class FinanceHttpServer {
         createContext("/api/revenues/", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter, expenseService, revenueService, json));
         createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv")));
-        createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter));
-        createContext("/api/birthdays", new BirthdaysHandler(responseWriter));
         createContext("/inventory", new InventoryHandler(inventoryService, authTokenService, responseWriter, json));
     }
 
