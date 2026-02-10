@@ -29,8 +29,10 @@ function BirthdaysPage() {
   const [people, setPeople] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ name: '', birthDate: '', ministry: '', contact: '' });
 
-  useEffect(() => {
+  const loadPeople = () =>
     birthdayService
       .list()
       .then((list) => {
@@ -38,9 +40,24 @@ function BirthdaysPage() {
         setPeople(enriched);
         setError(null);
       })
-      .catch(() => setError('Não foi possível carregar os aniversariantes.'))
-      .finally(() => setLoading(false));
+      .catch(() => setError('Não foi possível carregar os aniversariantes.'));
+
+  useEffect(() => {
+    loadPeople().finally(() => setLoading(false));
   }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setSaving(true);
+    birthdayService
+      .create(form)
+      .then(() => {
+        setForm({ name: '', birthDate: '', ministry: '', contact: '' });
+        return loadPeople();
+      })
+      .catch(() => setError('Não foi possível cadastrar o aniversariante.'))
+      .finally(() => setSaving(false));
+  };
 
   const nextMonth = useMemo(() => people.filter((person) => person.daysUntil <= 30), [people]);
 
@@ -55,10 +72,46 @@ function BirthdaysPage() {
 
       <section className="section" style={{ borderLeft: '4px solid #f59e0b' }}>
         <h2 style={{ marginBottom: '0.35rem' }}>Cadastro de aniversariantes</h2>
-        <p className="muted" style={{ margin: 0 }}>
-          No momento este painel está em modo de consulta. O endpoint de cadastro ainda não está disponível no backend.
-          Como alternativa, mantenha os dados atualizados via arquivo/integração até liberarmos o formulário de cadastro.
-        </p>
+        <form className="birthday-form" onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="birthday-name">Nome</label>
+            <input
+              id="birthday-name"
+              value={form.name}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthday-date">Nascimento</label>
+            <input
+              id="birthday-date"
+              type="date"
+              value={form.birthDate}
+              onChange={(event) => setForm({ ...form, birthDate: event.target.value })}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthday-ministry">Pastoral/Ministério</label>
+            <input
+              id="birthday-ministry"
+              value={form.ministry}
+              onChange={(event) => setForm({ ...form, ministry: event.target.value })}
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="birthday-contact">Contato</label>
+            <input
+              id="birthday-contact"
+              value={form.contact}
+              onChange={(event) => setForm({ ...form, contact: event.target.value })}
+            />
+          </div>
+          <button type="submit" disabled={saving}>
+            {saving ? 'Salvando...' : 'Cadastrar aniversariante'}
+          </button>
+        </form>
       </section>
 
       <section className="section">

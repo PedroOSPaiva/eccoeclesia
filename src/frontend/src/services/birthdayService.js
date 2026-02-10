@@ -47,6 +47,11 @@ const birthdayService = {
       console.warn('Usando aniversariantes de exemplo (fallback).', error?.message ?? error);
       return fallbackBirthdays;
     }
+  },
+
+  async create(payload) {
+    const response = await apiClient.post('/api/birthdays', payload);
+    return response.data;
   }
 };
 

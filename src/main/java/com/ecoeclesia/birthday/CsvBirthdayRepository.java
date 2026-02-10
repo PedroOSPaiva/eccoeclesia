@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,5 +47,32 @@ public final class CsvBirthdayRepository implements BirthdayRepository {
                     parts[4].trim()));
         }
         return List.copyOf(people);
+    }
+
+    @Override
+    public BirthdayPerson save(BirthdayPerson person) {
+        try {
+            if (dataFile.getParent() != null) {
+                Files.createDirectories(dataFile.getParent());
+            }
+            String line = String.join(",",
+                    sanitizeCsvField(person.id()),
+                    sanitizeCsvField(person.name()),
+                    person.birthDate().toString(),
+                    sanitizeCsvField(person.ministry()),
+                    sanitizeCsvField(person.contact()));
+            Files.writeString(dataFile, line + System.lineSeparator(), StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            return person;
+        } catch (IOException ex) {
+            throw new IllegalStateException("Falha ao salvar aniversariante em " + dataFile, ex);
+        }
+    }
+
+    private static String sanitizeCsvField(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replace(",", " ").trim();
     }
 }
