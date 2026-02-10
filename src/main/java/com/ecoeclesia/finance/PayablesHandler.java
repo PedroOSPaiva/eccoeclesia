@@ -31,6 +31,10 @@ final class PayablesHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            responseWriter.writeJson(exchange, 204, "");
+            return;
+        }
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())
                 && !"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             responseWriter.writeJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
@@ -41,7 +45,11 @@ final class PayablesHandler implements HttpHandler {
                 responseWriter.writeJson(exchange, 403, "{\"error\":\"Forbidden\"}");
                 return;
             }
-            responseWriter.writeJson(exchange, 200, json.payables(filterPayables(exchange)));
+            try {
+                responseWriter.writeJson(exchange, 200, json.payables(filterPayables(exchange)));
+            } catch (IllegalArgumentException ex) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            }
             return;
         }
         if (!isAllowed(exchange, "finance:write")) {
@@ -117,7 +125,11 @@ final class PayablesHandler implements HttpHandler {
         LocalDate end = queryParams.getDate(exchange, "end");
         PayableStatus status = null;
         if (rawStatus != null && !rawStatus.isBlank()) {
-            status = PayableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+            try {
+                status = PayableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Status inválido para contas a pagar");
+            }
         }
         PayableStatus finalStatus = status;
         return payableService.list().stream()

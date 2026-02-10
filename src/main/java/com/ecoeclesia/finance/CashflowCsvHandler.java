@@ -3,22 +3,22 @@ package com.ecoeclesia.finance;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Locale;
 
-final class CashflowHandler implements HttpHandler {
+final class CashflowCsvHandler implements HttpHandler {
 
     private final CashflowService cashflowService;
     private final AuthTokenService authTokenService;
     private final FinanceHttpResponseWriter responseWriter;
-    private final FinanceHttpJson json;
     private final FinanceHttpQueryParams queryParams = new FinanceHttpQueryParams();
 
-    CashflowHandler(CashflowService cashflowService, AuthTokenService authTokenService,
-                    FinanceHttpResponseWriter responseWriter, FinanceHttpJson json) {
+    CashflowCsvHandler(CashflowService cashflowService, AuthTokenService authTokenService,
+                       FinanceHttpResponseWriter responseWriter) {
         this.cashflowService = cashflowService;
         this.authTokenService = authTokenService;
         this.responseWriter = responseWriter;
-        this.json = json;
     }
 
     @Override
@@ -41,10 +41,20 @@ final class CashflowHandler implements HttpHandler {
                     queryParams.getDate(exchange, "end"),
                     parsePayableStatus(queryParams.getString(exchange, "payableStatus")),
                     parseReceivableStatus(queryParams.getString(exchange, "receivableStatus")));
-            responseWriter.writeJson(exchange, 200, json.cashflow(snapshot));
+            String csv = toCsv(snapshot);
+            responseWriter.writeBytes(exchange, 200, "text/csv; charset=utf-8", csv.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalArgumentException ex) {
-            responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            responseWriter.writeJson(exchange, 400, "{\"error\":\"" + ex.getMessage() + "\"}");
         }
+    }
+
+    private String toCsv(CashflowSnapshot snapshot) {
+        return new StringBuilder()
+                .append("metric,value\n")
+                .append("totalPayables,").append(snapshot.totalPayables()).append("\n")
+                .append("totalReceivables,").append(snapshot.totalReceivables()).append("\n")
+                .append("netBalance,").append(snapshot.netBalance()).append("\n")
+                .toString();
     }
 
     private boolean isAllowed(HttpExchange exchange, String permission) {
@@ -56,21 +66,13 @@ final class CashflowHandler implements HttpHandler {
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        try {
-            return PayableStatus.valueOf(raw.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Status de contas a pagar inválido");
-        }
+        return PayableStatus.valueOf(raw.trim().toUpperCase(Locale.ROOT));
     }
 
     private ReceivableStatus parseReceivableStatus(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
         }
-        try {
-            return ReceivableStatus.valueOf(raw.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Status de contas a receber inválido");
-        }
+        return ReceivableStatus.valueOf(raw.trim().toUpperCase(Locale.ROOT));
     }
 }

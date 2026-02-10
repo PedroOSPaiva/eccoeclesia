@@ -83,7 +83,7 @@ function LedgerPage() {
     try {
       const [payablesData, receivablesData, cashflowData] = await Promise.all([
         financeService.listPayables({ start: period.start, end: period.end }),
-        financeService.listReceivables({}),
+        financeService.listReceivables({ start: period.start, end: period.end }),
         financeService.getCashflow({ start: period.start, end: period.end })
       ]);
       setPayables(payablesData);
@@ -192,6 +192,16 @@ function LedgerPage() {
     window.URL.revokeObjectURL(url);
   }
 
+  async function downloadCashflowCsv() {
+    const blob = await financeService.getCashflowCsv({ start: period.start, end: period.end });
+    const url = window.URL.createObjectURL(new Blob([blob]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'fluxo-caixa.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   const totalIncome = entries.filter((e) => e.type === 'INCOME').reduce((sum, e) => sum + Number(e.amount), 0);
   const totalExpense = entries.filter((e) => e.type === 'EXPENSE').reduce((sum, e) => sum + Number(e.amount), 0);
   const balance = totalIncome - totalExpense;
@@ -261,6 +271,18 @@ function LedgerPage() {
         <div className="summary-card balance">
           <p className="label">Saldo projetado</p>
           <p className="value">R$ {Number(cashflow.netBalance || 0).toFixed(2)}</p>
+        </div>
+      </section>
+
+      <section className="card" style={{ marginBottom: '1.5rem' }}>
+        <div className="card-head">
+          <div>
+            <p className="eyebrow">Fluxo de caixa</p>
+            <h2>Exportação rápida</h2>
+          </div>
+          <button type="button" className="ghost" onClick={downloadCashflowCsv}>
+            ⇩ CSV do fluxo
+          </button>
         </div>
       </section>
 

@@ -139,6 +139,7 @@ public final class FinanceHttpServer {
         createContext("/api/receivables", new ReceivablesHandler(receivableService, authTokenService, responseWriter, json, logger));
         createContext("/api/receivables/", new ReceivablesStatusHandler(receivableService, authTokenService, responseWriter, json, logger));
         createContext("/api/cashflow", new CashflowHandler(cashflowService, authTokenService, responseWriter, json));
+        createContext("/api/cashflow.csv", new CashflowCsvHandler(cashflowService, authTokenService, responseWriter));
         createContext("/api/expenses", new ExpensesHandler(expenseService, authTokenService, responseWriter, json));
         createContext("/api/expenses/", new ExpensesHandler(expenseService, authTokenService, responseWriter, json));
         createContext("/api/revenues", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));

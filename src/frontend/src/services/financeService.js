@@ -55,6 +55,14 @@ const financeService = {
     const query = buildQuery(filters);
     const response = await apiClient.get(`/api/cashflow${query ? `?${query}` : ''}`);
     return response.data;
+  },
+
+  async getCashflowCsv(filters = {}) {
+    const query = buildQuery(filters);
+    const response = await apiClient.get(`/api/cashflow.csv${query ? `?${query}` : ''}`, {
+      responseType: 'blob'
+    });
+    return response.data;
   }
 };
 
