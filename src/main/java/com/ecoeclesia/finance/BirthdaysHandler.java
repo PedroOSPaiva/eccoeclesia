@@ -1,11 +1,10 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.birthday.BirthdayService;
+import com.ecoeclesia.birthday.BirthdaySummary;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -13,12 +12,12 @@ final class BirthdaysHandler implements HttpHandler {
 
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
-    private final Path dataFile;
+    private final BirthdayService birthdayService;
 
-    BirthdaysHandler(FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, Path dataFile) {
+    BirthdaysHandler(FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, BirthdayService birthdayService) {
         this.responseWriter = responseWriter;
         this.json = json;
-        this.dataFile = dataFile;
+        this.birthdayService = birthdayService;
     }
 
     @Override
@@ -34,27 +33,19 @@ final class BirthdaysHandler implements HttpHandler {
         responseWriter.writeJson(exchange, 200, birthdaysJson());
     }
 
-    private String birthdaysJson() throws IOException {
-        if (!Files.exists(dataFile)) {
-            return "[]";
-        }
-        List<String> lines = Files.readAllLines(dataFile, StandardCharsets.UTF_8);
+    private String birthdaysJson() {
+        List<BirthdaySummary> birthdays = birthdayService.listUpcomingBirthdays();
         StringJoiner joiner = new StringJoiner(",", "[", "]");
-        for (String line : lines) {
-            String trimmed = line.trim();
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                continue;
-            }
-            String[] parts = trimmed.split(",");
-            if (parts.length < 5) {
-                continue;
-            }
+        for (BirthdaySummary summary : birthdays) {
             joiner.add(new StringBuilder("{")
-                    .append("\"id\":\"").append(json.escape(parts[0].trim())).append("\",")
-                    .append("\"name\":\"").append(json.escape(parts[1].trim())).append("\",")
-                    .append("\"birthDate\":\"").append(json.escape(parts[2].trim())).append("\",")
-                    .append("\"ministry\":\"").append(json.escape(parts[3].trim())).append("\",")
-                    .append("\"contact\":\"").append(json.escape(parts[4].trim())).append("\"")
+                    .append("\"id\":\"").append(json.escape(summary.id())).append("\",")
+                    .append("\"name\":\"").append(json.escape(summary.name())).append("\",")
+                    .append("\"birthDate\":\"").append(json.escape(summary.birthDate().toString())).append("\",")
+                    .append("\"ministry\":\"").append(json.escape(summary.ministry())).append("\",")
+                    .append("\"contact\":\"").append(json.escape(summary.contact())).append("\",")
+                    .append("\"nextBirthday\":\"").append(json.escape(summary.nextBirthday().toString())).append("\",")
+                    .append("\"turningAge\":").append(summary.turningAge()).append(",")
+                    .append("\"daysUntilBirthday\":").append(summary.daysUntilBirthday())
                     .append("}")
                     .toString());
         }
