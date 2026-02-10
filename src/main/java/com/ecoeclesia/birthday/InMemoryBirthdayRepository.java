@@ -21,4 +21,10 @@ public final class InMemoryBirthdayRepository implements BirthdayRepository {
     public List<BirthdayPerson> findAll() {
         return Collections.unmodifiableList(people);
     }
+
+    @Override
+    public BirthdayPerson save(BirthdayPerson person) {
+        people.add(person);
+        return person;
+    }
 }

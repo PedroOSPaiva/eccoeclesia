@@ -27,4 +27,17 @@ public final class BirthdayServiceTest {
 
         assertEquals(LocalDate.of(2025, 4, 28), results.get(4).nextBirthday());
     }
+
+    @Test("registers birthday and computes summary")
+    public void registersBirthday() {
+        var repository = new InMemoryBirthdayRepository();
+        var fixedClock = Clock.fixed(Instant.parse("2024-05-10T00:00:00Z"), ZoneOffset.UTC);
+        var service = new BirthdayService(repository, fixedClock);
+
+        BirthdaySummary created = service.registerBirthday("Novo Membro", LocalDate.of(2000, 5, 25), "Acolhida", "contato");
+
+        assertEquals("Novo Membro", created.name());
+        assertEquals(LocalDate.of(2024, 5, 25), created.nextBirthday());
+        assertEquals(15, created.daysUntilBirthday());
+    }
 }

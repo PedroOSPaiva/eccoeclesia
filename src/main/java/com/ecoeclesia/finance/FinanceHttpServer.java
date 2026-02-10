@@ -1,13 +1,9 @@
 package com.ecoeclesia.finance;
 
-import com.sun.net.httpserver.HttpServer;
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
-import java.util.Objects;
 import com.ecoeclesia.config.DatabaseCredentials;
 import com.ecoeclesia.config.DatabaseUrlResolver;
+import com.ecoeclesia.birthday.BirthdayService;
+import com.ecoeclesia.birthday.CsvBirthdayRepository;
 import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.InMemoryExpenseRepository;
 import com.ecoeclesia.inventory.InventoryService;
@@ -15,6 +11,12 @@ import com.ecoeclesia.revenue.FileRevenueRepository;
 import com.ecoeclesia.revenue.InMemoryRevenueRepository;
 import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.UserManagementController;
+import com.sun.net.httpserver.HttpServer;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
+import java.util.Objects;
+import javax.sql.DataSource;
 
 /**
  * Minimal HTTP server to expose ledger operations to the React frontend.
@@ -142,7 +144,9 @@ public final class FinanceHttpServer {
         createContext("/api/revenues", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/revenues/", new RevenuesHandler(revenueService, authTokenService, responseWriter, json));
         createContext("/api/finance/import", new FinanceImportHandler(authTokenService, responseWriter, expenseService, revenueService, json));
-        createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, Path.of("data", "birthdays.csv")));
+        var birthdayRepository = new CsvBirthdayRepository(Path.of("data", "birthdays.csv"));
+        var birthdayService = new BirthdayService(birthdayRepository);
+        createContext("/api/birthdays", new BirthdaysHandler(responseWriter, json, birthdayService));
         createContext("/inventory", new InventoryHandler(inventoryService, authTokenService, responseWriter, json));
     }
 

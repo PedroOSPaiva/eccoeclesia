@@ -5,4 +5,6 @@ import java.util.List;
 public interface BirthdayRepository {
 
     List<BirthdayPerson> findAll();
+
+    BirthdayPerson save(BirthdayPerson person);
 }
