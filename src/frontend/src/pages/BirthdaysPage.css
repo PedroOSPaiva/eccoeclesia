@@ -19,6 +19,17 @@
   font-weight: 600;
 }
 
+.birthday-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+  align-items: end;
+}
+
+.birthday-form button {
+  width: fit-content;
+}
+
 .birthday-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

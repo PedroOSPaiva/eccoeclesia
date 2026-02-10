@@ -31,6 +31,34 @@ public final class BirthdayService {
                 .toList();
     }
 
+    public BirthdaySummary registerBirthday(String name, LocalDate birthDate, String ministry, String contact) {
+        String normalizedName = normalizeRequired(name, "Nome é obrigatório");
+        LocalDate normalizedBirthDate = Objects.requireNonNull(birthDate, "birthDate");
+        if (normalizedBirthDate.isAfter(LocalDate.now(clock))) {
+            throw new IllegalArgumentException("Data de nascimento inválida");
+        }
+        BirthdayPerson saved = repository.save(BirthdayPerson.create(
+                normalizedName,
+                normalizedBirthDate,
+                normalizeOptional(ministry),
+                normalizeOptional(contact)));
+        return toSummary(LocalDate.now(clock), saved);
+    }
+
+    private static String normalizeRequired(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return value.trim();
+    }
+
+    private static String normalizeOptional(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim();
+    }
+
     private static BirthdaySummary toSummary(LocalDate today, BirthdayPerson person) {
         LocalDate nextBirthday = person.birthDate().withYear(today.getYear());
         if (!nextBirthday.isAfter(today)) {

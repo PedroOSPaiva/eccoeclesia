@@ -1,24 +1,26 @@
 package com.ecoeclesia.finance;
 
+import com.ecoeclesia.birthday.BirthdayService;
+import com.ecoeclesia.birthday.BirthdaySummary;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 
 final class BirthdaysHandler implements HttpHandler {
 
     private final FinanceHttpResponseWriter responseWriter;
     private final FinanceHttpJson json;
-    private final Path dataFile;
+    private final BirthdayService birthdayService;
 
-    BirthdaysHandler(FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, Path dataFile) {
+    BirthdaysHandler(FinanceHttpResponseWriter responseWriter, FinanceHttpJson json, BirthdayService birthdayService) {
         this.responseWriter = responseWriter;
         this.json = json;
-        this.dataFile = dataFile;
+        this.birthdayService = birthdayService;
     }
 
     @Override
@@ -28,36 +30,62 @@ final class BirthdaysHandler implements HttpHandler {
             return;
         }
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                handleCreate(exchange);
+                return;
+            }
             responseWriter.writeJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
             return;
         }
         responseWriter.writeJson(exchange, 200, birthdaysJson());
     }
 
-    private String birthdaysJson() throws IOException {
-        if (!Files.exists(dataFile)) {
-            return "[]";
+    private void handleCreate(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Map<String, String> values = FinanceSimpleJsonParser.parse(body);
+        try {
+            BirthdaySummary created = birthdayService.registerBirthday(
+                    values.get("name"),
+                    parseBirthDate(values.get("birthDate")),
+                    values.get("ministry"),
+                    values.get("contact"));
+            responseWriter.writeJson(exchange, 201, birthdayJson(created));
+        } catch (IllegalArgumentException ex) {
+            responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
         }
-        List<String> lines = Files.readAllLines(dataFile, StandardCharsets.UTF_8);
+    }
+
+    private LocalDate parseBirthDate(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Data de nascimento é obrigatória");
+        }
+        try {
+            return LocalDate.parse(value.trim());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Data de nascimento inválida");
+        }
+    }
+
+    private String birthdaysJson() {
+        List<BirthdaySummary> birthdays = birthdayService.listUpcomingBirthdays();
         StringJoiner joiner = new StringJoiner(",", "[", "]");
-        for (String line : lines) {
-            String trimmed = line.trim();
-            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                continue;
-            }
-            String[] parts = trimmed.split(",");
-            if (parts.length < 5) {
-                continue;
-            }
-            joiner.add(new StringBuilder("{")
-                    .append("\"id\":\"").append(json.escape(parts[0].trim())).append("\",")
-                    .append("\"name\":\"").append(json.escape(parts[1].trim())).append("\",")
-                    .append("\"birthDate\":\"").append(json.escape(parts[2].trim())).append("\",")
-                    .append("\"ministry\":\"").append(json.escape(parts[3].trim())).append("\",")
-                    .append("\"contact\":\"").append(json.escape(parts[4].trim())).append("\"")
-                    .append("}")
-                    .toString());
+        for (BirthdaySummary summary : birthdays) {
+            joiner.add(birthdayJson(summary));
         }
         return joiner.toString();
+    }
+
+    private String birthdayJson(BirthdaySummary summary) {
+        return new StringBuilder("{")
+                .append("\"id\":\"").append(json.escape(summary.id())).append("\",")
+                .append("\"name\":\"").append(json.escape(summary.name())).append("\",")
+                .append("\"birthDate\":\"").append(json.escape(summary.birthDate().toString())).append("\",")
+                .append("\"ministry\":\"").append(json.escape(summary.ministry())).append("\",")
+                .append("\"contact\":\"").append(json.escape(summary.contact())).append("\",")
+                .append("\"nextBirthday\":\"").append(json.escape(summary.nextBirthday().toString())).append("\",")
+                .append("\"turningAge\":").append(summary.turningAge()).append(",")
+                .append("\"daysUntilBirthday\":").append(summary.daysUntilBirthday())
+                .append("}")
+                .toString();
     }
 }

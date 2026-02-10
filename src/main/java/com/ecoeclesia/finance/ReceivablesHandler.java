@@ -29,6 +29,10 @@ final class ReceivablesHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            responseWriter.writeJson(exchange, 204, "");
+            return;
+        }
         if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())
                 && !"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
             responseWriter.writeJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
@@ -39,7 +43,11 @@ final class ReceivablesHandler implements HttpHandler {
                 responseWriter.writeJson(exchange, 403, "{\"error\":\"Forbidden\"}");
                 return;
             }
-            responseWriter.writeJson(exchange, 200, json.receivables(filterReceivables(exchange)));
+            try {
+                responseWriter.writeJson(exchange, 200, json.receivables(filterReceivables(exchange)));
+            } catch (IllegalArgumentException ex) {
+                responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
+            }
             return;
         }
         if (!isAllowed(exchange, "finance:write")) {
@@ -109,10 +117,16 @@ final class ReceivablesHandler implements HttpHandler {
         String origin = queryParams.getString(exchange, "origin");
         String category = queryParams.getString(exchange, "category");
         String project = queryParams.getString(exchange, "project");
+        LocalDate start = queryParams.getDate(exchange, "start");
+        LocalDate end = queryParams.getDate(exchange, "end");
         String rawStatus = queryParams.getString(exchange, "status");
         ReceivableStatus status = null;
         if (rawStatus != null && !rawStatus.isBlank()) {
-            status = ReceivableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+            try {
+                status = ReceivableStatus.valueOf(rawStatus.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException("Status inválido para contas a receber");
+            }
         }
         ReceivableStatus finalStatus = status;
         return receivableService.list().stream()
@@ -120,6 +134,8 @@ final class ReceivablesHandler implements HttpHandler {
                 .filter(entry -> category == null || (entry.category() != null && category.equalsIgnoreCase(entry.category())))
                 .filter(entry -> project == null || (entry.project() != null && project.equalsIgnoreCase(entry.project())))
                 .filter(entry -> finalStatus == null || entry.status() == finalStatus)
+                .filter(entry -> start == null || !entry.dueDate().isBefore(start))
+                .filter(entry -> end == null || !entry.dueDate().isAfter(end))
                 .toList();
     }
 }
