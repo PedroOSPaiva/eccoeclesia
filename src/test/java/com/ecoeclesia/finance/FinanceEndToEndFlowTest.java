@@ -70,7 +70,7 @@ public final class FinanceEndToEndFlowTest {
 
         CashflowService cashflowService = new CashflowService(payableService, receivableService);
         CashflowSnapshot snapshot = cashflowService.snapshot(LocalDate.of(2024, 4, 1), LocalDate.of(2024, 4, 30),
-                null, null);
+                null, null, "Manutenção");
 
         assertEquals("tesouraria@parish.org", approved.updatedBy());
         assertEquals("tesouraria@parish.org", received.updatedBy());

@@ -20,7 +20,7 @@ public final class CashflowServiceTest {
                 "Ofertas", "Dízimo", null, "tester");
 
         CashflowSnapshot snapshot = service.snapshot(LocalDate.now(), LocalDate.now().plusDays(10),
-                PayableStatus.OPEN, ReceivableStatus.OPEN);
+                PayableStatus.OPEN, ReceivableStatus.OPEN, "Administração");
 
         assertEquals(new BigDecimal("120.00"), snapshot.totalPayables());
         assertEquals(new BigDecimal("300.00"), snapshot.totalReceivables());
