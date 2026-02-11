@@ -16,9 +16,12 @@ public final class CashflowService {
     }
 
     public CashflowSnapshot snapshot(LocalDate start, LocalDate end,
-                                     PayableStatus payableStatus, ReceivableStatus receivableStatus) {
+                                     PayableStatus payableStatus, ReceivableStatus receivableStatus,
+                                     String costCenter) {
         List<PayableEntry> payables = payableService.list().stream()
                 .filter(entry -> payableStatus == null || entry.status() == payableStatus)
+                .filter(entry -> costCenter == null
+                        || (entry.costCenter() != null && costCenter.equalsIgnoreCase(entry.costCenter())))
                 .filter(entry -> start == null || !entry.dueDate().isBefore(start))
                 .filter(entry -> end == null || !entry.dueDate().isAfter(end))
                 .toList();

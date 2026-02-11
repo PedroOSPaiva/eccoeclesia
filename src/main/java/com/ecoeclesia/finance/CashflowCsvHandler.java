@@ -40,7 +40,8 @@ final class CashflowCsvHandler implements HttpHandler {
                     queryParams.getDate(exchange, "start"),
                     queryParams.getDate(exchange, "end"),
                     parsePayableStatus(queryParams.getString(exchange, "payableStatus")),
-                    parseReceivableStatus(queryParams.getString(exchange, "receivableStatus")));
+                    parseReceivableStatus(queryParams.getString(exchange, "receivableStatus")),
+                    queryParams.getString(exchange, "costCenter"));
             String csv = toCsv(snapshot);
             responseWriter.writeBytes(exchange, 200, "text/csv; charset=utf-8", csv.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalArgumentException ex) {
