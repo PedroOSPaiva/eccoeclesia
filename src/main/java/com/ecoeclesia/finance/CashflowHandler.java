@@ -40,7 +40,8 @@ final class CashflowHandler implements HttpHandler {
                     queryParams.getDate(exchange, "start"),
                     queryParams.getDate(exchange, "end"),
                     parsePayableStatus(queryParams.getString(exchange, "payableStatus")),
-                    parseReceivableStatus(queryParams.getString(exchange, "receivableStatus")));
+                    parseReceivableStatus(queryParams.getString(exchange, "receivableStatus")),
+                    queryParams.getString(exchange, "costCenter"));
             responseWriter.writeJson(exchange, 200, json.cashflow(snapshot));
         } catch (IllegalArgumentException ex) {
             responseWriter.writeJson(exchange, 400, "{\"error\":\"" + json.escape(ex.getMessage()) + "\"}");
