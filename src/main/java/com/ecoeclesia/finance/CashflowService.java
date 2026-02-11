@@ -18,10 +18,11 @@ public final class CashflowService {
     public CashflowSnapshot snapshot(LocalDate start, LocalDate end,
                                      PayableStatus payableStatus, ReceivableStatus receivableStatus,
                                      String costCenter) {
+        String normalizedCostCenter = normalize(costCenter);
         List<PayableEntry> payables = payableService.list().stream()
                 .filter(entry -> payableStatus == null || entry.status() == payableStatus)
-                .filter(entry -> costCenter == null
-                        || (entry.costCenter() != null && costCenter.equalsIgnoreCase(entry.costCenter())))
+                .filter(entry -> normalizedCostCenter == null
+                        || (entry.costCenter() != null && normalizedCostCenter.equalsIgnoreCase(entry.costCenter().trim())))
                 .filter(entry -> start == null || !entry.dueDate().isBefore(start))
                 .filter(entry -> end == null || !entry.dueDate().isAfter(end))
                 .toList();
@@ -40,5 +41,12 @@ public final class CashflowService {
         BigDecimal netBalance = totalReceivables.subtract(totalPayables);
 
         return new CashflowSnapshot(totalPayables, totalReceivables, netBalance, payables, receivables);
+    }
+
+    private String normalize(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }
