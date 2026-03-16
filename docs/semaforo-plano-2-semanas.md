@@ -94,6 +94,39 @@ Transformar o estado atual do protótipo em um incremento operacional com menor 
 - Release candidate com rastreabilidade técnica e risco controlado de regressão.
 - Base pronta para avançar em DRE/balancete sem comprometer estabilidade.
 
+
+
+## O que avançar agora (próximas 48h)
+
+### Sprint tático imediato (ordem exata)
+1. **Fechar contrato do fluxo de caixa consolidado**
+   - Congelar payload de resposta (entradas, saídas, saldo, recorte de período e centro de custo).
+   - Registrar exemplos de request/response na documentação para alinhar backend/frontend.
+2. **Criar suíte smoke de integração para o caminho crítico financeiro**
+   - Cenários mínimos: login válido, criação/listagem de lançamento e exportação CSV.
+   - Incluir cenário negativo (sem permissão `finance:write`).
+3. **Padronizar erros de validação em contas a pagar/receber**
+   - Definir formato único de erro (`code`, `message`, `details`) para reduzir acoplamento no frontend.
+4. **Executar validação local com checklist único**
+   - Rodar testes, capturar evidências e consolidar em um único artefato de release interno.
+
+### Definition of Ready (DoR) para iniciar hoje
+- Campos obrigatórios de payload documentados.
+- Critérios de aceite de cada cenário de integração definidos em linguagem de negócio.
+- Responsável técnico por backend e frontend definido para o ciclo.
+
+### Definition of Done (DoD) da execução imediata
+- Cenários smoke críticos verdes no ambiente local.
+- Erros de validação de payables/receivables retornando formato único.
+- Documento de evidências atualizado com comandos e resultados.
+
+### Comandos recomendados de validação
+```sh
+./mvnw test
+./mvnw run
+# Em outro terminal, validar endpoints críticos com curl/httpie conforme checklist interno
+```
+
 ## Priorização recomendada (ordem de execução)
 1. **P0 — Completar ciclo financeiro operacional (payables/receivables/fluxo de caixa).**
 2. **P0 — Testes de integração críticos automatizados.**
