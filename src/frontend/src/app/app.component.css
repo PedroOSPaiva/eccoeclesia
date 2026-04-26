@@ -1,0 +1,6 @@
+.topbar { background:#0f172a; color:#fff; padding:.8rem 0; }
+.nav { display:flex; gap:1rem; align-items:center; }
+nav { display:flex; gap:.8rem; flex-wrap:wrap; flex:1; }
+a { color:#cbd5e1; text-decoration:none; }
+a:hover { color:#fff; }
+button { background:#ef4444; }

@@ -159,6 +159,72 @@ Este documento registra uma avaliação rápida da base atual nas dimensões ped
 
 ---
 
+
+## O que fazer primeiro (ordem recomendada)
+
+1. **Trocar o hashing de senha (prioridade máxima de segurança).**
+   - Substituir SHA-256 simples por Argon2id/bcrypt/scrypt com sal por usuário.
+   - Incluir migração gradual para hashes antigos (re-hash no login).
+2. **Definir expiração real de sessão/token.**
+   - Access token curto (ex.: 15 min) + refresh com rotação/revogação.
+   - Invalidar tokens em troca de senha e reset de senha.
+3. **Aplicar proteção de abuso em autenticação.**
+   - Rate limiting por IP/usuário e lockout progressivo no login/reset.
+4. **Fechar baseline de produção segura.**
+   - TLS obrigatório via proxy, CORS restrito por ambiente, segredos fora de código.
+5. **Só depois otimizar performance/escala.**
+   - Migrar caminho de produção para JDBC/Postgres e reduzir dependência de arquivo.
+
+### Entregável sugerido para a primeira semana
+
+- **Dia 1-2:** biblioteca de hash forte + testes de compatibilidade/migração.
+- **Dia 3:** TTL e rotação de tokens + invalidação em troca/reset de senha.
+- **Dia 4:** rate limiting + lockout + testes de abuso.
+- **Dia 5:** checklist de hardening de deploy (TLS/CORS/secrets) validado em ambiente.
+
+> Se você quiser, no próximo passo eu já posso transformar isso em tarefas técnicas objetivas (issue backlog) com estimativa por item.
+
+---
+
+
+## Ajustar aplicação antes da segurança: quando faz sentido?
+
+Faz sentido **em parte**. Se o objetivo é ganhar velocidade de produto, você pode começar por ajustes funcionais da aplicação, **desde que** aplique um baseline mínimo de segurança em paralelo.
+
+### Sequência prática recomendada (produto + segurança mínima)
+
+1. **Semana 1:** corrigir os principais fluxos da aplicação (usabilidade, bugs críticos e aderência do fluxo financeiro).
+2. **Semana 1 (em paralelo, obrigatório):** manter mínimo de segurança:
+   - hashing forte de senha;
+   - expiração de token;
+   - rate limiting em login.
+3. **Semana 2+:** continuar melhorias de produto/performance com hardening incremental.
+
+> Em outras palavras: não precisa parar tudo para fazer segurança "perfeita", mas também não é recomendável adiar o básico de credenciais e sessão.
+
+## Login com Google (OAuth): é melhor?
+
+**Sim, geralmente melhora muito a segurança de autenticação**, mas **não substitui** a segurança da aplicação.
+
+### O que o Google Login melhora
+- Reduz risco de senha fraca/reutilizada no seu sistema.
+- Delegação de autenticação para um IdP maduro (MFA, detecção de risco, etc.).
+- Melhor experiência de login para o usuário.
+
+### O que continua sendo sua responsabilidade
+- Controle de autorização (roles/permissões) dentro da aplicação.
+- Gestão de sessão/token da sua API (TTL, revogação, rotação).
+- Proteções de abuso (rate limit), CORS, TLS, logs e monitoramento.
+- Segurança de endpoints internos e dados sensíveis.
+
+### Recomendação objetiva para seu cenário
+1. Adotar **Google Login** como opção principal de autenticação.
+2. Manter login local apenas para contingência/admin (ou remover, se não for necessário).
+3. Implementar mapeamento de identidade Google -> usuário interno com roles.
+4. Aplicar baseline mínimo de segurança da API independentemente do provedor de login.
+
+---
+
 ## Resumo executivo
 
 - **Legibilidade/Manutenibilidade:** boa base, com foco em reduzir acoplamento central.
