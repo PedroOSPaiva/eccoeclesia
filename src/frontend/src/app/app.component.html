@@ -1,0 +1,19 @@
+<header class="topbar" *ngIf="auth.isLoggedIn()">
+  <div class="container nav">
+    <strong>EcoEcclesia</strong>
+    <nav>
+      <a routerLink="/">Dashboard</a>
+      <a routerLink="/ledger">Razão</a>
+      <a routerLink="/reports">Relatórios</a>
+      <a routerLink="/expenses">Despesas</a>
+      <a routerLink="/revenues">Receitas</a>
+      <a routerLink="/inventory">Inventário</a>
+      <a routerLink="/birthdays">Aniversários</a>
+      <a routerLink="/users">Usuários</a>
+    </nav>
+    <button (click)="logout()">Sair</button>
+  </div>
+</header>
+<main class="container" [style.paddingTop]="auth.isLoggedIn() ? '1rem' : '3rem'">
+  <router-outlet></router-outlet>
+</main>
