@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecoeclesia
+    username: ecoeclesia
+    password: ecoeclesia
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: ecoeclesia
+security:
+  jwt:
+    issuer: ecoeclesia
+    expiration-minutes: 120
+    secret: 01234567890123456789012345678901
+logging:
+  pattern:
+    level: "%5p [tenant:%X{tenantId}] [user:%X{userId}]"
