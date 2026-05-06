@@ -27,3 +27,7 @@ security:
   jwt:
     issuer: ecoeclesia
     expiration-minutes: 120
+    secret: 01234567890123456789012345678901
+logging:
+  pattern:
+    level: "%5p [tenant:%X{tenantId}] [user:%X{userId}]"
