@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 interface LoginResponse {
   accessToken: string;
@@ -9,14 +10,15 @@ interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly api = 'http://localhost:8080/api/auth';
-  private readonly loggedIn = signal(!!localStorage.getItem('accessToken'));
+  private readonly http = inject(HttpClient);
+  private readonly api = '/api/auth';
+  private readonly loggedIn = signal<boolean>(!!localStorage.getItem('accessToken'));
 
-  constructor(private http: HttpClient) {}
+  isLoggedIn(): boolean {
+    return this.loggedIn();
+  }
 
-  isLoggedIn(): boolean { return this.loggedIn(); }
-
-  login(email: string, password: string) {
+  login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.api}/login`, { email, password }).pipe(
       tap((res) => {
         localStorage.setItem('accessToken', res.accessToken);
@@ -32,5 +34,7 @@ export class AuthService {
     this.loggedIn.set(false);
   }
 
-  token(): string | null { return localStorage.getItem('accessToken'); }
+  token(): string | null {
+    return localStorage.getItem('accessToken');
+  }
 }

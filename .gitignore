@@ -13,3 +13,16 @@
 src/frontend/node_modules/
 src/frontend/dist/
 src/main/resources/static/
+
+# Angular cache
+src/frontend/.angular/
+
+# Legacy React (backup local)
+src/frontend/legacy-react/
+
+# Build Java
+target/
+
+# Node
+node_modules/
+

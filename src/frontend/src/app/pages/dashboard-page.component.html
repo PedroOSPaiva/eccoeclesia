@@ -1,0 +1,285 @@
+<div class="dashboard-wrapper">
+  <!-- Cabeçalho Principal -->
+  <header class="dashboard-header">
+    <div class="header-titles">
+      <span class="badge-portal">Gestão Eclesiástica & Financeira</span>
+      <h1>Dashboard Financeiro</h1>
+      <p class="subtitle">
+        Visão consolidada do Razão Contábil &bull; Hoje é {{ today | date:'fullDate':'':'pt-BR' }}
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="onRefresh()"
+        [disabled]="ledger.loading()">
+        @if (ledger.loading()) {
+          <span class="spinner"></span> Atualizando...
+        } @else {
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+          </svg>
+          Sincronizar Razão
+        }
+      </button>
+
+      <button type="button" class="btn-primary" (click)="toggleCreateModal()">
+        <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Novo Lançamento
+      </button>
+    </div>
+  </header>
+
+  <!-- Mensagem Global de Erro -->
+  @if (ledger.error(); as errorMsg) {
+    <div class="alert alert-error">
+      <div class="alert-content">
+        <strong>Atenção:</strong> {{ errorMsg }}
+      </div>
+      <button class="btn-sm" (click)="ledger.clearError()">Dispensar</button>
+    </div>
+  }
+
+  <!-- Modal / Painel de Cadastro Rápido -->
+  @if (showCreateModal()) {
+    <section class="card modal-card">
+      <div class="modal-header">
+        <h3>Registrar Lançamento no Razão Contábil</h3>
+        <button type="button" class="btn-close" (click)="toggleCreateModal()">&times;</button>
+      </div>
+
+      @if (actionSuccess(); as successMsg) {
+        <div class="alert alert-success">{{ successMsg }}</div>
+      }
+
+      <form [formGroup]="entryForm" (ngSubmit)="submitNewEntry()" class="entry-form-grid">
+        <div class="form-group">
+          <label for="type">Natureza Contábil</label>
+          <select id="type" formControlName="type">
+            <option value="INCOME">Receita (Entrada)</option>
+            <option value="EXPENSE">Despesa (Saída)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Valor (R$)</label>
+          <input id="amount" type="number" step="0.01" formControlName="amount" placeholder="0.00" />
+        </div>
+
+        <div class="form-group span-2">
+          <label for="description">Descrição</label>
+          <input id="description" type="text" formControlName="description" placeholder="Ex: Dízimo paroquial, Manutenção predial" />
+        </div>
+
+        <div class="form-group">
+          <label for="accountCode">Conta Contábil</label>
+          <input id="accountCode" type="text" formControlName="accountCode" placeholder="Ex: 1.1.01" />
+        </div>
+
+        <div class="form-group">
+          <label for="costCenter">Centro de Custo</label>
+          <input id="costCenter" type="text" formControlName="costCenter" placeholder="Ex: Pastoral, Matriz" />
+        </div>
+
+        <div class="form-group">
+          <label for="referenceCode">Código de Referência</label>
+          <input id="referenceCode" type="text" formControlName="referenceCode" />
+        </div>
+
+        <div class="form-group">
+          <label for="occurredOn">Data do Lançamento</label>
+          <input id="occurredOn" type="date" formControlName="occurredOn" />
+        </div>
+
+        <div class="form-actions span-2">
+          <button type="button" class="btn-text" (click)="toggleCreateModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="entryForm.invalid || ledger.loading()">
+            Confirmar Lançamento
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- Cards de KPI / Indicadores Financeiros Centrais -->
+  <section class="kpi-grid">
+    <!-- Card 1: Saldo Líquido -->
+    <div class="card kpi-card" [class.kpi-card-positive]="ledger.netBalance() >= 0" [class.kpi-card-negative]="ledger.netBalance() < 0">
+      <div class="kpi-top">
+        <span class="kpi-label">Saldo Líquido Contábil</span>
+        @if (ledger.netBalance() >= 0) {
+          <span class="status-pill status-positive">Superávit</span>
+        } @else {
+          <span class="status-pill status-negative">Déficit</span>
+        }
+      </div>
+      <div class="kpi-value">
+        {{ ledger.netBalance() | currency:'BRL':'symbol':'1.2-2' }}
+      </div>
+      <div class="kpi-footer">
+        Diferencial entre receitas e despesas acumuladas
+      </div>
+    </div>
+
+    <!-- Card 2: Receitas (INCOME) -->
+    <div class="card kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Receitas Realizadas</span>
+        <span class="icon-indicator icon-up">▲</span>
+      </div>
+      <div class="kpi-value text-income">
+        {{ ledger.totalIncome() | currency:'BRL':'symbol':'1.2-2' }}
+      </div>
+      <div class="kpi-footer">
+        Entradas contábeis (Dízimos, Doações, Eventos)
+      </div>
+    </div>
+
+    <!-- Card 3: Despesas (EXPENSE) -->
+    <div class="card kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Despesas Operacionais</span>
+        <span class="icon-indicator icon-down">▼</span>
+      </div>
+      <div class="kpi-value text-expense">
+        {{ ledger.totalExpense() | currency:'BRL':'symbol':'1.2-2' }}
+      </div>
+      <div class="kpi-footer">
+        Saídas contábeis (Manutenção, Fornecedores)
+      </div>
+    </div>
+
+    <!-- Card 4: Total de Lançamentos -->
+    <div class="card kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Total de Registros</span>
+        <span class="icon-indicator">📄</span>
+      </div>
+      <div class="kpi-value text-muted">
+        {{ ledger.totalCount() }}
+      </div>
+      <div class="kpi-footer">
+        Lançamentos auditáveis sincronizados no Razão
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção do Razão Contábil Recente -->
+  <section class="card table-card">
+    <div class="table-header">
+      <div>
+        <h2>Movimentações Recentes do Razão</h2>
+        <p class="section-desc">Extrato analítico em tempo real com controle de conciliação</p>
+      </div>
+
+      <!-- Barra de Filtros Rápidos de Tipo -->
+      <div class="filter-pills">
+        <button
+          type="button"
+          class="pill"
+          [class.pill-active]="ledger.filterType() === 'ALL'"
+          (click)="onFilterChange('ALL')">
+          Todos ({{ ledger.totalCount() }})
+        </button>
+        <button
+          type="button"
+          class="pill"
+          [class.pill-active]="ledger.filterType() === 'INCOME'"
+          (click)="onFilterChange('INCOME')">
+          Apenas Receitas
+        </button>
+        <button
+          type="button"
+          class="pill"
+          [class.pill-active]="ledger.filterType() === 'EXPENSE'"
+          (click)="onFilterChange('EXPENSE')">
+          Apenas Despesas
+        </button>
+      </div>
+    </div>
+
+    <!-- Controle de Fluxo Nativo para Estado da Tabela -->
+    @if (ledger.loading() && ledger.entries().length === 0) {
+      <div class="loading-state">
+        <div class="spinner-large"></div>
+        <p>Carregando registros do livro razão...</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Conta & Referência</th>
+              <th>Centro de Custo</th>
+              <th>Descrição</th>
+              <th>Natureza</th>
+              <th class="text-right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of ledger.recentEntries(); track entry.id) {
+              <tr>
+                <td class="col-date">
+                  {{ entry.occurredOn | date:'dd/MM/yyyy' }}
+                </td>
+                <td>
+                  <span class="badge-account">{{ entry.accountCode }}</span>
+                  <small class="text-code">{{ entry.referenceCode }}</small>
+                </td>
+                <td>{{ entry.costCenter }}</td>
+                <td class="col-desc">
+                  <strong>{{ entry.description }}</strong>
+                </td>
+                <td>
+                  @if (entry.type === 'INCOME') {
+                    <span class="badge-type badge-income">Receita</span>
+                  } @else {
+                    <span class="badge-type badge-expense">Despesa</span>
+                  }
+                </td>
+                <td class="text-right col-amount" [class.text-income]="entry.type === 'INCOME'" [class.text-expense]="entry.type === 'EXPENSE'">
+                  @if (entry.type === 'INCOME') { + } @else { - }
+                  {{ entry.amount | currency:'BRL':'symbol':'1.2-2' }}
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-cell">
+                  <div class="empty-state">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                      <rect x="2" y="5" width="20" height="14" rx="2"/>
+                      <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                    <h4>Nenhum lançamento contábil encontrado</h4>
+                    <p>Não há movimentações para os critérios de busca atuais.</p>
+                    <button type="button" class="btn-sm btn-secondary" (click)="toggleCreateModal()">
+                      Registrar o Primeiro Lançamento
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Rodapé com Atalhos Rápidos -->
+    <div class="table-footer">
+      <span class="footer-info">
+        Exibindo até 8 movimentações recentes filtradas.
+      </span>
+      <div class="footer-links">
+        <a routerLink="/ledger" class="link-action">Acessar Razão Completo &rarr;</a>
+        <a routerLink="/reports" class="link-action">Exportar Relatórios PDF/CSV &rarr;</a>
+      </div>
+    </div>
+  </section>
+</div>
+

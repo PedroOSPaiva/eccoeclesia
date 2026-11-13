@@ -24,7 +24,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "buildTarget": "ecoeclesia-frontend:build"
+            "buildTarget": "ecoeclesia-frontend:build",
+            "proxyConfig": "proxy.conf.json"
           }
         },
         "test": {
@@ -38,5 +39,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "6004c283-82e1-4dfd-a12d-996b3b9d6a9c"
   }
 }

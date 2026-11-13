@@ -4,8 +4,8 @@
 - **Backend Java 21** com script customizado `./mvnw` (usa `javac`, não depende do Maven instalado) e servidor HTTP leve (`FinanceHttpServer`) para autenticação, razão contábil e exportação de relatórios.
 - **Persistência do razão**: por padrão grava em arquivo (`data/ledger-db.csv`); quando `FINANCE_DB_URL` ou `DATABASE_URL` está definido usa JDBC Postgres e aplica o DDL auditável de `infra/sql/ledger-postgres.sql`.
 - **Autenticação**: endpoints `/api/auth/login` e `/api/auth/refresh` emitem tokens Bearer alinhados ao `UserAccessPolicy`. Contas seed podem ser configuradas via `ECOECCLESIA_SEED_USERS` (formato `email|senha|ROLE[,ROLE];email|senha|ROLE`). O primeiro acesso exige atualização de senha e há expiração a cada 120 dias.
-- **Frontend React (Vite)** em `src/frontend`: protótipo de login, dashboard financeiro (filtros de período, totais, download CSV/PDF) e páginas auxiliares. Ele consome o backend em `http://localhost:8080` quando iniciado via `npm run dev`.
-- Outros módulos (despesas, receitas, inventário, aniversariantes) permanecem com repositórios em memória e testes de unidade para exercitar regras.
+- **Frontend Angular 18+** em `src/frontend`: aplicação moderna com Standalone Components, Signals para estado reativo contábil, injeção funcional via `inject()`, roteamento com `withComponentInputBinding()` e controle de fluxo nativo (`@if`, `@for`, `@empty`). Consome a API REST via proxy de desenvolvimento (`proxy.conf.json`) apontando para `http://localhost:8080`.
+- Outros módulos (despesas, receitas, inventário, aniversariantes, gestão de usuários) integrados tanto no backend quanto no frontend.
 
 Consulte `docs/financial-capabilities.md` para um passo a passo detalhado do fluxo contábil já disponível.
 
@@ -49,18 +49,19 @@ Para evidências de qualidade e operação alinhadas ao front, veja `docs/fronte
    O servidor tentará carregar o driver JDBC do classpath, aplicará o DDL de `infra/sql/ledger-postgres.sql` e passará a persistir em `ledger_entries` com colunas de auditoria e índices.
    - Para popular dados de teste diretamente no banco e validar o fluxo via API/PDF/CSV, siga `docs/finance-postgres-smoke-test.md`.
 
-## Como executar o frontend (protótipo)
+## Como executar o frontend (Angular 18+)
 ```sh
 cd src/frontend
 npm install
-npm run dev -- --host --port 5173
+npm start
 ```
-A aplicação Vite consumirá o backend em `http://localhost:8080` para login e razão. Apenas usuários com permissões financeiras verão a navegação de "Financeiro".
+A aplicação Angular iniciará em `http://localhost:4200` com proxy integrado (`proxy.conf.json`), direcionando chamadas `/api/*` e `/inventory/*` diretamente para o backend na porta 8080 sem bloqueios de CORS.
 
 ## Estrutura do repositório
 - `src/main/java/com/ecoeclesia/finance`: razão, plano de contas, serviços de relatório e servidor HTTP com autenticação.
 - `src/main/java/com/ecoeclesia/expense`, `revenue`, `inventory`, `birthday`: demais domínios com repositórios em memória e testes de apoio.
-- `src/frontend`: app React/Vite prototipado.
+- `src/frontend`: aplicação Angular 18+ modular (Standalone, Signals, controle de fluxo nativo).
+- `src/frontend/legacy-react`: arquivo histórico de componentes legados React para fins de rastreabilidade ISO 9001.
 - `infra/sql/ledger-postgres.sql`: DDL para a tabela `ledger_entries` com campos de auditoria.
 - `docs/financial-capabilities.md`: guia rápido do fluxo contábil e das exportações.
 - `docs/chart-of-accounts-glossary.md`: plano de contas paroquial com código, classificação, tipo e descrição já carregado no backend e disponível via `/api/ledger/chart`.

@@ -13,15 +13,81 @@ import { ForgotPasswordPageComponent } from './pages/forgot-password-page.compon
 import { PasswordResetPageComponent } from './pages/password-reset-page.component';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginPageComponent },
-  { path: 'forgot-password', component: ForgotPasswordPageComponent },
-  { path: 'reset-password', component: PasswordResetPageComponent },
-  { path: '', canActivate: [authGuard], component: DashboardPageComponent },
-  { path: 'ledger', canActivate: [authGuard], component: LedgerPageComponent },
-  { path: 'reports', canActivate: [authGuard], component: ReportsPageComponent },
-  { path: 'expenses', canActivate: [authGuard], component: ExpensesPageComponent },
-  { path: 'revenues', canActivate: [authGuard], component: RevenuesPageComponent },
-  { path: 'inventory', canActivate: [authGuard], component: InventoryPageComponent },
-  { path: 'birthdays', canActivate: [authGuard], component: BirthdaysPageComponent },
-  { path: 'users', canActivate: [authGuard], component: UsersPageComponent },
+  // Rotas Públicas (Autenticação)
+  {
+    path: 'login',
+    component: LoginPageComponent,
+    title: 'Login | EcoEcclesia',
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordPageComponent,
+    title: 'Recuperar Senha | EcoEcclesia',
+  },
+  {
+    path: 'reset-password',
+    component: PasswordResetPageComponent,
+    title: 'Redefinir Senha | EcoEcclesia',
+  },
+
+  // Rotas Protegidas (Módulos do Sistema)
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'dashboard',
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    component: DashboardPageComponent,
+    title: 'Dashboard Financeiro | EcoEcclesia',
+  },
+  {
+    path: 'ledger',
+    canActivate: [authGuard],
+    component: LedgerPageComponent,
+    title: 'Livro Razão Contábil | EcoEcclesia',
+  },
+  {
+    path: 'reports',
+    canActivate: [authGuard],
+    component: ReportsPageComponent,
+    title: 'Relatórios Financeiros | EcoEcclesia',
+  },
+  {
+    path: 'expenses',
+    canActivate: [authGuard],
+    component: ExpensesPageComponent,
+    title: 'Controle de Despesas | EcoEcclesia',
+  },
+  {
+    path: 'revenues',
+    canActivate: [authGuard],
+    component: RevenuesPageComponent,
+    title: 'Controle de Receitas | EcoEcclesia',
+  },
+  {
+    path: 'inventory',
+    canActivate: [authGuard],
+    component: InventoryPageComponent,
+    title: 'Inventário Patrimonial | EcoEcclesia',
+  },
+  {
+    path: 'birthdays',
+    canActivate: [authGuard],
+    component: BirthdaysPageComponent,
+    title: 'Aniversariantes | EcoEcclesia',
+  },
+  {
+    path: 'users',
+    canActivate: [authGuard],
+    component: UsersPageComponent,
+    title: 'Gestão de Usuários | EcoEcclesia',
+  },
+
+  // Redirecionamento de rota inexistente
+  {
+    path: '**',
+    redirectTo: 'dashboard',
+  },
 ];
