@@ -20,6 +20,9 @@ src/frontend/.angular/
 # Legacy React (backup local)
 src/frontend/legacy-react/
 
+# Docs
+docs/_rascunho/
+
 # Build Java
 target/
 
