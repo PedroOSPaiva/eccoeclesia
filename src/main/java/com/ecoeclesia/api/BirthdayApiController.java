@@ -4,6 +4,7 @@ import com.ecoeclesia.birthday.BirthdayService;
 import com.ecoeclesia.birthday.BirthdaySummary;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -27,11 +28,13 @@ public class BirthdayApiController {
     ) {}
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<BirthdaySummary> listBirthdays() {
         return birthdayService.listUpcomingBirthdays();
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE', 'VOLUNTEER')")
     public ResponseEntity<BirthdaySummary> createBirthday(@RequestBody CreateBirthdayRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Corpo da requisição é obrigatório");

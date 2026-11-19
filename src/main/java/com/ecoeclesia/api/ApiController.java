@@ -7,6 +7,7 @@ import com.ecoeclesia.revenue.RevenueEntity;
 import com.ecoeclesia.revenue.RevenueService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -53,6 +54,7 @@ public class ApiController {
     }
 
     @GetMapping("/expenses")
+    @PreAuthorize("isAuthenticated()")
     public List<ExpenseResponseDto> listExpenses() {
         return expenseService.listExpenses().stream()
                 .map(ExpenseResponseDto::from)
@@ -60,6 +62,7 @@ public class ApiController {
     }
 
     @PostMapping("/expenses")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<ExpenseResponseDto> createExpense(@RequestBody ExpenseRequestDto request) {
         if (request.amount() == null) {
             throw new IllegalArgumentException("Valor é obrigatório");
@@ -92,6 +95,7 @@ public class ApiController {
     }
 
     @DeleteMapping("/expenses/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<Void> deleteExpense(@PathVariable String id) {
         expenseService.deleteExpense(id);
         return ResponseEntity.noContent().build();
@@ -122,6 +126,7 @@ public class ApiController {
     }
 
     @GetMapping("/revenues")
+    @PreAuthorize("isAuthenticated()")
     public List<RevenueResponseDto> listRevenues(
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end
@@ -139,6 +144,7 @@ public class ApiController {
     }
 
     @PostMapping("/revenues")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<RevenueResponseDto> createRevenue(@RequestBody RevenueRequestDto request) {
         if (request.amount() == null) {
             throw new IllegalArgumentException("Valor é obrigatório");
@@ -171,6 +177,7 @@ public class ApiController {
     }
 
     @DeleteMapping("/revenues/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<Void> deleteRevenue(@PathVariable String id) {
         revenueService.deleteRevenue(id);
         return ResponseEntity.noContent().build();

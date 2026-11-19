@@ -1,4 +1,4 @@
 package com.ecoeclesia.finance;
 
-record PasswordResetToken(String token, String expiresAt) {
+public record PasswordResetToken(String token, String expiresAt) {
 }
