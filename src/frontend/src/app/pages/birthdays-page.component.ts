@@ -3,11 +3,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BirthdayService } from '../core/services/birthday.service';
 import { CreateBirthdayDto } from '../core/models/birthday.model';
+import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-state.component';
 
 @Component({
   selector: 'app-birthdays-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, DomBosquinhoStateComponent],
   template: `
     <div class="birthdays-container">
       <header class="page-header">
@@ -18,7 +19,11 @@ import { CreateBirthdayDto } from '../core/models/birthday.model';
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="birthdayService.loading()">
-            Atualizar
+            @if (birthdayService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
           </button>
           <button type="button" class="btn btn-primary" (click)="toggleForm()">
             + Novo Aniversariante
@@ -26,11 +31,16 @@ import { CreateBirthdayDto } from '../core/models/birthday.model';
         </div>
       </header>
 
+      <!-- Feedback de Erro com Dom Bosquinho -->
       @if (birthdayService.error(); as err) {
-        <div class="alert alert-error">
-          <span>{{ err }}</span>
-          <button class="btn-close" (click)="birthdayService.clearError()">&times;</button>
-        </div>
+        <app-dom-bosquinho-state
+          mode="error"
+          title="Ops! Dom Bosquinho avisa que houve um contratempo"
+          [message]="err"
+          [showDismiss]="true"
+          (retry)="refresh()"
+          (dismiss)="birthdayService.clearError()">
+        </app-dom-bosquinho-state>
       }
       @if (successMessage(); as msg) {
         <div class="alert alert-success">
@@ -70,7 +80,11 @@ import { CreateBirthdayDto } from '../core/models/birthday.model';
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="birthdayForm.invalid || birthdayService.loading()">
-                Salvar Aniversariante
+                @if (birthdayService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Aniversariante
+                }
               </button>
             </div>
           </form>

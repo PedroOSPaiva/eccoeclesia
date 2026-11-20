@@ -7,10 +7,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,15 +20,14 @@ import static com.ecoeclesia.user.PasswordHasher.hash;
 public class UserManagementController {
 
     private final UserAccountRepository repository;
-    private final Map<String, UserAccount> accounts = new HashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
 
     public UserManagementController() {
-        this(null);
+        this(new InMemoryUserAccountRepository());
     }
 
     public UserManagementController(UserAccountRepository repository) {
-        this.repository = repository;
+        this.repository = Objects.requireNonNull(repository, "repository");
     }
 
     @PostMapping
@@ -38,22 +35,7 @@ public class UserManagementController {
     @PreAuthorize("hasRole('ADMIN')")
     public UserAccountResponse createUser(@RequestBody CreateUserRequest request) {
         Objects.requireNonNull(request, "request");
-        if (repository != null) {
-            if (repository.existsByEmail(request.email())) {
-                throw new IllegalArgumentException("Email already registered");
-            }
-            UserAccount account = new UserAccount(
-                    request.email(),
-                    hash(request.password()),
-                    Set.copyOf(request.roles()),
-                    request.fullName(),
-                    request.birthDate(),
-                    request.address(),
-                    request.photoUrl());
-            repository.save(account);
-            return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
-        }
-        if (accounts.values().stream().anyMatch(user -> user.getEmail().equalsIgnoreCase(request.email()))) {
+        if (repository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email already registered");
         }
         UserAccount account = new UserAccount(
@@ -64,19 +46,14 @@ public class UserManagementController {
                 request.birthDate(),
                 request.address(),
                 request.photoUrl());
-        accounts.put(account.getId(), account);
+        repository.save(account);
         return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
     }
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserAccountResponse> listUsers() {
-        if (repository != null) {
-            return repository.findAll().stream()
-                    .map(account -> UserAccountResponse.from(account, permissionsFor(account.getRoles())))
-                    .collect(Collectors.toCollection(ArrayList::new));
-        }
-        return accounts.values().stream()
+        return repository.findAll().stream()
                 .map(account -> UserAccountResponse.from(account, permissionsFor(account.getRoles())))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
@@ -85,28 +62,20 @@ public class UserManagementController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(@PathVariable String id) {
-        if (repository != null) {
-            repository.deleteById(id);
-        } else {
-            accounts.remove(id);
-        }
+        repository.deleteById(id);
     }
 
     public UserAccountResponse updatePassword(String id, UpdateUserPasswordRequest request) {
         UserAccount account = requireAccount(id);
         account.updatePassword(hash(request.password()));
-        if (repository != null) {
-            repository.save(account);
-        }
+        repository.save(account);
         return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
     }
 
     public UserAccountResponse updateRoles(String id, UpdateUserRolesRequest request) {
         UserAccount account = requireAccount(id);
         account.replaceRoles(Set.copyOf(request.roles()));
-        if (repository != null) {
-            repository.save(account);
-        }
+        repository.save(account);
         return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
     }
 
@@ -114,15 +83,8 @@ public class UserManagementController {
         Objects.requireNonNull(request, "request");
         UserAccount account = requireAccount(id);
         String nextEmail = normalize(request.email());
-        if (nextEmail != null) {
-            if (repository != null) {
-                var existing = repository.findByEmail(nextEmail);
-                if (existing.isPresent() && !existing.get().getId().equals(id)) {
-                    throw new IllegalArgumentException("Email already registered");
-                }
-            } else if (accounts.values().stream().anyMatch(user -> !user.getId().equals(id) && user.getEmail().equalsIgnoreCase(nextEmail))) {
-                throw new IllegalArgumentException("Email already registered");
-            }
+        if (nextEmail != null && !account.getEmail().equalsIgnoreCase(nextEmail) && repository.existsByEmail(nextEmail)) {
+            throw new IllegalArgumentException("Email already registered");
         }
         account.updateProfile(
                 nextEmail,
@@ -130,20 +92,15 @@ public class UserManagementController {
                 normalize(request.birthDate()),
                 normalize(request.address()),
                 normalize(request.photoUrl()));
-        if (repository != null) {
-            repository.save(account);
-        }
+        repository.save(account);
         return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
     }
 
     public UserAccount findAccountByEmail(String email) {
-        if (repository != null) {
-            return repository.findByEmail(email).orElse(null);
+        if (email == null) {
+            return null;
         }
-        return accounts.values().stream()
-                .filter(user -> user.getEmail().equalsIgnoreCase(email))
-                .findFirst()
-                .orElse(null);
+        return repository.findByEmail(email).orElse(null);
     }
 
     public boolean credentialsMatch(String email, String rawPassword) {
@@ -155,15 +112,8 @@ public class UserManagementController {
     }
 
     private UserAccount requireAccount(String id) {
-        if (repository != null) {
-            return repository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-        }
-        UserAccount account = accounts.get(id);
-        if (account == null) {
-            throw new IllegalArgumentException("User not found: " + id);
-        }
-        return account;
+        return repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
     }
 
     private static String hash(String value) {

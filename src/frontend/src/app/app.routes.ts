@@ -11,6 +11,7 @@ import { BirthdaysPageComponent } from './pages/birthdays-page.component';
 import { UsersPageComponent } from './pages/users-page.component';
 import { ForgotPasswordPageComponent } from './pages/forgot-password-page.component';
 import { PasswordResetPageComponent } from './pages/password-reset-page.component';
+import { AboutPageComponent } from './pages/about-page.component';
 
 export const routes: Routes = [
   // Rotas Públicas (Autenticação)
@@ -83,6 +84,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: UsersPageComponent,
     title: 'Gestão de Usuários | EcoEcclesia',
+  },
+  {
+    path: 'about',
+    component: AboutPageComponent,
+    title: 'Sobre o EcoEcclesia | In Memoriam',
+  },
+  {
+    path: 'sobre',
+    redirectTo: 'about',
+    pathMatch: 'full',
   },
 
   // Redirecionamento de rota inexistente

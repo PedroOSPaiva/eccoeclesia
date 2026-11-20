@@ -1,5 +1,6 @@
 package com.ecoeclesia.finance;
 
+import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -13,7 +14,7 @@ public final class SqlLedgerRepository implements LedgerRepository {
 
     private final LedgerGateway gateway;
 
-    public SqlLedgerRepository(javax.sql.DataSource dataSource) {
+    public SqlLedgerRepository(DataSource dataSource) {
         this(new JdbcLedgerGateway(dataSource));
     }
 

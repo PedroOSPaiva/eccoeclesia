@@ -2,20 +2,24 @@ package com.ecoeclesia;
 
 import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.InMemoryExpenseRepository;
-import com.ecoeclesia.finance.FinanceHttpServer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Entry point used by the custom build script when developers want to execute
- * a small manual smoke test. The application simply wires together a handful
- * of services and prints a summary to standard output so that we know the
- * classpath compiled correctly.
+ * Entry point da aplicação. Agora gerenciado pelo Spring Boot.
  */
-public final class EcoEcclesiaApplication {
+@SpringBootApplication
+public class EcoEcclesiaApplication {
 
     public static void main(String[] args) {
+        // O Spring Boot assume o controle, inicia o Tomcat e segura a JVM rodando.
+        SpringApplication.run(EcoEcclesiaApplication.class, args);
+
+        // Seus prints podem continuar aqui, eles vão rodar logo após a inicialização do Spring.
         var repository = new InMemoryExpenseRepository();
         var service = new ExpenseService(repository);
         service.registerExpense("visitantes", "Coffee for visitors", "25.00");
+
         System.out.println("""
                 ███████╗ ██████╗ ██████╗ ███████╗ ██████╗ ██████╗██╗     ███████╗███████╗██╗ █████╗
                 ██╔════╝██╔════╝██╔═══██╗██╔════╝██╔════╝██╔════╝██║     ██╔════╝██╔════╝██║██╔══██╗
@@ -29,15 +33,5 @@ public final class EcoEcclesiaApplication {
         System.out.println("Desenvolvido e idealizado na comunidade São João Bosco,");
         System.out.println("na Paróquia da Imaculada Conceição.");
         System.out.println("Em memória de minha avó Arlete, com gratidão.");
-        try {
-            var server = FinanceHttpServer.startDefault(8080);
-            server.start();
-            System.out.println("Finance HTTP server listening on http://localhost:8080");
-        } catch (Exception ex) {
-            System.err.println("Failed to start Finance HTTP server: " + ex.getMessage());
-        }
-    }
-
-    private EcoEcclesiaApplication() {
     }
 }

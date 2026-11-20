@@ -3,11 +3,12 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InventoryService } from '../core/services/inventory.service';
 import { CreateConsumableDto, CreateDurableDto } from '../core/models/inventory.model';
+import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-state.component';
 
 @Component({
   selector: 'app-inventory-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, DatePipe, DomBosquinhoStateComponent],
   template: `
     <div class="inventory-container">
       <header class="page-header">
@@ -18,7 +19,11 @@ import { CreateConsumableDto, CreateDurableDto } from '../core/models/inventory.
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="inventoryService.loading()">
-            Atualizar
+            @if (inventoryService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
           </button>
           <button type="button" class="btn btn-primary" (click)="toggleForm()">
             + Novo Item
@@ -26,11 +31,16 @@ import { CreateConsumableDto, CreateDurableDto } from '../core/models/inventory.
         </div>
       </header>
 
+      <!-- Feedback de Erro com Dom Bosquinho -->
       @if (inventoryService.error(); as err) {
-        <div class="alert alert-error">
-          <span>{{ err }}</span>
-          <button class="btn-close" (click)="inventoryService.clearError()">&times;</button>
-        </div>
+        <app-dom-bosquinho-state
+          mode="error"
+          title="Ops! Dom Bosquinho avisa que houve um contratempo"
+          [message]="err"
+          [showDismiss]="true"
+          (retry)="refresh()"
+          (dismiss)="inventoryService.clearError()">
+        </app-dom-bosquinho-state>
       }
       @if (successMessage(); as msg) {
         <div class="alert alert-success">
@@ -100,7 +110,11 @@ import { CreateConsumableDto, CreateDurableDto } from '../core/models/inventory.
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || inventoryService.loading()">
-                Cadastrar Item
+                @if (inventoryService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Item
+                }
               </button>
             </div>
           </form>
