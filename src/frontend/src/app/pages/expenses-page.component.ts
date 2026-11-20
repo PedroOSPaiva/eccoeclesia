@@ -18,7 +18,11 @@ import { CreateExpenseDto } from '../core/models/expense.model';
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="expenseService.loading()">
-            Atualizar
+            @if (expenseService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
           </button>
           <button type="button" class="btn btn-primary" (click)="toggleNewExpenseForm()">
             + Registrar Despesa
@@ -64,7 +68,11 @@ import { CreateExpenseDto } from '../core/models/expense.model';
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleNewExpenseForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="expenseForm.invalid || expenseService.loading()">
-                Salvar Despesa
+                @if (expenseService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Despesa
+                }
               </button>
             </div>
           </form>

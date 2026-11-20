@@ -20,17 +20,16 @@ Para evidências de qualidade e operação alinhadas ao front, veja `docs/fronte
 - (Opcional) Postgres acessível se quiser persistência real do razão.
 
 ## Como executar o backend
-1. **Rodar testes**
+1. **Compilar e empacotar (Maven)**
    ```sh
-   ./mvnw test
+   mvn clean package -DskipTests
    ```
-   Compila `src/main/java` e `src/test/java` para `target/` e executa `com.ecoeclesia.testing.TestRunner`.
 
-2. **Subir o servidor HTTP**
+2. **Subir o servidor Spring Boot**
    ```sh
-   ./mvnw run
+   mvn spring-boot:run
    ```
-   Inicia `EcoEcclesiaApplication`, que liga o `FinanceHttpServer` na porta 8080. O servidor expõe:
+   Inicia a aplicação Spring Boot na porta 8080. O servidor expõe via Spring MVC:
    - Autenticação: `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/forgot-password` e `POST /api/auth/reset-password` (retornam tokens Bearer + permissões, além de fluxo de recuperação de senha).
    - Razão: `GET /api/ledger` (lista ou filtra por `start`/`end`), `POST /api/ledger` (cria lançamento; requer `finance:write`).
    - Relatórios: `GET /api/reports/ledger` (texto), `GET /api/reports/ledger.pdf`, `GET /api/reports/ledger.csv` (todos com filtros `start`/`end`).

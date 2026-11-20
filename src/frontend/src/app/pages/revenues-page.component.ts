@@ -18,7 +18,11 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="revenueService.loading()">
-            Atualizar
+            @if (revenueService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
           </button>
           <button type="button" class="btn btn-primary" (click)="toggleNewRevenueForm()">
             + Registrar Receita
@@ -70,7 +74,11 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleNewRevenueForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="revenueForm.invalid || revenueService.loading()">
-                Confirmar Receita
+                @if (revenueService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Receita
+                }
               </button>
             </div>
           </form>

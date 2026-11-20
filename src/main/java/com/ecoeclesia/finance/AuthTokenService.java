@@ -5,6 +5,7 @@ import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.user.CreateUserRequest;
 import com.ecoeclesia.user.PasswordHasher;
 import com.ecoeclesia.user.UserAccount;
+import com.ecoeclesia.user.UserAccountRepository;
 import com.ecoeclesia.user.UserManagementController;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -37,6 +38,10 @@ public final class AuthTokenService {
 
     public AuthTokenService() {
         this(new UserManagementController(), loadSeedUsersFromEnv());
+    }
+
+    public AuthTokenService(UserAccountRepository repository) {
+        this(new UserManagementController(repository));
     }
 
     public AuthTokenService(UserManagementController users) {
