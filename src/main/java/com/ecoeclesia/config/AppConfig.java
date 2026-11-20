@@ -2,10 +2,10 @@ package com.ecoeclesia.config;
 
 import com.ecoeclesia.birthday.BirthdayRepository;
 import com.ecoeclesia.birthday.BirthdayService;
-import com.ecoeclesia.birthday.CsvBirthdayRepository;
+import com.ecoeclesia.birthday.JdbcBirthdayRepository;
 import com.ecoeclesia.expense.ExpenseRepository;
 import com.ecoeclesia.expense.ExpenseService;
-import com.ecoeclesia.expense.InMemoryExpenseRepository;
+import com.ecoeclesia.expense.JdbcExpenseRepository;
 import com.ecoeclesia.finance.AuthTokenService;
 import com.ecoeclesia.finance.ChartOfAccounts;
 import com.ecoeclesia.finance.FinancialReportFormatter;
@@ -16,7 +16,7 @@ import com.ecoeclesia.finance.LedgerRepository;
 import com.ecoeclesia.finance.LedgerService;
 import com.ecoeclesia.finance.SqlLedgerRepository;
 import com.ecoeclesia.inventory.InventoryService;
-import com.ecoeclesia.revenue.InMemoryRevenueRepository;
+import com.ecoeclesia.revenue.JdbcRevenueRepository;
 import com.ecoeclesia.revenue.RevenueRepository;
 import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.JdbcUserAccountRepository;
@@ -32,8 +32,8 @@ import java.nio.file.Path;
 public class AppConfig {
 
     @Bean
-    public ExpenseRepository expenseRepository() {
-        return new InMemoryExpenseRepository();
+    public ExpenseRepository expenseRepository(DataSource dataSource) {
+        return new JdbcExpenseRepository(dataSource);
     }
 
     @Bean
@@ -42,8 +42,8 @@ public class AppConfig {
     }
 
     @Bean
-    public RevenueRepository revenueRepository() {
-        return new InMemoryRevenueRepository();
+    public RevenueRepository revenueRepository(DataSource dataSource) {
+        return new JdbcRevenueRepository(dataSource);
     }
 
     @Bean
@@ -82,8 +82,8 @@ public class AppConfig {
     }
 
     @Bean
-    public BirthdayRepository birthdayRepository() {
-        return new CsvBirthdayRepository(Path.of("data", "birthdays.csv"));
+    public BirthdayRepository birthdayRepository(DataSource dataSource) {
+        return new JdbcBirthdayRepository(dataSource);
     }
 
     @Bean

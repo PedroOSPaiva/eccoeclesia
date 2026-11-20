@@ -7,15 +7,14 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Implementação JDBC do gateway de lançamentos. Espera uma tabela
- * <code>ledger_entries</code> compatível com o DDL em infra/sql/ledger-postgres.sql.
+ * Implementação JDBC do gateway de lançamentos.
+ * A tabela 'ledger_entries' é gerenciada pela migração Flyway V3__create_ledger_entries.sql.
  */
 final class JdbcLedgerGateway implements LedgerGateway {
 
@@ -27,25 +26,7 @@ final class JdbcLedgerGateway implements LedgerGateway {
 
     @Override
     public void initialize() {
-        try (Connection connection = dataSource.getConnection();
-             Statement stmt = connection.createStatement()) {
-            stmt.execute(
-                    "CREATE TABLE IF NOT EXISTS ledger_entries (" +
-                            "id VARCHAR(64) PRIMARY KEY, " +
-                            "account_code VARCHAR(32) NOT NULL, " +
-                            "reference_code VARCHAR(64), " +
-                            "cost_center VARCHAR(64), " +
-                            "description TEXT NOT NULL, " +
-                            "amount NUMERIC(19,2) NOT NULL, " +
-                            "type VARCHAR(16) NOT NULL, " +
-                            "occurred_on DATE NOT NULL, " +
-                            "created_at TIMESTAMPTZ NOT NULL DEFAULT now(), " +
-                            "updated_at TIMESTAMPTZ NOT NULL DEFAULT now())");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_ledger_entries_date ON ledger_entries (occurred_on)");
-            stmt.execute("CREATE INDEX IF NOT EXISTS idx_ledger_entries_account ON ledger_entries (account_code)");
-        } catch (SQLException ex) {
-            throw new IllegalStateException("Failed to initialize ledger table", ex);
-        }
+        // Schema gerenciado via migração Flyway (V3__create_ledger_entries.sql)
     }
 
     @Override
