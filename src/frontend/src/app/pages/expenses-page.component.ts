@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ExpenseService } from '../core/services/expense.service';
+import { CommunityService } from '../core/services/community.service';
 import { CreateExpenseDto } from '../core/models/expense.model';
 
 @Component({
@@ -185,10 +186,19 @@ import { CreateExpenseDto } from '../core/models/expense.model';
 })
 export class ExpensesPageComponent implements OnInit {
   protected readonly expenseService = inject(ExpenseService);
+  protected readonly communityService = inject(CommunityService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly showNewForm = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const _ = this.communityService.activeCommunityId();
+      this.expenseService.loadExpenses().subscribe();
+    });
+  }
 
   protected readonly expenseForm = this.fb.group({
     description: ['', [Validators.required, Validators.minLength(3)]],

@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RevenueService } from '../core/services/revenue.service';
+import { CommunityService } from '../core/services/community.service';
 import { CreateRevenueDto } from '../core/models/revenue.model';
 
 @Component({
@@ -186,10 +187,19 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
 })
 export class RevenuesPageComponent implements OnInit {
   protected readonly revenueService = inject(RevenueService);
+  protected readonly communityService = inject(CommunityService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly showNewForm = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const _ = this.communityService.activeCommunityId();
+      this.revenueService.loadRevenues().subscribe();
+    });
+  }
 
   protected readonly revenueForm = this.fb.group({
     description: ['', [Validators.required, Validators.minLength(3)]],

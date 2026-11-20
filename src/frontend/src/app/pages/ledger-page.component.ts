@@ -1,8 +1,9 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LedgerService } from '../core/services/ledger.service';
+import { CommunityService } from '../core/services/community.service';
 import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.model';
 import { ReportService } from '../core/services/report.service';
 
@@ -280,6 +281,7 @@ import { ReportService } from '../core/services/report.service';
 })
 export class LedgerPageComponent implements OnInit {
   protected readonly ledger = inject(LedgerService);
+  protected readonly communityService = inject(CommunityService);
   private readonly report = inject(ReportService);
   private readonly fb = inject(FormBuilder);
 
@@ -289,6 +291,14 @@ export class LedgerPageComponent implements OnInit {
   protected readonly showNewEntry = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
   protected readonly searchTerm = signal<string>('');
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const _ = this.communityService.activeCommunityId();
+      this.ledger.loadEntries(this.start(), this.end()).subscribe();
+    });
+  }
 
   // Sinais computados para busca textual em memória sobre os registros filtrados
   protected readonly searchedEntries = computed(() => {

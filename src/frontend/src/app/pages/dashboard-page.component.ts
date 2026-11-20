@@ -2,6 +2,7 @@ import {
   Component,
   OnInit,
   computed,
+  effect,
   inject,
   input,
   signal,
@@ -10,6 +11,7 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LedgerService } from '../core/services/ledger.service';
+import { CommunityService } from '../core/services/community.service';
 import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.model';
 
 @Component({
@@ -21,6 +23,7 @@ import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.mod
 })
 export class DashboardPageComponent implements OnInit {
   protected readonly ledger = inject(LedgerService);
+  protected readonly communityService = inject(CommunityService);
   private readonly fb = inject(FormBuilder);
 
   // Injeção automática de query params/route params graças ao withComponentInputBinding()
@@ -30,6 +33,14 @@ export class DashboardPageComponent implements OnInit {
   // Estado local para controle do modal/card de novo lançamento
   protected readonly showCreateModal = signal<boolean>(false);
   protected readonly actionSuccess = signal<string | null>(null);
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const _ = this.communityService.activeCommunityId();
+      this.ledger.loadEntries(this.start(), this.end()).subscribe();
+    });
+  }
 
   // Formulário reativo para criação rápida de lançamento contábil
   protected readonly entryForm = this.fb.group({

@@ -8,6 +8,7 @@ import { ExpensesPageComponent } from './pages/expenses-page.component';
 import { RevenuesPageComponent } from './pages/revenues-page.component';
 import { InventoryPageComponent } from './pages/inventory-page.component';
 import { BirthdaysPageComponent } from './pages/birthdays-page.component';
+import { MembersPageComponent } from './pages/members-page.component';
 import { UsersPageComponent } from './pages/users-page.component';
 import { ForgotPasswordPageComponent } from './pages/forgot-password-page.component';
 import { PasswordResetPageComponent } from './pages/password-reset-page.component';
@@ -65,6 +66,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: RevenuesPageComponent,
     title: 'Controle de Receitas | EcoEcclesia',
+  },
+  {
+    path: 'members',
+    canActivate: [authGuard],
+    component: MembersPageComponent,
+    title: 'Membros & Dizimistas | EcoEcclesia',
   },
   {
     path: 'inventory',

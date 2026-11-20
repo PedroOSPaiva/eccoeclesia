@@ -1,20 +1,61 @@
 @if (auth.isLoggedIn()) {
   <header class="topbar">
     <div class="container nav">
-      <strong>EcoEcclesia</strong>
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6" />
+        </svg>
+        <strong>EcoEcclesia</strong>
+      </div>
+
       <nav>
         <a routerLink="/dashboard">Dashboard</a>
         <a routerLink="/ledger">Razão</a>
         <a routerLink="/reports">Relatórios</a>
         <a routerLink="/expenses">Despesas</a>
         <a routerLink="/revenues">Receitas</a>
-        <a routerLink="/inventory">Inventário</a>
+        <a routerLink="/members">Membros</a>
         <a routerLink="/birthdays">Aniversários</a>
+        <a routerLink="/inventory">Inventário</a>
         <a routerLink="/users">Usuários</a>
       </nav>
-      <button type="button" (click)="logout()">Sair</button>
+
+      <div class="header-right">
+        <!-- Seletor de Comunidade Ativa -->
+        <div class="community-picker" title="Filtrar escopo por comunidade">
+          <svg class="picker-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <select
+            id="communitySelect"
+            [value]="communityService.activeCommunityId() ?? 'ALL'"
+            (change)="onCommunityChange($event)"
+            class="community-select"
+          >
+            <option value="ALL">🌐 Todas (Consolidado)</option>
+            @for (comm of communityService.communities(); track comm.id) {
+              <option [value]="comm.id">
+                ⛪ {{ comm.name }} {{ comm.isMainParish ? '(Matriz)' : '' }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <button type="button" class="btn-logout" (click)="logout()">Sair</button>
+      </div>
     </div>
   </header>
+
+  @if (communityService.noticeMessage(); as notice) {
+    <div class="community-toast">
+      <div class="container toast-content">
+        <span>{{ notice }}</span>
+        <button class="toast-close" (click)="communityService.clearNotice()">&times;</button>
+      </div>
+    </div>
+  }
 }
 
 <main class="container" [style.paddingTop]="auth.isLoggedIn() ? '1.5rem' : '3rem'">
