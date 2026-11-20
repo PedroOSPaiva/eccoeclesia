@@ -1,6 +1,7 @@
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, signal } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
 import { Observable, finalize, tap } from 'rxjs';
+import { BaseApiService } from './base-api.service';
 
 export interface ReportTextResponse {
   report: string;
@@ -9,22 +10,15 @@ export interface ReportTextResponse {
 @Injectable({
   providedIn: 'root',
 })
-export class ReportService {
-  private readonly http = inject(HttpClient);
-  private readonly baseApi = '/api/reports';
+export class ReportService extends BaseApiService<{ id?: string }> {
+  protected override get apiUrl(): string {
+    return '/api/reports';
+  }
 
-  // Signals para estado de emissão de relatórios
-  private readonly _loading = signal<boolean>(false);
-  private readonly _error = signal<string | null>(null);
+  // ASSUNÇÃO: ReportService opera sobre relatórios sob demanda em vez de CRUD de entidades
   private readonly _preview = signal<string | null>(null);
-
-  readonly loading = this._loading.asReadonly();
-  readonly error = this._error.asReadonly();
   readonly preview = this._preview.asReadonly();
 
-  /**
-   * Obtém a prévia textual do relatório contábil do razão
-   */
   fetchLedgerReportPreview(start?: string, end?: string): Observable<ReportTextResponse> {
     this._loading.set(true);
     this._error.set(null);
@@ -33,7 +27,7 @@ export class ReportService {
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
 
-    return this.http.get<ReportTextResponse>(`${this.baseApi}/ledger`, { params }).pipe(
+    return this.http.get<ReportTextResponse>(`${this.apiUrl}/ledger`, { params }).pipe(
       tap({
         next: (res) => this._preview.set(res.report),
         error: (err) => this._error.set(err?.error?.error || 'Erro ao gerar relatório contábil.'),
@@ -42,9 +36,6 @@ export class ReportService {
     );
   }
 
-  /**
-   * Faz o download do Relatório Financeiro em formato PDF
-   */
   downloadLedgerPdf(start?: string, end?: string): void {
     this._loading.set(true);
     this._error.set(null);
@@ -53,7 +44,7 @@ export class ReportService {
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
 
-    this.http.get(`${this.baseApi}/ledger.pdf`, {
+    this.http.get(`${this.apiUrl}/ledger.pdf`, {
       params,
       responseType: 'blob',
     }).pipe(
@@ -73,9 +64,6 @@ export class ReportService {
     });
   }
 
-  /**
-   * Faz o download do Relatório Financeiro em formato CSV (planilhas)
-   */
   downloadLedgerCsv(start?: string, end?: string): void {
     this._loading.set(true);
     this._error.set(null);
@@ -84,7 +72,7 @@ export class ReportService {
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
 
-    this.http.get(`${this.baseApi}/ledger.csv`, {
+    this.http.get(`${this.apiUrl}/ledger.csv`, {
       params,
       responseType: 'blob',
     }).pipe(
@@ -103,9 +91,4 @@ export class ReportService {
       },
     });
   }
-
-  clearError(): void {
-    this._error.set(null);
-  }
 }
-

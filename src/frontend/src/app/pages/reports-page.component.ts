@@ -2,11 +2,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReportService } from '../core/services/report.service';
+import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-state.component';
 
 @Component({
   selector: 'app-reports-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DomBosquinhoStateComponent],
   template: `
     <div class="reports-container">
       <header class="page-header">
@@ -17,11 +18,16 @@ import { ReportService } from '../core/services/report.service';
         </div>
       </header>
 
+      <!-- Feedback de Erro com Dom Bosquinho -->
       @if (reportService.error(); as err) {
-        <div class="alert alert-error">
-          <span>{{ err }}</span>
-          <button (click)="reportService.clearError()" class="btn-close">&times;</button>
-        </div>
+        <app-dom-bosquinho-state
+          mode="error"
+          title="Ops! Dom Bosquinho avisa que houve um contratempo"
+          [message]="err"
+          [showDismiss]="true"
+          (retry)="generatePreview()"
+          (dismiss)="reportService.clearError()">
+        </app-dom-bosquinho-state>
       }
 
       <!-- Painel de Filtros e Exportação -->

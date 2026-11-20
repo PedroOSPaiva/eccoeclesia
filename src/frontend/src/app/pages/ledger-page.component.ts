@@ -5,12 +5,14 @@ import { RouterLink } from '@angular/router';
 import { LedgerService } from '../core/services/ledger.service';
 import { CommunityService } from '../core/services/community.service';
 import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.model';
+import { CHART_OF_ACCOUNTS, ChartAccountOption } from '../core/models/chart-of-accounts';
 import { ReportService } from '../core/services/report.service';
+import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-state.component';
 
 @Component({
   selector: 'app-ledger-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, CurrencyPipe, DatePipe],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, CurrencyPipe, DatePipe, DomBosquinhoStateComponent],
   template: `
     <div class="ledger-container">
       <header class="page-header">
@@ -33,12 +35,16 @@ import { ReportService } from '../core/services/report.service';
         </div>
       </header>
 
-      <!-- Feedback de Erro ou Sucesso -->
+      <!-- Feedback de Erro com Dom Bosquinho -->
       @if (ledger.error(); as err) {
-        <div class="alert alert-error">
-          <span>{{ err }}</span>
-          <button class="btn-close" (click)="ledger.clearError()">&times;</button>
-        </div>
+        <app-dom-bosquinho-state
+          mode="error"
+          title="Ops! Dom Bosquinho avisa que houve um contratempo"
+          [message]="err"
+          [showDismiss]="true"
+          (retry)="onRefresh()"
+          (dismiss)="ledger.clearError()">
+        </app-dom-bosquinho-state>
       }
       @if (successMessage(); as msg) {
         <div class="alert alert-success">
@@ -58,14 +64,18 @@ import { ReportService } from '../core/services/report.service';
             <div class="form-row">
               <div class="field">
                 <label for="type">Natureza</label>
-                <select id="type" formControlName="type">
+                <select id="type" formControlName="type" (change)="onTypeChange()">
                   <option value="INCOME">Receita (Crédito / Entrada)</option>
                   <option value="EXPENSE">Despesa (Débito / Saída)</option>
                 </select>
               </div>
-              <div class="field">
-                <label for="accountCode">Conta Contábil</label>
-                <input id="accountCode" type="text" formControlName="accountCode" placeholder="Ex: 1.1.01" />
+              <div class="field flex-2">
+                <label for="accountCode">Conta Contábil (Plano de Contas)</label>
+                <select id="accountCode" formControlName="accountCode">
+                  @for (acc of currentAccountOptions(); track acc.code) {
+                    <option [value]="acc.code">{{ acc.name }}</option>
+                  }
+                </select>
               </div>
               <div class="field">
                 <label for="amount">Valor (R$)</label>
@@ -87,15 +97,19 @@ import { ReportService } from '../core/services/report.service';
                 <input id="costCenter" type="text" formControlName="costCenter" placeholder="Ex: Pastoral Familiar" />
               </div>
               <div class="field">
-                <label for="referenceCode">Cód. Referência</label>
-                <input id="referenceCode" type="text" formControlName="referenceCode" placeholder="REF-001" />
+                <label for="referenceCode">Cód. Referência (Doc/Recibo)</label>
+                <input id="referenceCode" type="text" formControlName="referenceCode" placeholder="Ex: REC-1024, NF-3450" />
               </div>
             </div>
 
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleNewEntryForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="entryForm.invalid || ledger.loading()">
-                Efetivar Lançamento
+                @if (ledger.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Lançamento
+                }
               </button>
             </div>
           </form>
@@ -291,6 +305,13 @@ export class LedgerPageComponent implements OnInit {
   protected readonly showNewEntry = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
   protected readonly searchTerm = signal<string>('');
+  protected readonly currentNature = signal<LedgerEntryType>('INCOME');
+
+  // Opções do plano de contas filtradas pela natureza selecionada
+  protected readonly currentAccountOptions = computed<ChartAccountOption[]>(() => {
+    const nature = this.currentNature();
+    return CHART_OF_ACCOUNTS.filter((acc) => acc.nature === nature);
+  });
 
   constructor() {
     // Reage automaticamente à mudança da comunidade ativa no header
@@ -316,7 +337,7 @@ export class LedgerPageComponent implements OnInit {
   protected readonly entryForm = this.fb.group({
     type: ['INCOME' as LedgerEntryType, Validators.required],
     accountCode: ['1.1.01', Validators.required],
-    referenceCode: ['REF-' + Math.floor(1000 + Math.random() * 9000), Validators.required],
+    referenceCode: ['REC-' + Math.floor(1000 + Math.random() * 9000), Validators.required],
     costCenter: ['Geral', Validators.required],
     description: ['', [Validators.required, Validators.minLength(3)]],
     amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -325,6 +346,22 @@ export class LedgerPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.ledger.loadEntries(this.start(), this.end()).subscribe();
+  }
+
+  onTypeChange(): void {
+    const nextType = this.entryForm.get('type')?.value as LedgerEntryType;
+    this.currentNature.set(nextType);
+    if (nextType === 'INCOME') {
+      this.entryForm.patchValue({
+        accountCode: '1.1.01',
+        referenceCode: 'REC-' + Math.floor(1000 + Math.random() * 9000),
+      });
+    } else {
+      this.entryForm.patchValue({
+        accountCode: '2.1.01',
+        referenceCode: 'DESP-' + Math.floor(1000 + Math.random() * 9000),
+      });
+    }
   }
 
   onRefresh(): void {
@@ -367,7 +404,7 @@ export class LedgerPageComponent implements OnInit {
         this.entryForm.patchValue({
           description: '',
           amount: '',
-          referenceCode: 'REF-' + Math.floor(1000 + Math.random() * 9000),
+          referenceCode: (this.currentNature() === 'INCOME' ? 'REC-' : 'DESP-') + Math.floor(1000 + Math.random() * 9000),
         });
         this.showNewEntry.set(false);
       },

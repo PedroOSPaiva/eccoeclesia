@@ -18,7 +18,11 @@ import { CreateUserDto } from '../core/models/user.model';
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="userService.loading()">
-            Atualizar
+            @if (userService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
           </button>
           <button type="button" class="btn btn-primary" (click)="toggleForm()">
             + Novo Usuário
@@ -76,7 +80,11 @@ import { CreateUserDto } from '../core/models/user.model';
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || userService.loading()">
-                Criar Usuário
+                @if (userService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Usuário
+                }
               </button>
             </div>
           </form>

@@ -7,7 +7,7 @@ import { CommunityService } from './core/services/community.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastContainerComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })

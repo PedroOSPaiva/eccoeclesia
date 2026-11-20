@@ -35,14 +35,16 @@
     </div>
   </header>
 
-  <!-- Mensagem Global de Erro -->
+  <!-- Mensagem Global de Erro com Dom Bosquinho -->
   @if (ledger.error(); as errorMsg) {
-    <div class="alert alert-error">
-      <div class="alert-content">
-        <strong>Atenção:</strong> {{ errorMsg }}
-      </div>
-      <button class="btn-sm" (click)="ledger.clearError()">Dispensar</button>
-    </div>
+    <app-dom-bosquinho-state
+      mode="error"
+      title="Ops! Dom Bosquinho avisa que houve um contratempo"
+      [message]="errorMsg"
+      [showDismiss]="true"
+      (retry)="onRefresh()"
+      (dismiss)="ledger.clearError()">
+    </app-dom-bosquinho-state>
   }
 
   <!-- Modal / Painel de Cadastro Rápido -->
@@ -60,7 +62,7 @@
       <form [formGroup]="entryForm" (ngSubmit)="submitNewEntry()" class="entry-form-grid">
         <div class="form-group">
           <label for="type">Natureza Contábil</label>
-          <select id="type" formControlName="type">
+          <select id="type" formControlName="type" (change)="onTypeChange()">
             <option value="INCOME">Receita (Entrada)</option>
             <option value="EXPENSE">Despesa (Saída)</option>
           </select>
@@ -77,8 +79,12 @@
         </div>
 
         <div class="form-group">
-          <label for="accountCode">Conta Contábil</label>
-          <input id="accountCode" type="text" formControlName="accountCode" placeholder="Ex: 1.1.01" />
+          <label for="accountCode">Conta Contábil (Plano de Contas)</label>
+          <select id="accountCode" formControlName="accountCode">
+            @for (acc of currentAccountOptions(); track acc.code) {
+              <option [value]="acc.code">{{ acc.name }}</option>
+            }
+          </select>
         </div>
 
         <div class="form-group">
@@ -87,8 +93,8 @@
         </div>
 
         <div class="form-group">
-          <label for="referenceCode">Código de Referência</label>
-          <input id="referenceCode" type="text" formControlName="referenceCode" />
+          <label for="referenceCode">Cód. Referência (Doc/Recibo)</label>
+          <input id="referenceCode" type="text" formControlName="referenceCode" placeholder="Ex: REC-1024, NF-3450" />
         </div>
 
         <div class="form-group">
@@ -99,7 +105,11 @@
         <div class="form-actions span-2">
           <button type="button" class="btn-text" (click)="toggleCreateModal()">Cancelar</button>
           <button type="submit" class="btn-primary" [disabled]="entryForm.invalid || ledger.loading()">
-            Confirmar Lançamento
+            @if (ledger.loading()) {
+              <span class="spinner"></span> Salvando...
+            } @else {
+              Confirmar Lançamento
+            }
           </button>
         </div>
       </form>
@@ -168,6 +178,12 @@
       </div>
     </div>
   </section>
+
+  <!-- Gráfico Comparativo de Receitas x Despesas -->
+  <app-finance-chart
+    [totalIncome]="ledger.totalIncome()"
+    [totalExpense]="ledger.totalExpense()">
+  </app-finance-chart>
 
   <!-- Seção do Razão Contábil Recente -->
   <section class="card table-card">

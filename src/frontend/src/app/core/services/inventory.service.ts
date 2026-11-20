@@ -1,24 +1,19 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, signal } from '@angular/core';
 import { Observable, finalize, tap } from 'rxjs';
+import { BaseApiService } from './base-api.service';
 import { CreateConsumableDto, CreateDurableDto, InventoryItem } from '../models/inventory.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class InventoryService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/inventory';
+export class InventoryService extends BaseApiService<InventoryItem> {
+  protected override get apiUrl(): string {
+    return '/inventory';
+  }
 
-  private readonly _items = signal<InventoryItem[]>([]);
+  // Alias para manter compatibilidade com componentes existentes
   private readonly _alerts = signal<InventoryItem[]>([]);
-  private readonly _loading = signal<boolean>(false);
-  private readonly _error = signal<string | null>(null);
-
-  readonly items = this._items.asReadonly();
   readonly alerts = this._alerts.asReadonly();
-  readonly loading = this._loading.asReadonly();
-  readonly error = this._error.asReadonly();
 
   readonly totalItems = computed<number>(() =>
     this._items().reduce((sum, item) => sum + item.quantity, 0)
@@ -29,16 +24,7 @@ export class InventoryService {
   );
 
   loadItems(): Observable<InventoryItem[]> {
-    this._loading.set(true);
-    this._error.set(null);
-
-    return this.http.get<InventoryItem[]>(this.apiUrl).pipe(
-      tap({
-        next: (data) => this._items.set(data ?? []),
-        error: (err) => this._error.set(err?.error?.error || 'Erro ao carregar inventário.'),
-      }),
-      finalize(() => this._loading.set(false))
-    );
+    return this.load();
   }
 
   loadAlerts(): Observable<InventoryItem[]> {
@@ -74,9 +60,4 @@ export class InventoryService {
       finalize(() => this._loading.set(false))
     );
   }
-
-  clearError(): void {
-    this._error.set(null);
-  }
 }
-
