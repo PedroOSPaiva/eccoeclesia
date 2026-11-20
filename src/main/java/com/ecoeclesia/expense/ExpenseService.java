@@ -1,10 +1,12 @@
 package com.ecoeclesia.expense;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Business rules related to expenses. The service performs lightweight
@@ -30,15 +32,23 @@ public final class ExpenseService {
     }
 
     public ExpenseDocument registerExpense(String categoryName, String description, String amount) {
+        return registerExpense(categoryName, description, amount, null);
+    }
+
+    public ExpenseDocument registerExpense(String categoryName, String description, String amount, String communityId) {
         ExpenseCategory category = parseCategory(categoryName);
         BigDecimal value = new BigDecimal(amount);
-        ExpenseDocument document = new ExpenseDocument(value, description, category);
+        ExpenseDocument document = new ExpenseDocument(UUID.randomUUID().toString(), communityId, value, description, category, Instant.now());
         return repository.save(document);
     }
 
     public ExpenseDocument registerExpense(BigDecimal amount, String description) {
+        return registerExpense(amount, description, null);
+    }
+
+    public ExpenseDocument registerExpense(BigDecimal amount, String description, String communityId) {
         ExpenseCategory category = classifyExpense(description);
-        ExpenseDocument document = new ExpenseDocument(amount, description, category);
+        ExpenseDocument document = new ExpenseDocument(UUID.randomUUID().toString(), communityId, amount, description, category, Instant.now());
         return repository.save(document);
     }
 

@@ -16,14 +16,18 @@ public final class RevenueService {
     }
 
     public RevenueEntity registerRevenue(BigDecimal amount, String description) {
-        RevenueCategory category = classifyRevenue(description);
-        RevenueEntity entity = new RevenueEntity(amount, description, category);
-        return repository.save(entity);
+        return registerRevenue(amount, description, null, null);
     }
 
     public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName) {
-        RevenueCategory category = parseCategory(categoryName);
-        RevenueEntity entity = new RevenueEntity(amount, description, category);
+        return registerRevenue(amount, description, categoryName, null);
+    }
+
+    public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName, String communityId) {
+        RevenueCategory category = (categoryName != null && !categoryName.isBlank())
+                ? parseCategory(categoryName)
+                : classifyRevenue(description);
+        RevenueEntity entity = new RevenueEntity(java.util.UUID.randomUUID().toString(), communityId, amount, description, category, Instant.now());
         return repository.save(entity);
     }
 

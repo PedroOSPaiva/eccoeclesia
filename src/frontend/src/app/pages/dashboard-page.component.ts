@@ -2,6 +2,7 @@ import {
   Component,
   OnInit,
   computed,
+  effect,
   inject,
   input,
   signal,
@@ -10,6 +11,7 @@ import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LedgerService } from '../core/services/ledger.service';
+import { CommunityService } from '../core/services/community.service';
 import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.model';
 import { CHART_OF_ACCOUNTS, ChartAccountOption } from '../core/models/chart-of-accounts';
 import { FinanceChartComponent } from '../shared/components/finance-chart.component';
@@ -24,6 +26,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
 })
 export class DashboardPageComponent implements OnInit {
   protected readonly ledger = inject(LedgerService);
+  protected readonly communityService = inject(CommunityService);
   private readonly fb = inject(FormBuilder);
 
   // Injeção automática de query params/route params graças ao withComponentInputBinding()
@@ -40,6 +43,14 @@ export class DashboardPageComponent implements OnInit {
     const nature = this.currentNature();
     return CHART_OF_ACCOUNTS.filter((acc) => acc.nature === nature);
   });
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const _ = this.communityService.activeCommunityId();
+      this.ledger.loadEntries(this.start(), this.end()).subscribe();
+    });
+  }
 
   // Formulário reativo para criação rápida de lançamento contábil
   protected readonly entryForm = this.fb.group({

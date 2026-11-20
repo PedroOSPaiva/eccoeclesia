@@ -33,20 +33,22 @@ final class JdbcLedgerGateway implements LedgerGateway {
     public void upsert(LedgerEntry entry) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO ledger_entries (id, account_code, reference_code, cost_center, description, amount, type, occurred_on, created_at, updated_at) " +
-                             "VALUES (?,?,?,?,?,?,?, ?, now(), now()) " +
-                             "ON CONFLICT (id) DO UPDATE SET account_code = excluded.account_code, " +
-                             "reference_code = excluded.reference_code, cost_center = excluded.cost_center, " +
-                             "description = excluded.description, amount = excluded.amount, type = excluded.type, " +
-                             "occurred_on = excluded.occurred_on, updated_at = excluded.updated_at")) {
+                     "INSERT INTO ledger_entries (id, community_id, account_code, reference_code, cost_center, description, amount, type, occurred_on, created_at, updated_at) " +
+                             "VALUES (?,?::uuid,?,?,?,?,?,?,?, now(), now()) " +
+                             "ON CONFLICT (id) DO UPDATE SET community_id = excluded.community_id, " +
+                             "account_code = excluded.account_code, reference_code = excluded.reference_code, " +
+                             "cost_center = excluded.cost_center, description = excluded.description, " +
+                             "amount = excluded.amount, type = excluded.type, occurred_on = excluded.occurred_on, " +
+                             "updated_at = excluded.updated_at")) {
             stmt.setString(1, entry.id());
-            stmt.setString(2, entry.accountCode());
-            stmt.setString(3, entry.referenceCode());
-            stmt.setString(4, entry.costCenter());
-            stmt.setString(5, entry.description());
-            stmt.setBigDecimal(6, entry.amount());
-            stmt.setString(7, entry.type().name());
-            stmt.setDate(8, Date.valueOf(entry.occurredOn()));
+            stmt.setString(2, entry.communityId());
+            stmt.setString(3, entry.accountCode());
+            stmt.setString(4, entry.referenceCode());
+            stmt.setString(5, entry.costCenter());
+            stmt.setString(6, entry.description());
+            stmt.setBigDecimal(7, entry.amount());
+            stmt.setString(8, entry.type().name());
+            stmt.setDate(9, Date.valueOf(entry.occurredOn()));
             stmt.executeUpdate();
         } catch (SQLException ex) {
             throw new IllegalStateException("Failed to persist ledger entry", ex);
@@ -87,6 +89,7 @@ final class JdbcLedgerGateway implements LedgerGateway {
     private LedgerEntry map(ResultSet rs) throws SQLException {
         return new LedgerEntry(
                 rs.getString("id"),
+                rs.getString("community_id"),
                 rs.getString("account_code"),
                 rs.getString("reference_code"),
                 rs.getString("cost_center"),

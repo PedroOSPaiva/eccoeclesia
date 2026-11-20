@@ -31,10 +31,12 @@ public class JdbcExpenseRepository implements ExpenseRepository {
     public ExpenseDocument save(ExpenseDocument document) {
         Objects.requireNonNull(document, "document");
         UUID id = toUuid(document.getId());
+        UUID communityId = toUuid(document.getCommunityId());
 
-        String sql = "INSERT INTO expenses (id, amount, description, category, created_at, updated_at) " +
-                "VALUES (?::uuid, ?, ?, ?, ?, now()) " +
+        String sql = "INSERT INTO expenses (id, community_id, amount, description, category, created_at, updated_at) " +
+                "VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, now()) " +
                 "ON CONFLICT (id) DO UPDATE SET " +
+                "community_id = EXCLUDED.community_id, " +
                 "amount = EXCLUDED.amount, " +
                 "description = EXCLUDED.description, " +
                 "category = EXCLUDED.category, " +
@@ -43,10 +45,11 @@ public class JdbcExpenseRepository implements ExpenseRepository {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id.toString());
-            ps.setBigDecimal(2, document.getAmount());
-            ps.setString(3, document.getDescription());
-            ps.setString(4, document.getCategory().name());
-            ps.setTimestamp(5, Timestamp.from(document.getCreatedAt()));
+            ps.setString(2, communityId != null ? communityId.toString() : null);
+            ps.setBigDecimal(3, document.getAmount());
+            ps.setString(4, document.getDescription());
+            ps.setString(5, document.getCategory().name());
+            ps.setTimestamp(6, Timestamp.from(document.getCreatedAt()));
             ps.executeUpdate();
             return document;
         } catch (SQLException ex) {
@@ -60,7 +63,7 @@ public class JdbcExpenseRepository implements ExpenseRepository {
             return Optional.empty();
         }
         UUID uuid = toUuid(id);
-        String sql = "SELECT id, amount, description, category, created_at FROM expenses WHERE id = ?::uuid";
+        String sql = "SELECT id, community_id, amount, description, category, created_at FROM expenses WHERE id = ?::uuid";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -78,7 +81,7 @@ public class JdbcExpenseRepository implements ExpenseRepository {
 
     @Override
     public List<ExpenseDocument> findAll() {
-        String sql = "SELECT id, amount, description, category, created_at FROM expenses ORDER BY created_at DESC, id";
+        String sql = "SELECT id, community_id, amount, description, category, created_at FROM expenses ORDER BY created_at DESC, id";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -110,6 +113,7 @@ public class JdbcExpenseRepository implements ExpenseRepository {
 
     private ExpenseDocument mapRow(ResultSet rs) throws SQLException {
         String id = rs.getString("id");
+        String communityId = rs.getString("community_id");
         BigDecimal amount = rs.getBigDecimal("amount");
         String description = rs.getString("description");
         String categoryStr = rs.getString("category");
@@ -117,7 +121,7 @@ public class JdbcExpenseRepository implements ExpenseRepository {
 
         ExpenseCategory category = parseCategory(categoryStr);
         Instant instant = createdAt != null ? createdAt.toInstant() : Instant.now();
-        return new ExpenseDocument(id, amount, description, category, instant);
+        return new ExpenseDocument(id, communityId, amount, description, category, instant);
     }
 
     private ExpenseCategory parseCategory(String value) {
@@ -132,6 +136,7 @@ public class JdbcExpenseRepository implements ExpenseRepository {
     }
 
     private UUID toUuid(String id) {
+        if (id == null || id.isBlank()) return null;
         try {
             return UUID.fromString(id);
         } catch (IllegalArgumentException ex) {
