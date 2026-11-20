@@ -9,6 +9,7 @@ import com.ecoeclesia.inventory.InventoryService;
 import com.ecoeclesia.inventory.ItemType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -105,12 +106,8 @@ public class InventoryApiController {
     public record MovementRequest(Integer quantity) {}
 
     @GetMapping
-    public ResponseEntity<List<InventoryItemResponse>> listItems(
-            @RequestHeader(value = "Authorization", required = false) String authorization
-    ) {
-        if (authorization != null && !authorization.isBlank() && !authTokenService.isAllowed(authorization, "inventory:read")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<InventoryItemResponse>> listItems() {
         List<InventoryItemResponse> items = inventoryService.listItems().stream()
                 .map(InventoryItemResponse::from)
                 .toList();
@@ -118,12 +115,8 @@ public class InventoryApiController {
     }
 
     @GetMapping("/alerts")
-    public ResponseEntity<List<InventoryItemResponse>> listAlerts(
-            @RequestHeader(value = "Authorization", required = false) String authorization
-    ) {
-        if (authorization != null && !authorization.isBlank() && !authTokenService.isAllowed(authorization, "inventory:read")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<InventoryItemResponse>> listAlerts() {
         List<InventoryItemResponse> alerts = inventoryService.findItemsBelowMinimum().stream()
                 .map(InventoryItemResponse::from)
                 .toList();
@@ -131,13 +124,8 @@ public class InventoryApiController {
     }
 
     @PostMapping("/consumables")
-    public ResponseEntity<InventoryItemResponse> createConsumable(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestBody CreateConsumableRequest request
-    ) {
-        if (authorization != null && !authorization.isBlank() && !authTokenService.isAllowed(authorization, "inventory:write")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
+    public ResponseEntity<InventoryItemResponse> createConsumable(@RequestBody CreateConsumableRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Corpo da requisição é obrigatório");
         }
@@ -172,13 +160,8 @@ public class InventoryApiController {
     }
 
     @PostMapping("/durables")
-    public ResponseEntity<InventoryItemResponse> createDurable(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestBody CreateDurableRequest request
-    ) {
-        if (authorization != null && !authorization.isBlank() && !authTokenService.isAllowed(authorization, "inventory:write")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
+    public ResponseEntity<InventoryItemResponse> createDurable(@RequestBody CreateDurableRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Corpo da requisição é obrigatório");
         }
@@ -204,6 +187,7 @@ public class InventoryApiController {
     }
 
     @PostMapping("/{typeSegment}/{id}/entries")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<InventoryItemResponse> recordEntry(
             @PathVariable String typeSegment,
             @PathVariable String id,
@@ -216,6 +200,7 @@ public class InventoryApiController {
     }
 
     @PostMapping("/{typeSegment}/{id}/exits")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<InventoryItemResponse> recordExit(
             @PathVariable String typeSegment,
             @PathVariable String id,

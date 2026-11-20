@@ -40,9 +40,9 @@ public final class TestRunner {
         int executed = 0;
         int failed = 0;
         for (Class<?> testClass : tests) {
-            Object instance = testClass.getDeclaredConstructor().newInstance();
             for (Method method : testClass.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(Test.class)) {
+                    Object instance = testClass.getDeclaredConstructor().newInstance();
                     executed++;
                     try {
                         method.setAccessible(true);

@@ -13,6 +13,10 @@ public final class SqlLedgerRepository implements LedgerRepository {
 
     private final LedgerGateway gateway;
 
+    public SqlLedgerRepository(javax.sql.DataSource dataSource) {
+        this(new JdbcLedgerGateway(dataSource));
+    }
+
     public SqlLedgerRepository(LedgerGateway gateway) {
         this.gateway = Objects.requireNonNull(gateway);
         gateway.initialize();
