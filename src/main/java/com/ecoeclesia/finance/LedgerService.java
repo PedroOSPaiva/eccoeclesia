@@ -23,27 +23,43 @@ public final class LedgerService {
     }
 
     public LedgerEntry recordIncome(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter) {
-        return recordIncome(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock));
+        return recordIncome(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock), null);
     }
 
     public LedgerEntry recordIncome(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, LocalDate occurredOn) {
+        return recordIncome(accountCode, amount, description, referenceCode, costCenter, occurredOn, null);
+    }
+
+    public LedgerEntry recordIncome(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, String communityId) {
+        return recordIncome(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock), communityId);
+    }
+
+    public LedgerEntry recordIncome(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, LocalDate occurredOn, String communityId) {
         Objects.requireNonNull(amount, "amount");
         Objects.requireNonNull(description, "description");
         chart.assertMatches(accountCode, AccountNature.INCOME);
-        LedgerEntry entry = new LedgerEntry(UUID.randomUUID().toString(), accountCode, sanitize(referenceCode), sanitize(costCenter), description,
+        LedgerEntry entry = new LedgerEntry(UUID.randomUUID().toString(), communityId, accountCode, sanitize(referenceCode), sanitize(costCenter), description,
                 amount, LedgerEntryType.INCOME, occurredOn);
         return repository.save(entry);
     }
 
     public LedgerEntry recordExpense(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter) {
-        return recordExpense(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock));
+        return recordExpense(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock), null);
     }
 
     public LedgerEntry recordExpense(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, LocalDate occurredOn) {
+        return recordExpense(accountCode, amount, description, referenceCode, costCenter, occurredOn, null);
+    }
+
+    public LedgerEntry recordExpense(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, String communityId) {
+        return recordExpense(accountCode, amount, description, referenceCode, costCenter, LocalDate.now(clock), communityId);
+    }
+
+    public LedgerEntry recordExpense(String accountCode, BigDecimal amount, String description, String referenceCode, String costCenter, LocalDate occurredOn, String communityId) {
         Objects.requireNonNull(amount, "amount");
         Objects.requireNonNull(description, "description");
         chart.assertMatches(accountCode, AccountNature.EXPENSE);
-        LedgerEntry entry = new LedgerEntry(UUID.randomUUID().toString(), accountCode, sanitize(referenceCode), sanitize(costCenter), description,
+        LedgerEntry entry = new LedgerEntry(UUID.randomUUID().toString(), communityId, accountCode, sanitize(referenceCode), sanitize(costCenter), description,
                 amount, LedgerEntryType.EXPENSE, occurredOn);
         return repository.save(entry);
     }

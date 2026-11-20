@@ -1,6 +1,7 @@
 package com.ecoeclesia.testing;
 
 import com.ecoeclesia.access.UserAccessPolicyTest;
+import com.ecoeclesia.community.CommunityApiControllerTest;
 import com.ecoeclesia.config.DatabaseUrlResolverTest;
 import com.ecoeclesia.expense.ExpenseServiceTest;
 import com.ecoeclesia.finance.FinancialStatementImportServiceTest;
@@ -10,6 +11,7 @@ import com.ecoeclesia.finance.LedgerServiceTest;
 import com.ecoeclesia.finance.DatabaseLedgerRepositoryTest;
 import com.ecoeclesia.finance.FinanceEndToEndFlowTest;
 import com.ecoeclesia.inventory.InventoryServiceTest;
+import com.ecoeclesia.member.MemberApiControllerTest;
 import com.ecoeclesia.revenue.RevenueServiceTest;
 import com.ecoeclesia.user.UserManagementControllerTest;
 import java.lang.reflect.InvocationTargetException;
@@ -34,7 +36,9 @@ public final class TestRunner {
                 InventoryServiceTest.class,
                 FinancialStatementImportServiceTest.class,
                 UserAccessPolicyTest.class,
-                UserManagementControllerTest.class
+                UserManagementControllerTest.class,
+                CommunityApiControllerTest.class,
+                MemberApiControllerTest.class
         );
 
         int executed = 0;

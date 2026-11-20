@@ -33,10 +33,11 @@ public class ApiController {
 
     // --- EXPENSES ---
 
-    public record ExpenseRequestDto(BigDecimal amount, String description, String category) {}
+    public record ExpenseRequestDto(BigDecimal amount, String description, String category, String communityId) {}
 
     public record ExpenseResponseDto(
             String id,
+            String communityId,
             BigDecimal amount,
             String description,
             String category,
@@ -45,6 +46,7 @@ public class ApiController {
         public static ExpenseResponseDto from(ExpenseDocument doc) {
             return new ExpenseResponseDto(
                     doc.getId(),
+                    doc.getCommunityId(),
                     doc.getAmount(),
                     doc.getDescription(),
                     doc.getCategory() != null ? doc.getCategory().name() : null,
@@ -74,20 +76,20 @@ public class ApiController {
         ExpenseDocument doc;
         if (request.category() != null && !request.category().isBlank()) {
             try {
-                doc = expenseService.registerExpense(request.category(), request.description(), request.amount().toPlainString());
+                doc = expenseService.registerExpense(request.category(), request.description(), request.amount().toPlainString(), request.communityId());
             } catch (IllegalArgumentException ex) {
                 // ASSUNÇÃO: Se categoria informada não bater com enum do domínio, faz fallback para classificação heurística
-                doc = expenseService.registerExpense(request.amount(), request.description() + " " + request.category());
+                doc = expenseService.registerExpense(request.amount(), request.description() + " " + request.category(), request.communityId());
             }
         } else {
-            doc = expenseService.registerExpense(request.amount(), request.description());
+            doc = expenseService.registerExpense(request.amount(), request.description(), request.communityId());
         }
 
         // Sincroniza automaticamente com o Razão Contábil
         try {
             String accountCode = resolveExpenseAccountCode(request.category());
             String ref = "EXP-" + (doc.getId() != null ? doc.getId().substring(0, Math.min(8, doc.getId().length())) : "001");
-            ledgerService.recordExpense(accountCode, request.amount(), request.description(), ref, request.category() != null ? request.category() : "Geral");
+            ledgerService.recordExpense(accountCode, request.amount(), request.description(), ref, request.category() != null ? request.category() : "Geral", request.communityId());
         } catch (Exception ignored) {
         }
 
@@ -103,10 +105,11 @@ public class ApiController {
 
     // --- REVENUES ---
 
-    public record RevenueRequestDto(BigDecimal amount, String description, String category) {}
+    public record RevenueRequestDto(BigDecimal amount, String description, String category, String communityId) {}
 
     public record RevenueResponseDto(
             String id,
+            String communityId,
             BigDecimal amount,
             String description,
             String category,
@@ -116,6 +119,7 @@ public class ApiController {
         public static RevenueResponseDto from(RevenueEntity entity) {
             return new RevenueResponseDto(
                     entity.id(),
+                    entity.communityId(),
                     entity.amount(),
                     entity.description(),
                     entity.category() != null ? entity.category().name() : null,
@@ -156,20 +160,20 @@ public class ApiController {
         RevenueEntity entity;
         if (request.category() != null && !request.category().isBlank()) {
             try {
-                entity = revenueService.registerRevenue(request.amount(), request.description(), request.category());
+                entity = revenueService.registerRevenue(request.amount(), request.description(), request.category(), request.communityId());
             } catch (IllegalArgumentException ex) {
                 // ASSUNÇÃO: Se nome da categoria não for o enum puro (ex: "Dízimo" vs "TITHES"), usa heurística do domínio
-                entity = revenueService.registerRevenue(request.amount(), request.description() + " " + request.category());
+                entity = revenueService.registerRevenue(request.amount(), request.description() + " " + request.category(), null, request.communityId());
             }
         } else {
-            entity = revenueService.registerRevenue(request.amount(), request.description());
+            entity = revenueService.registerRevenue(request.amount(), request.description(), null, request.communityId());
         }
 
         // Sincroniza automaticamente com o Razão Contábil
         try {
             String accountCode = resolveRevenueAccountCode(request.category());
             String ref = "REC-" + (entity.id() != null ? entity.id().toString().substring(0, Math.min(8, entity.id().toString().length())) : "001");
-            ledgerService.recordIncome(accountCode, request.amount(), request.description(), ref, request.category() != null ? request.category() : "Geral");
+            ledgerService.recordIncome(accountCode, request.amount(), request.description(), ref, request.category() != null ? request.category() : "Geral", request.communityId());
         } catch (Exception ignored) {
         }
 
