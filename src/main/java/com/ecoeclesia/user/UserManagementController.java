@@ -2,6 +2,10 @@ package com.ecoeclesia.user;
 
 import com.ecoeclesia.access.UserAccessPolicy;
 import com.ecoeclesia.access.UserRole;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -13,7 +17,9 @@ import java.util.stream.Collectors;
 
 import static com.ecoeclesia.user.PasswordHasher.hash;
 
-public final class UserManagementController {
+@RestController
+@RequestMapping("/api/users")
+public class UserManagementController {
 
     private final UserAccountRepository repository;
     private final Map<String, UserAccount> accounts = new HashMap<>();
@@ -27,7 +33,10 @@ public final class UserManagementController {
         this.repository = repository;
     }
 
-    public UserAccountResponse createUser(CreateUserRequest request) {
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserAccountResponse createUser(@RequestBody CreateUserRequest request) {
         Objects.requireNonNull(request, "request");
         if (repository != null) {
             if (repository.existsByEmail(request.email())) {
@@ -59,6 +68,8 @@ public final class UserManagementController {
         return UserAccountResponse.from(account, permissionsFor(account.getRoles()));
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserAccountResponse> listUsers() {
         if (repository != null) {
             return repository.findAll().stream()
@@ -68,6 +79,17 @@ public final class UserManagementController {
         return accounts.values().stream()
                 .map(account -> UserAccountResponse.from(account, permissionsFor(account.getRoles())))
                 .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(@PathVariable String id) {
+        if (repository != null) {
+            repository.deleteById(id);
+        } else {
+            accounts.remove(id);
+        }
     }
 
     public UserAccountResponse updatePassword(String id, UpdateUserPasswordRequest request) {

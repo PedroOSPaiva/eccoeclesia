@@ -9,6 +9,8 @@ public record CreateUserRequest(String email, String password, List<UserRole> ro
     public CreateUserRequest {
         Objects.requireNonNull(email, "email");
         Objects.requireNonNull(password, "password");
-        Objects.requireNonNull(roles, "roles");
+        if (roles == null || roles.isEmpty()) {
+            roles = List.of(UserRole.VOLUNTEER);
+        }
     }
 }
