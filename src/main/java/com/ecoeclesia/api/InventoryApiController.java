@@ -186,6 +186,58 @@ public class InventoryApiController {
         return ResponseEntity.status(HttpStatus.CREATED).body(InventoryItemResponse.from(item));
     }
 
+    @PutMapping("/consumables/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
+    public ResponseEntity<InventoryItemResponse> updateConsumable(
+            @PathVariable String id,
+            @RequestBody CreateConsumableRequest request
+    ) {
+        if (request == null) {
+            throw new IllegalArgumentException("Corpo da requisição é obrigatório");
+        }
+        int min = request.minimumQuantity() != null ? request.minimumQuantity()
+                : (request.minimumStock() != null ? request.minimumStock() : 0);
+        Instant expiration = null;
+        if (request.expirationDate() != null && !request.expirationDate().isBlank()) {
+            try {
+                LocalDate date = LocalDate.parse(request.expirationDate().trim());
+                expiration = date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            } catch (Exception ex) {
+                expiration = Instant.parse(request.expirationDate().trim());
+            }
+        }
+        InventoryItem item = inventoryService.updateConsumable(
+                id,
+                request.name().trim(),
+                request.description().trim(),
+                min,
+                expiration
+        );
+        return ResponseEntity.ok(InventoryItemResponse.from(item));
+    }
+
+    @PutMapping("/durables/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
+    public ResponseEntity<InventoryItemResponse> updateDurable(
+            @PathVariable String id,
+            @RequestBody CreateDurableRequest request
+    ) {
+        if (request == null) {
+            throw new IllegalArgumentException("Corpo da requisição é obrigatório");
+        }
+        int min = request.minimumQuantity() != null ? request.minimumQuantity()
+                : (request.minimumStock() != null ? request.minimumStock() : 0);
+        int warranty = request.warrantyMonths() != null ? request.warrantyMonths() : 0;
+        InventoryItem item = inventoryService.updateDurable(
+                id,
+                request.name().trim(),
+                request.description().trim(),
+                min,
+                warranty
+        );
+        return ResponseEntity.ok(InventoryItemResponse.from(item));
+    }
+
     @PostMapping("/{typeSegment}/{id}/entries")
     @PreAuthorize("hasAnyRole('ADMIN', 'FINANCE')")
     public ResponseEntity<InventoryItemResponse> recordEntry(

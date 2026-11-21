@@ -39,6 +39,26 @@ public final class InventoryService {
         return item;
     }
 
+    public InventoryItem updateConsumable(String id, String name, String description, int minimumStock, Instant expiration) {
+        InventoryItem item = requireItem(id, ItemType.CONSUMABLE);
+        if (item instanceof ConsumableItem consumable) {
+            consumable.update(name, description, minimumStock, expiration);
+            persist();
+            return consumable;
+        }
+        throw new IllegalStateException("Item " + id + " não é consumível");
+    }
+
+    public InventoryItem updateDurable(String id, String name, String description, int minimumStock, int warrantyMonths) {
+        InventoryItem item = requireItem(id, ItemType.DURABLE);
+        if (item instanceof DurableItem durable) {
+            durable.update(name, description, minimumStock, warrantyMonths);
+            persist();
+            return durable;
+        }
+        throw new IllegalStateException("Item " + id + " não é durável");
+    }
+
     public InventoryItem recordEntry(String id, ItemType type, int amount) {
         InventoryItem item = requireItem(id, type);
         item.increaseQuantity(amount);

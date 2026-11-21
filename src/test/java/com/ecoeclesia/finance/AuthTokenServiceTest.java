@@ -7,14 +7,14 @@ import static com.ecoeclesia.testing.Assertions.assertTrue;
 import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.testing.Test;
 import com.ecoeclesia.user.CreateUserRequest;
-import com.ecoeclesia.user.UserManagementController;
+import com.ecoeclesia.user.InMemoryUserAccountRepository;
 import java.util.List;
 
 public final class AuthTokenServiceTest {
 
     private AuthTokenService newService() {
         return new AuthTokenService(
-                new UserManagementController(),
+                new InMemoryUserAccountRepository(),
                 List.of(new CreateUserRequest("tesouraria@ecoeclesia.test", "finance123",
                         List.of(UserRole.FINANCE), null, null, null, null)));
     }

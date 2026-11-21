@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InventoryService } from '../core/services/inventory.service';
-import { CreateConsumableDto, CreateDurableDto } from '../core/models/inventory.model';
+import { CreateConsumableDto, CreateDurableDto, InventoryItem } from '../core/models/inventory.model';
 import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-state.component';
 
 @Component({
@@ -56,12 +56,12 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
         </div>
       }
 
-      <!-- Formulário de Cadastro -->
+      <!-- Formulário de Cadastro / Edição -->
       @if (showForm()) {
         <section class="card form-card">
           <div class="card-title-bar">
-            <h3>Cadastrar Item no Inventário</h3>
-            <button class="btn-close" (click)="toggleForm()">&times;</button>
+            <h3>{{ editingItemId() ? 'Editar Item do Inventário' : 'Cadastrar Item no Inventário' }}</h3>
+            <button class="btn-close" (click)="cancelEdit()">&times;</button>
           </div>
           <form [formGroup]="itemForm" (ngSubmit)="submitItem()" class="item-form">
             <div class="form-row">
@@ -108,12 +108,12 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn btn-secondary" (click)="toggleForm()">Cancelar</button>
+              <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || inventoryService.loading()">
                 @if (inventoryService.loading()) {
                   <span class="spinner"></span> Salvando...
                 } @else {
-                  Salvar Item
+                  {{ editingItemId() ? 'Salvar Alterações' : 'Salvar Item' }}
                 }
               </button>
             </div>
@@ -140,6 +140,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
                   <th class="text-center">Mínimo</th>
                   <th>Status</th>
                   <th>Última Atualização</th>
+                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,10 +165,15 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
                       }
                     </td>
                     <td class="col-date">{{ item.lastUpdated | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="col-actions">
+                      <button type="button" class="btn-sm btn-movement-entry" title="Registrar Entrada de Estoque" (click)="recordMovement(item, 'entries')">+ Entrada</button>
+                      <button type="button" class="btn-sm btn-movement-exit" title="Registrar Saída de Estoque" (click)="recordMovement(item, 'exits')">- Saída</button>
+                      <button type="button" class="btn-sm btn-edit" title="Editar Informações do Item" (click)="editItem(item)">Editar</button>
+                    </td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="8" class="empty-state">
                       <p>Nenhum item cadastrado no inventário paroquial.</p>
                     </td>
                   </tr>
@@ -204,6 +210,14 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
     .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
     .row-alert { background: #fffbeb; }
     .col-date { white-space: nowrap; color: #64748b; font-size: 0.8rem; }
+    .col-actions { display: flex; gap: 0.35rem; align-items: center; white-space: nowrap; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 5px; cursor: pointer; border: 1px solid transparent; font-weight: 600; }
+    .btn-movement-entry { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .btn-movement-entry:hover { background: #d1fae5; }
+    .btn-movement-exit { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .btn-movement-exit:hover { background: #fee2e2; }
+    .btn-edit { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
+    .btn-edit:hover { background: #e2e8f0; }
     .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; }
     .badge-durable { background: #e0e7ff; color: #4338ca; }
     .badge-consumable { background: #fef3c7; color: #b45309; }
@@ -231,6 +245,7 @@ export class InventoryPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   protected readonly showForm = signal<boolean>(false);
+  protected readonly editingItemId = signal<string | null>(null);
   protected readonly successMessage = signal<string | null>(null);
 
   protected readonly itemForm = this.fb.group({
@@ -257,7 +272,49 @@ export class InventoryPageComponent implements OnInit {
   }
 
   toggleForm(): void {
-    this.showForm.update((v) => !v);
+    if (this.showForm() && this.editingItemId()) {
+      this.cancelEdit();
+    } else {
+      this.editingItemId.set(null);
+      this.itemForm.reset({ type: 'DURABLE', quantity: 1, minimumQuantity: 1, warrantyMonths: 12 });
+      this.showForm.update((v) => !v);
+    }
+  }
+
+  editItem(item: InventoryItem): void {
+    this.editingItemId.set(item.id);
+    this.itemForm.patchValue({
+      type: item.type,
+      name: item.name,
+      description: item.description,
+      quantity: item.quantity,
+      minimumQuantity: item.minimumQuantity,
+      warrantyMonths: item.warrantyMonths || 12,
+      expirationDate: item.expirationDate ? item.expirationDate.substring(0, 10) : '',
+    });
+    this.showForm.set(true);
+  }
+
+  cancelEdit(): void {
+    this.editingItemId.set(null);
+    this.itemForm.reset({ type: 'DURABLE', quantity: 1, minimumQuantity: 1, warrantyMonths: 12 });
+    this.showForm.set(false);
+  }
+
+  recordMovement(item: InventoryItem, action: 'entries' | 'exits'): void {
+    const actionLabel = action === 'entries' ? 'entrada (+)' : 'saída (-)';
+    const input = window.prompt(`Informe a quantidade para ${actionLabel} no item "${item.name}":`, '1');
+    if (!input) return;
+    const qty = parseInt(input.trim(), 10);
+    if (isNaN(qty) || qty <= 0) {
+      alert('Quantidade inválida.');
+      return;
+    }
+    this.inventoryService.recordMovement(item.id, item.type, action, qty).subscribe({
+      next: () => {
+        this.successMessage.set(`Movimentação de ${actionLabel} registrada com sucesso para "${item.name}"!`);
+      }
+    });
   }
 
   onTypeChange(): void {
@@ -271,6 +328,8 @@ export class InventoryPageComponent implements OnInit {
     }
 
     const val = this.itemForm.getRawValue();
+    const isEdit = !!this.editingItemId();
+
     if (val.type === 'DURABLE') {
       const dto: CreateDurableDto = {
         name: val.name!,
@@ -279,13 +338,22 @@ export class InventoryPageComponent implements OnInit {
         minimumQuantity: Number(val.minimumQuantity),
         warrantyMonths: Number(val.warrantyMonths || 0),
       };
-      this.inventoryService.createDurable(dto).subscribe({
-        next: () => {
-          this.successMessage.set('Bem durável cadastrado com sucesso!');
-          this.itemForm.reset({ type: 'DURABLE', quantity: 1, minimumQuantity: 1, warrantyMonths: 12 });
-          this.showForm.set(false);
-        },
-      });
+
+      if (isEdit) {
+        this.inventoryService.updateDurable(this.editingItemId()!, dto).subscribe({
+          next: () => {
+            this.successMessage.set('Bem durável atualizado com sucesso!');
+            this.cancelEdit();
+          },
+        });
+      } else {
+        this.inventoryService.createDurable(dto).subscribe({
+          next: () => {
+            this.successMessage.set('Bem durável cadastrado com sucesso!');
+            this.cancelEdit();
+          },
+        });
+      }
     } else {
       const dto: CreateConsumableDto = {
         name: val.name!,
@@ -294,13 +362,22 @@ export class InventoryPageComponent implements OnInit {
         minimumQuantity: Number(val.minimumQuantity),
         expirationDate: val.expirationDate || new Date().toISOString().substring(0, 10),
       };
-      this.inventoryService.createConsumable(dto).subscribe({
-        next: () => {
-          this.successMessage.set('Item de consumo cadastrado com sucesso!');
-          this.itemForm.reset({ type: 'CONSUMABLE', quantity: 1, minimumQuantity: 1 });
-          this.showForm.set(false);
-        },
-      });
+
+      if (isEdit) {
+        this.inventoryService.updateConsumable(this.editingItemId()!, dto).subscribe({
+          next: () => {
+            this.successMessage.set('Item de consumo atualizado com sucesso!');
+            this.cancelEdit();
+          },
+        });
+      } else {
+        this.inventoryService.createConsumable(dto).subscribe({
+          next: () => {
+            this.successMessage.set('Item de consumo cadastrado com sucesso!');
+            this.cancelEdit();
+          },
+        });
+      }
     }
   }
 }

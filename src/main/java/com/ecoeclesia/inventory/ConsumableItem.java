@@ -4,7 +4,7 @@ import java.time.Instant;
 
 public final class ConsumableItem extends InventoryItem {
 
-    private final Instant expirationDate;
+    private Instant expirationDate;
 
     public ConsumableItem(String name, String description, int quantity, int minimumStock, Instant expirationDate) {
         super(name, description, quantity, minimumStock);
@@ -14,6 +14,11 @@ public final class ConsumableItem extends InventoryItem {
     public ConsumableItem(String id, String name, String description, int quantity, int minimumStock,
                           Instant expirationDate, Instant lastUpdated) {
         super(id, name, description, quantity, minimumStock, lastUpdated);
+        this.expirationDate = expirationDate;
+    }
+
+    public void update(String name, String description, int minimumStock, Instant expirationDate) {
+        super.update(name, description, minimumStock);
         this.expirationDate = expirationDate;
     }
 

@@ -8,7 +8,7 @@ import { CreateConsumableDto, CreateDurableDto, InventoryItem } from '../models/
 })
 export class InventoryService extends BaseApiService<InventoryItem> {
   protected override get apiUrl(): string {
-    return '/inventory';
+    return '/api/inventory';
   }
 
   // Alias para manter compatibilidade com componentes existentes
@@ -56,6 +56,49 @@ export class InventoryService extends BaseApiService<InventoryItem> {
       tap({
         next: () => this.loadItems().subscribe(),
         error: (err) => this._error.set(err?.error?.error || 'Erro ao cadastrar bem durável.'),
+      }),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  updateConsumable(id: string, dto: CreateConsumableDto): Observable<void> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    return this.http.put<void>(`${this.apiUrl}/consumables/${id}`, dto).pipe(
+      tap({
+        next: () => this.loadItems().subscribe(),
+        error: (err) => this._error.set(err?.error?.error || 'Erro ao atualizar item consumível.'),
+      }),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  updateDurable(id: string, dto: CreateDurableDto): Observable<void> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    return this.http.put<void>(`${this.apiUrl}/durables/${id}`, dto).pipe(
+      tap({
+        next: () => this.loadItems().subscribe(),
+        error: (err) => this._error.set(err?.error?.error || 'Erro ao atualizar bem durável.'),
+      }),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  recordMovement(id: string, type: string, action: 'entries' | 'exits', quantity: number): Observable<InventoryItem> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    const segment = type.toLowerCase().includes('durable') ? 'durables' : 'consumables';
+    return this.http.post<InventoryItem>(`${this.apiUrl}/${segment}/${id}/${action}`, { quantity }).pipe(
+      tap({
+        next: () => {
+          this.loadItems().subscribe();
+          this.loadAlerts().subscribe();
+        },
+        error: (err) => this._error.set(err?.error?.error || `Erro ao registrar ${action === 'entries' ? 'entrada' : 'saída'} de estoque.`),
       }),
       finalize(() => this._loading.set(false))
     );

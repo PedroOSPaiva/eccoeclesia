@@ -49,6 +49,13 @@ public abstract class InventoryItem {
         return lastUpdated;
     }
 
+    public void update(String name, String description, int minimumStock) {
+        this.name = Objects.requireNonNull(name, "name");
+        this.description = Objects.requireNonNull(description, "description");
+        this.minimumStock = minimumStock;
+        this.lastUpdated = Instant.now();
+    }
+
     public void increaseQuantity(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("Amount must be positive");

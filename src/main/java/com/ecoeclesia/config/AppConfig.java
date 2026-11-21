@@ -22,8 +22,12 @@ import com.ecoeclesia.revenue.RevenueService;
 import com.ecoeclesia.user.JdbcUserAccountRepository;
 import com.ecoeclesia.user.UserAccountRepository;
 import com.ecoeclesia.user.UserManagementController;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 
 import javax.sql.DataSource;
 import java.nio.file.Path;
@@ -52,6 +56,18 @@ public class AppConfig {
     }
 
     @Bean
+    public Flyway flyway(DataSource dataSource) {
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .baselineOnMigrate(true)
+                .locations("classpath:db/migration")
+                .load();
+        flyway.migrate();
+        return flyway;
+    }
+
+    @Bean
+    @DependsOn("flyway")
     public UserAccountRepository userAccountRepository(DataSource dataSource) {
         return new JdbcUserAccountRepository(dataSource);
     }
@@ -62,8 +78,14 @@ public class AppConfig {
     }
 
     @Bean
-    public AuthTokenService authTokenService(UserManagementController userManagementController) {
-        return new AuthTokenService(userManagementController);
+    @DependsOn("flyway")
+    public AuthTokenService authTokenService(UserAccountRepository userAccountRepository) {
+        return new AuthTokenService(userAccountRepository);
+    }
+
+    @Bean
+    public ApplicationRunner userSeeder(AuthTokenService authTokenService) {
+        return args -> authTokenService.seedDefaultAccounts();
     }
 
     @Bean

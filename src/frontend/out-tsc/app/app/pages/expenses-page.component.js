@@ -1,0 +1,431 @@
+import { Component, effect, inject, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ExpenseService } from '../core/services/expense.service';
+import { CommunityService } from '../core/services/community.service';
+import * as i0 from "@angular/core";
+import * as i1 from "@angular/common";
+import * as i2 from "@angular/forms";
+const _forTrack0 = ($index, $item) => $item.id;
+function ExpensesPageComponent_Conditional_11_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelement(0, "span", 18);
+    i0.ɵɵtext(1, " Sincronizando... ");
+} }
+function ExpensesPageComponent_Conditional_12_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵtext(0, " Sincronizar ");
+} }
+function ExpensesPageComponent_Conditional_15_Template(rf, ctx) { if (rf & 1) {
+    const _r1 = i0.ɵɵgetCurrentView();
+    i0.ɵɵelementStart(0, "div", 7)(1, "span");
+    i0.ɵɵtext(2);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(3, "button", 19);
+    i0.ɵɵlistener("click", function ExpensesPageComponent_Conditional_15_Template_button_click_3_listener() { i0.ɵɵrestoreView(_r1); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.expenseService.clearError()); });
+    i0.ɵɵtext(4, "\u00D7");
+    i0.ɵɵelementEnd()();
+} if (rf & 2) {
+    i0.ɵɵadvance(2);
+    i0.ɵɵtextInterpolate(ctx);
+} }
+function ExpensesPageComponent_Conditional_16_Template(rf, ctx) { if (rf & 1) {
+    const _r3 = i0.ɵɵgetCurrentView();
+    i0.ɵɵelementStart(0, "div", 8)(1, "span");
+    i0.ɵɵtext(2);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(3, "button", 19);
+    i0.ɵɵlistener("click", function ExpensesPageComponent_Conditional_16_Template_button_click_3_listener() { i0.ɵɵrestoreView(_r3); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.successMessage.set(null)); });
+    i0.ɵɵtext(4, "\u00D7");
+    i0.ɵɵelementEnd()();
+} if (rf & 2) {
+    i0.ɵɵadvance(2);
+    i0.ɵɵtextInterpolate(ctx);
+} }
+function ExpensesPageComponent_Conditional_17_Conditional_40_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelement(0, "span", 18);
+    i0.ɵɵtext(1, " Salvando... ");
+} }
+function ExpensesPageComponent_Conditional_17_Conditional_41_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵtext(0, " Salvar Despesa ");
+} }
+function ExpensesPageComponent_Conditional_17_Template(rf, ctx) { if (rf & 1) {
+    const _r4 = i0.ɵɵgetCurrentView();
+    i0.ɵɵelementStart(0, "section", 9)(1, "div", 20)(2, "h3");
+    i0.ɵɵtext(3, "Nova Despesa");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(4, "button", 19);
+    i0.ɵɵlistener("click", function ExpensesPageComponent_Conditional_17_Template_button_click_4_listener() { i0.ɵɵrestoreView(_r4); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.toggleNewExpenseForm()); });
+    i0.ɵɵtext(5, "\u00D7");
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(6, "form", 21);
+    i0.ɵɵlistener("ngSubmit", function ExpensesPageComponent_Conditional_17_Template_form_ngSubmit_6_listener() { i0.ɵɵrestoreView(_r4); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.submitExpense()); });
+    i0.ɵɵelementStart(7, "div", 22)(8, "div", 23)(9, "label", 24);
+    i0.ɵɵtext(10, "Descri\u00E7\u00E3o");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelement(11, "input", 25);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(12, "div", 26)(13, "label", 27);
+    i0.ɵɵtext(14, "Valor (R$)");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelement(15, "input", 28);
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(16, "div", 26)(17, "label", 29);
+    i0.ɵɵtext(18, "Categoria");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(19, "select", 30)(20, "option", 31);
+    i0.ɵɵtext(21, "\u00C1gua, Energia e Utilidades");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(22, "option", 32);
+    i0.ɵɵtext(23, "Manuten\u00E7\u00E3o e Conserva\u00E7\u00E3o");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(24, "option", 33);
+    i0.ɵɵtext(25, "Pessoal e Encargos");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(26, "option", 34);
+    i0.ɵɵtext(27, "Liturgia e Pastoral");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(28, "option", 35);
+    i0.ɵɵtext(29, "A\u00E7\u00E3o Social e Caridade");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(30, "option", 36);
+    i0.ɵɵtext(31, "Transporte e Combust\u00EDvel");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(32, "option", 37);
+    i0.ɵɵtext(33, "Eventos e Festividades");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(34, "option", 38);
+    i0.ɵɵtext(35, "Geral / Outros");
+    i0.ɵɵelementEnd()()()();
+    i0.ɵɵelementStart(36, "div", 39)(37, "button", 40);
+    i0.ɵɵlistener("click", function ExpensesPageComponent_Conditional_17_Template_button_click_37_listener() { i0.ɵɵrestoreView(_r4); const ctx_r1 = i0.ɵɵnextContext(); return i0.ɵɵresetView(ctx_r1.toggleNewExpenseForm()); });
+    i0.ɵɵtext(38, "Cancelar");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(39, "button", 41);
+    i0.ɵɵtemplate(40, ExpensesPageComponent_Conditional_17_Conditional_40_Template, 2, 0)(41, ExpensesPageComponent_Conditional_17_Conditional_41_Template, 1, 0);
+    i0.ɵɵelementEnd()()()();
+} if (rf & 2) {
+    const ctx_r1 = i0.ɵɵnextContext();
+    i0.ɵɵadvance(6);
+    i0.ɵɵproperty("formGroup", ctx_r1.expenseForm);
+    i0.ɵɵadvance(33);
+    i0.ɵɵproperty("disabled", ctx_r1.expenseForm.invalid || ctx_r1.expenseService.loading());
+    i0.ɵɵadvance();
+    i0.ɵɵconditional(ctx_r1.expenseService.loading() ? 40 : 41);
+} }
+function ExpensesPageComponent_Conditional_28_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 16);
+    i0.ɵɵelement(1, "div", 42);
+    i0.ɵɵelementStart(2, "p");
+    i0.ɵɵtext(3, "Carregando despesas...");
+    i0.ɵɵelementEnd()();
+} }
+function ExpensesPageComponent_Conditional_29_For_16_Template(rf, ctx) { if (rf & 1) {
+    const _r5 = i0.ɵɵgetCurrentView();
+    i0.ɵɵelementStart(0, "tr")(1, "td")(2, "strong");
+    i0.ɵɵtext(3);
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(4, "td")(5, "span", 45);
+    i0.ɵɵtext(6);
+    i0.ɵɵelementEnd()();
+    i0.ɵɵelementStart(7, "td", 46);
+    i0.ɵɵtext(8);
+    i0.ɵɵpipe(9, "date");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(10, "td", 47);
+    i0.ɵɵtext(11);
+    i0.ɵɵpipe(12, "currency");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(13, "td", 44)(14, "button", 48);
+    i0.ɵɵlistener("click", function ExpensesPageComponent_Conditional_29_For_16_Template_button_click_14_listener() { const item_r6 = i0.ɵɵrestoreView(_r5).$implicit; const ctx_r1 = i0.ɵɵnextContext(2); return i0.ɵɵresetView(ctx_r1.deleteItem(item_r6.id)); });
+    i0.ɵɵtext(15, " Excluir ");
+    i0.ɵɵelementEnd()()();
+} if (rf & 2) {
+    const item_r6 = ctx.$implicit;
+    i0.ɵɵadvance(3);
+    i0.ɵɵtextInterpolate(item_r6.description);
+    i0.ɵɵadvance(3);
+    i0.ɵɵtextInterpolate(item_r6.category || "Geral / Outros");
+    i0.ɵɵadvance(2);
+    i0.ɵɵtextInterpolate(i0.ɵɵpipeBind2(9, 4, item_r6.createdAt, "dd/MM/yyyy HH:mm"));
+    i0.ɵɵadvance(3);
+    i0.ɵɵtextInterpolate1(" - ", i0.ɵɵpipeBind4(12, 7, item_r6.amount, "BRL", "symbol", "1.2-2"), " ");
+} }
+function ExpensesPageComponent_Conditional_29_ForEmpty_17_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "tr")(1, "td", 49)(2, "p");
+    i0.ɵɵtext(3, "Nenhuma despesa cadastrada no sistema.");
+    i0.ɵɵelementEnd()()();
+} }
+function ExpensesPageComponent_Conditional_29_Template(rf, ctx) { if (rf & 1) {
+    i0.ɵɵelementStart(0, "div", 17)(1, "table", 43)(2, "thead")(3, "tr")(4, "th");
+    i0.ɵɵtext(5, "Descri\u00E7\u00E3o");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(6, "th");
+    i0.ɵɵtext(7, "Categoria");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(8, "th");
+    i0.ɵɵtext(9, "Data Registro");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(10, "th", 44);
+    i0.ɵɵtext(11, "Valor");
+    i0.ɵɵelementEnd();
+    i0.ɵɵelementStart(12, "th", 44);
+    i0.ɵɵtext(13, "A\u00E7\u00F5es");
+    i0.ɵɵelementEnd()()();
+    i0.ɵɵelementStart(14, "tbody");
+    i0.ɵɵrepeaterCreate(15, ExpensesPageComponent_Conditional_29_For_16_Template, 16, 12, "tr", null, _forTrack0, false, ExpensesPageComponent_Conditional_29_ForEmpty_17_Template, 4, 0, "tr");
+    i0.ɵɵelementEnd()()();
+} if (rf & 2) {
+    const ctx_r1 = i0.ɵɵnextContext();
+    i0.ɵɵadvance(15);
+    i0.ɵɵrepeater(ctx_r1.expenseService.expenses());
+} }
+export class ExpensesPageComponent {
+    expenseService = inject(ExpenseService);
+    communityService = inject(CommunityService);
+    fb = inject(FormBuilder);
+    showNewForm = signal(false);
+    successMessage = signal(null);
+    expenseForm = this.fb.group({
+        description: ['', [Validators.required, Validators.minLength(3)]],
+        amount: ['', [Validators.required, Validators.min(0.01)]],
+        category: ['Água, Energia e Utilidades', Validators.required],
+    });
+    constructor() {
+        // Reage automaticamente à mudança da comunidade ativa no header
+        effect(() => {
+            const _ = this.communityService.activeCommunityId();
+            this.expenseService.loadExpenses().subscribe();
+        });
+    }
+    ngOnInit() {
+        this.expenseService.loadExpenses().subscribe();
+    }
+    refresh() {
+        this.expenseService.loadExpenses().subscribe();
+    }
+    toggleNewExpenseForm() {
+        this.showNewForm.update((v) => !v);
+    }
+    submitExpense() {
+        if (this.expenseForm.invalid) {
+            this.expenseForm.markAllAsTouched();
+            return;
+        }
+        const val = this.expenseForm.getRawValue();
+        const dto = {
+            description: val.description,
+            amount: Number(val.amount),
+            category: val.category || undefined,
+        };
+        this.expenseService.createExpense(dto).subscribe({
+            next: () => {
+                this.successMessage.set('Despesa registrada com sucesso!');
+                this.expenseForm.reset({ category: 'Água, Energia e Utilidades' });
+                this.showNewForm.set(false);
+            },
+        });
+    }
+    deleteItem(id) {
+        if (confirm('Deseja realmente remover esta despesa?')) {
+            this.expenseService.deleteExpense(id).subscribe({
+                next: () => this.successMessage.set('Despesa removida com sucesso!'),
+            });
+        }
+    }
+    static ɵfac = function ExpensesPageComponent_Factory(__ngFactoryType__) { return new (__ngFactoryType__ || ExpensesPageComponent)(); };
+    static ɵcmp = /*@__PURE__*/ i0.ɵɵdefineComponent({ type: ExpensesPageComponent, selectors: [["app-expenses-page"]], standalone: true, features: [i0.ɵɵStandaloneFeature], decls: 30, vars: 13, consts: [[1, "expenses-container"], [1, "page-header"], [1, "badge-tag"], [1, "subtitle"], [1, "header-actions"], ["type", "button", 1, "btn", "btn-secondary", 3, "click", "disabled"], ["type", "button", 1, "btn", "btn-primary", 3, "click"], [1, "alert", "alert-error"], [1, "alert", "alert-success"], [1, "card", "form-card"], [1, "kpi-strip"], [1, "kpi-card"], [1, "label"], [1, "value", "text-expense"], [1, "hint"], [1, "card", "table-card"], [1, "loading-state"], [1, "table-responsive"], [1, "spinner"], [1, "btn-close", 3, "click"], [1, "card-title-bar"], [1, "expense-form", 3, "ngSubmit", "formGroup"], [1, "form-row"], [1, "field", "flex-2"], ["for", "description"], ["id", "description", "type", "text", "formControlName", "description", "placeholder", "Ex: Pagamento da conta de energia el\u00E9trica"], [1, "field"], ["for", "amount"], ["id", "amount", "type", "number", "step", "0.01", "formControlName", "amount", "placeholder", "0.00"], ["for", "category"], ["id", "category", "formControlName", "category"], ["value", "\u00C1gua, Energia e Utilidades"], ["value", "Manuten\u00E7\u00E3o e Conserva\u00E7\u00E3o"], ["value", "Pessoal e Encargos"], ["value", "Liturgia e Pastoral"], ["value", "A\u00E7\u00E3o Social e Caridade"], ["value", "Transporte e Combust\u00EDvel"], ["value", "Eventos e Festividades"], ["value", "Geral / Outros"], [1, "form-actions"], ["type", "button", 1, "btn", "btn-secondary", 3, "click"], ["type", "submit", 1, "btn", "btn-primary", 3, "disabled"], [1, "spinner-large"], [1, "data-table"], [1, "text-right"], [1, "badge"], [1, "col-date"], [1, "text-right", "col-amount", "text-expense"], ["type", "button", "title", "Remover despesa", 1, "btn-action-delete", 3, "click"], ["colspan", "5", 1, "empty-state"]], template: function ExpensesPageComponent_Template(rf, ctx) { if (rf & 1) {
+            i0.ɵɵelementStart(0, "div", 0)(1, "header", 1)(2, "div")(3, "span", 2);
+            i0.ɵɵtext(4, "Sa\u00EDdas & Despesas");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(5, "h1");
+            i0.ɵɵtext(6, "Controle de Despesas");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(7, "p", 3);
+            i0.ɵɵtext(8, "Gerenciamento, lan\u00E7amento e concilia\u00E7\u00E3o de sa\u00EDdas financeiras da comunidade.");
+            i0.ɵɵelementEnd()();
+            i0.ɵɵelementStart(9, "div", 4)(10, "button", 5);
+            i0.ɵɵlistener("click", function ExpensesPageComponent_Template_button_click_10_listener() { return ctx.refresh(); });
+            i0.ɵɵtemplate(11, ExpensesPageComponent_Conditional_11_Template, 2, 0)(12, ExpensesPageComponent_Conditional_12_Template, 1, 0);
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(13, "button", 6);
+            i0.ɵɵlistener("click", function ExpensesPageComponent_Template_button_click_13_listener() { return ctx.toggleNewExpenseForm(); });
+            i0.ɵɵtext(14, " + Registrar Despesa ");
+            i0.ɵɵelementEnd()()();
+            i0.ɵɵtemplate(15, ExpensesPageComponent_Conditional_15_Template, 5, 1, "div", 7)(16, ExpensesPageComponent_Conditional_16_Template, 5, 1, "div", 8)(17, ExpensesPageComponent_Conditional_17_Template, 42, 3, "section", 9);
+            i0.ɵɵelementStart(18, "section", 10)(19, "div", 11)(20, "span", 12);
+            i0.ɵɵtext(21, "Total de Despesas Realizadas");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(22, "strong", 13);
+            i0.ɵɵtext(23);
+            i0.ɵɵpipe(24, "currency");
+            i0.ɵɵelementEnd();
+            i0.ɵɵelementStart(25, "span", 14);
+            i0.ɵɵtext(26);
+            i0.ɵɵelementEnd()()();
+            i0.ɵɵelementStart(27, "section", 15);
+            i0.ɵɵtemplate(28, ExpensesPageComponent_Conditional_28_Template, 4, 0, "div", 16)(29, ExpensesPageComponent_Conditional_29_Template, 18, 1, "div", 17);
+            i0.ɵɵelementEnd()();
+        } if (rf & 2) {
+            let tmp_2_0;
+            let tmp_3_0;
+            i0.ɵɵadvance(10);
+            i0.ɵɵproperty("disabled", ctx.expenseService.loading());
+            i0.ɵɵadvance();
+            i0.ɵɵconditional(ctx.expenseService.loading() ? 11 : 12);
+            i0.ɵɵadvance(4);
+            i0.ɵɵconditional((tmp_2_0 = ctx.expenseService.error()) ? 15 : -1, tmp_2_0);
+            i0.ɵɵadvance();
+            i0.ɵɵconditional((tmp_3_0 = ctx.successMessage()) ? 16 : -1, tmp_3_0);
+            i0.ɵɵadvance();
+            i0.ɵɵconditional(ctx.showNewForm() ? 17 : -1);
+            i0.ɵɵadvance(6);
+            i0.ɵɵtextInterpolate(i0.ɵɵpipeBind4(24, 8, ctx.expenseService.totalAmount(), "BRL", "symbol", "1.2-2"));
+            i0.ɵɵadvance(3);
+            i0.ɵɵtextInterpolate1("", ctx.expenseService.count(), " sa\u00EDda(s) ativa(s)");
+            i0.ɵɵadvance(2);
+            i0.ɵɵconditional(ctx.expenseService.loading() && ctx.expenseService.expenses().length === 0 ? 28 : 29);
+        } }, dependencies: [CommonModule, i1.CurrencyPipe, i1.DatePipe, ReactiveFormsModule, i2.ɵNgNoValidate, i2.NgSelectOption, i2.ɵNgSelectMultipleOption, i2.DefaultValueAccessor, i2.NumberValueAccessor, i2.SelectControlValueAccessor, i2.NgControlStatus, i2.NgControlStatusGroup, i2.FormGroupDirective, i2.FormControlName], styles: [".expenses-container[_ngcontent-%COMP%] { display: flex; flex-direction: column; gap: 1.25rem; }\n    .page-header[_ngcontent-%COMP%] { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }\n    .page-header[_ngcontent-%COMP%]   h1[_ngcontent-%COMP%] { margin: 0.2rem 0 0; color: #0f172a; font-size: 1.75rem; }\n    .badge-tag[_ngcontent-%COMP%] { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #dc2626; background: #fef2f2; padding: 0.2rem 0.5rem; border-radius: 4px; }\n    .subtitle[_ngcontent-%COMP%] { color: #64748b; font-size: 0.875rem; margin: 0.25rem 0 0; }\n    .header-actions[_ngcontent-%COMP%] { display: flex; gap: 0.6rem; align-items: center; }\n    .card[_ngcontent-%COMP%] { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.25rem; }\n    .form-card[_ngcontent-%COMP%] { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }\n    .card-title-bar[_ngcontent-%COMP%] { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.6rem; margin-bottom: 1rem; }\n    .card-title-bar[_ngcontent-%COMP%]   h3[_ngcontent-%COMP%] { margin: 0; font-size: 1.1rem; color: #0f172a; }\n    .expense-form[_ngcontent-%COMP%] { display: flex; flex-direction: column; gap: 1rem; }\n    .form-row[_ngcontent-%COMP%] { display: flex; flex-wrap: wrap; gap: 1rem; }\n    .field[_ngcontent-%COMP%] { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 150px; }\n    .flex-2[_ngcontent-%COMP%] { flex: 2; }\n    .field[_ngcontent-%COMP%]   label[_ngcontent-%COMP%] { font-size: 0.8rem; font-weight: 600; color: #475569; }\n    .field[_ngcontent-%COMP%]   input[_ngcontent-%COMP%], .field[_ngcontent-%COMP%]   select[_ngcontent-%COMP%] { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; background: #fff; }\n    .form-actions[_ngcontent-%COMP%] { display: flex; justify-content: flex-end; gap: 0.6rem; }\n    .kpi-strip[_ngcontent-%COMP%] { display: flex; }\n    .kpi-card[_ngcontent-%COMP%] { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; border-left: 4px solid #dc2626; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; min-width: 250px; }\n    .kpi-card[_ngcontent-%COMP%]   .label[_ngcontent-%COMP%] { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #64748b; }\n    .kpi-card[_ngcontent-%COMP%]   .value[_ngcontent-%COMP%] { font-size: 1.5rem; font-weight: 700; }\n    .kpi-card[_ngcontent-%COMP%]   .hint[_ngcontent-%COMP%] { font-size: 0.75rem; color: #94a3b8; }\n    .table-card[_ngcontent-%COMP%] { padding: 0; overflow: hidden; }\n    .table-responsive[_ngcontent-%COMP%] { overflow-x: auto; }\n    .data-table[_ngcontent-%COMP%] { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }\n    .data-table[_ngcontent-%COMP%]   th[_ngcontent-%COMP%] { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; }\n    .data-table[_ngcontent-%COMP%]   td[_ngcontent-%COMP%] { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }\n    .col-date[_ngcontent-%COMP%] { white-space: nowrap; color: #64748b; font-size: 0.8rem; }\n    .badge[_ngcontent-%COMP%] { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #fee2e2; color: #b91c1c; }\n    .text-expense[_ngcontent-%COMP%] { color: #dc2626; }\n    .text-muted[_ngcontent-%COMP%] { color: #94a3b8; }\n    .text-right[_ngcontent-%COMP%] { text-align: right; }\n    .col-amount[_ngcontent-%COMP%] { font-weight: 600; font-variant-numeric: tabular-nums; }\n    .btn[_ngcontent-%COMP%] { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem; }\n    .btn-primary[_ngcontent-%COMP%] { background: #dc2626; color: #fff; }\n    .btn-secondary[_ngcontent-%COMP%] { background: #fff; color: #334155; border: 1px solid #cbd5e1; }\n    .btn-action-delete[_ngcontent-%COMP%] { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.4rem; }\n    .btn-action-delete[_ngcontent-%COMP%]:hover { text-decoration: underline; }\n    .btn-close[_ngcontent-%COMP%] { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; }\n    .alert[_ngcontent-%COMP%] { padding: 0.75rem 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }\n    .alert-error[_ngcontent-%COMP%] { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }\n    .alert-success[_ngcontent-%COMP%] { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }\n    .empty-state[_ngcontent-%COMP%] { text-align: center; color: #94a3b8; padding: 2.5rem 1rem; }\n    .loading-state[_ngcontent-%COMP%] { text-align: center; padding: 3rem 1rem; color: #64748b; }\n    .spinner[_ngcontent-%COMP%] { width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: _ngcontent-%COMP%_spin 0.8s linear infinite; display: inline-block; }\n    .spinner-large[_ngcontent-%COMP%] { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #dc2626; border-radius: 50%; animation: _ngcontent-%COMP%_spin 0.8s linear infinite; margin: 0 auto 0.75rem; }\n    @keyframes _ngcontent-%COMP%_spin { to { transform: rotate(360deg); } }"] });
+}
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassMetadata(ExpensesPageComponent, [{
+        type: Component,
+        args: [{ selector: 'app-expenses-page', standalone: true, imports: [CommonModule, ReactiveFormsModule, CurrencyPipe, DatePipe], template: `
+    <div class="expenses-container">
+      <header class="page-header">
+        <div>
+          <span class="badge-tag">Saídas & Despesas</span>
+          <h1>Controle de Despesas</h1>
+          <p class="subtitle">Gerenciamento, lançamento e conciliação de saídas financeiras da comunidade.</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="expenseService.loading()">
+            @if (expenseService.loading()) {
+              <span class="spinner"></span> Sincronizando...
+            } @else {
+              Sincronizar
+            }
+          </button>
+          <button type="button" class="btn btn-primary" (click)="toggleNewExpenseForm()">
+            + Registrar Despesa
+          </button>
+        </div>
+      </header>
+
+      @if (expenseService.error(); as err) {
+        <div class="alert alert-error">
+          <span>{{ err }}</span>
+          <button class="btn-close" (click)="expenseService.clearError()">&times;</button>
+        </div>
+      }
+      @if (successMessage(); as msg) {
+        <div class="alert alert-success">
+          <span>{{ msg }}</span>
+          <button class="btn-close" (click)="successMessage.set(null)">&times;</button>
+        </div>
+      }
+
+      <!-- Formulário Colapsável de Nova Despesa -->
+      @if (showNewForm()) {
+        <section class="card form-card">
+          <div class="card-title-bar">
+            <h3>Nova Despesa</h3>
+            <button class="btn-close" (click)="toggleNewExpenseForm()">&times;</button>
+          </div>
+          <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="expense-form">
+            <div class="form-row">
+              <div class="field flex-2">
+                <label for="description">Descrição</label>
+                <input id="description" type="text" formControlName="description" placeholder="Ex: Pagamento da conta de energia elétrica" />
+              </div>
+              <div class="field">
+                <label for="amount">Valor (R$)</label>
+                <input id="amount" type="number" step="0.01" formControlName="amount" placeholder="0.00" />
+              </div>
+              <div class="field">
+                <label for="category">Categoria</label>
+                <select id="category" formControlName="category">
+                  <option value="Água, Energia e Utilidades">Água, Energia e Utilidades</option>
+                  <option value="Manutenção e Conservação">Manutenção e Conservação</option>
+                  <option value="Pessoal e Encargos">Pessoal e Encargos</option>
+                  <option value="Liturgia e Pastoral">Liturgia e Pastoral</option>
+                  <option value="Ação Social e Caridade">Ação Social e Caridade</option>
+                  <option value="Transporte e Combustível">Transporte e Combustível</option>
+                  <option value="Eventos e Festividades">Eventos e Festividades</option>
+                  <option value="Geral / Outros">Geral / Outros</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" (click)="toggleNewExpenseForm()">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="expenseForm.invalid || expenseService.loading()">
+                @if (expenseService.loading()) {
+                  <span class="spinner"></span> Salvando...
+                } @else {
+                  Salvar Despesa
+                }
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+
+      <!-- Card de Resumo (KPI) -->
+      <section class="kpi-strip">
+        <div class="kpi-card">
+          <span class="label">Total de Despesas Realizadas</span>
+          <strong class="value text-expense">{{ expenseService.totalAmount() | currency:'BRL':'symbol':'1.2-2' }}</strong>
+          <span class="hint">{{ expenseService.count() }} saída(s) ativa(s)</span>
+        </div>
+      </section>
+
+      <!-- Tabela de Despesas -->
+      <section class="card table-card">
+        @if (expenseService.loading() && expenseService.expenses().length === 0) {
+          <div class="loading-state">
+            <div class="spinner-large"></div>
+            <p>Carregando despesas...</p>
+          </div>
+        } @else {
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Data Registro</th>
+                  <th class="text-right">Valor</th>
+                  <th class="text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of expenseService.expenses(); track item.id) {
+                  <tr>
+                    <td><strong>{{ item.description }}</strong></td>
+                    <td>
+                      <span class="badge">{{ item.category || 'Geral / Outros' }}</span>
+                    </td>
+                    <td class="col-date">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="text-right col-amount text-expense">
+                      - {{ item.amount | currency:'BRL':'symbol':'1.2-2' }}
+                    </td>
+                    <td class="text-right">
+                      <button type="button" class="btn-action-delete" (click)="deleteItem(item.id)" title="Remover despesa">
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      <p>Nenhuma despesa cadastrada no sistema.</p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    </div>
+  `, styles: ["\n    .expenses-container { display: flex; flex-direction: column; gap: 1.25rem; }\n    .page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }\n    .page-header h1 { margin: 0.2rem 0 0; color: #0f172a; font-size: 1.75rem; }\n    .badge-tag { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #dc2626; background: #fef2f2; padding: 0.2rem 0.5rem; border-radius: 4px; }\n    .subtitle { color: #64748b; font-size: 0.875rem; margin: 0.25rem 0 0; }\n    .header-actions { display: flex; gap: 0.6rem; align-items: center; }\n    .card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.25rem; }\n    .form-card { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }\n    .card-title-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.6rem; margin-bottom: 1rem; }\n    .card-title-bar h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }\n    .expense-form { display: flex; flex-direction: column; gap: 1rem; }\n    .form-row { display: flex; flex-wrap: wrap; gap: 1rem; }\n    .field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 150px; }\n    .flex-2 { flex: 2; }\n    .field label { font-size: 0.8rem; font-weight: 600; color: #475569; }\n    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; background: #fff; }\n    .form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; }\n    .kpi-strip { display: flex; }\n    .kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; border-left: 4px solid #dc2626; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; min-width: 250px; }\n    .kpi-card .label { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #64748b; }\n    .kpi-card .value { font-size: 1.5rem; font-weight: 700; }\n    .kpi-card .hint { font-size: 0.75rem; color: #94a3b8; }\n    .table-card { padding: 0; overflow: hidden; }\n    .table-responsive { overflow-x: auto; }\n    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }\n    .data-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; }\n    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }\n    .col-date { white-space: nowrap; color: #64748b; font-size: 0.8rem; }\n    .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #fee2e2; color: #b91c1c; }\n    .text-expense { color: #dc2626; }\n    .text-muted { color: #94a3b8; }\n    .text-right { text-align: right; }\n    .col-amount { font-weight: 600; font-variant-numeric: tabular-nums; }\n    .btn { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem; }\n    .btn-primary { background: #dc2626; color: #fff; }\n    .btn-secondary { background: #fff; color: #334155; border: 1px solid #cbd5e1; }\n    .btn-action-delete { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.4rem; }\n    .btn-action-delete:hover { text-decoration: underline; }\n    .btn-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; }\n    .alert { padding: 0.75rem 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }\n    .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }\n    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }\n    .empty-state { text-align: center; color: #94a3b8; padding: 2.5rem 1rem; }\n    .loading-state { text-align: center; padding: 3rem 1rem; color: #64748b; }\n    .spinner { width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }\n    .spinner-large { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #dc2626; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem; }\n    @keyframes spin { to { transform: rotate(360deg); } }\n  "] }]
+    }], () => [], null); })();
+(() => { (typeof ngDevMode === "undefined" || ngDevMode) && i0.ɵsetClassDebugInfo(ExpensesPageComponent, { className: "ExpensesPageComponent", filePath: "src\\app\\pages\\expenses-page.component.ts", lineNumber: 201 }); })();
+//# sourceMappingURL=expenses-page.component.js.map

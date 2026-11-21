@@ -78,8 +78,9 @@ public final class FinanceHttpServer {
         ChartOfAccounts chart = ChartOfAccounts.defaultPlan();
         LedgerService ledgerService = new LedgerService(repository, chart);
         FinancialReportGenerator generator = new FinancialReportGenerator(repository, chart);
-        UserManagementController users = new UserManagementController();
-        AuthTokenService authTokenService = new AuthTokenService(users);
+        com.ecoeclesia.user.UserAccountRepository userRepo = new com.ecoeclesia.user.InMemoryUserAccountRepository();
+        UserManagementController users = new UserManagementController(userRepo);
+        AuthTokenService authTokenService = new AuthTokenService(userRepo);
         PayableService payableService = new PayableService(new InMemoryPayableRepository());
         ReceivableService receivableService = new ReceivableService(new InMemoryReceivableRepository());
         CashflowService cashflowService = new CashflowService(payableService, receivableService);
