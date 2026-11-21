@@ -14,7 +14,8 @@ public record FinancialReport(LocalDate start,
                               List<FinancialReportLine> incomeLines,
                               List<FinancialReportLine> expenseLines,
                               List<ReportSignature> signatures,
-                              List<LedgerEntry> entries) {
+                              List<LedgerEntry> entries,
+                              String leadershipHeader) {
     public FinancialReport {
         Objects.requireNonNull(start, "start");
         Objects.requireNonNull(end, "end");
@@ -26,5 +27,19 @@ public record FinancialReport(LocalDate start,
         Objects.requireNonNull(expenseLines, "expenseLines");
         Objects.requireNonNull(signatures, "signatures");
         Objects.requireNonNull(entries, "entries");
+    }
+
+    public FinancialReport(LocalDate start,
+                           LocalDate end,
+                           BigDecimal previousBalance,
+                           BigDecimal totalIncome,
+                           BigDecimal totalExpenses,
+                           BigDecimal closingBalance,
+                           List<FinancialReportLine> incomeLines,
+                           List<FinancialReportLine> expenseLines,
+                           List<ReportSignature> signatures,
+                           List<LedgerEntry> entries) {
+        this(start, end, previousBalance, totalIncome, totalExpenses, closingBalance,
+             incomeLines, expenseLines, signatures, entries, null);
     }
 }

@@ -18,6 +18,9 @@ import com.ecoeclesia.finance.LedgerRepository;
 import com.ecoeclesia.finance.LedgerService;
 import com.ecoeclesia.finance.SqlLedgerRepository;
 import com.ecoeclesia.inventory.InventoryService;
+import com.ecoeclesia.leadership.JdbcParishLeadershipRepository;
+import com.ecoeclesia.leadership.ParishLeadershipRepository;
+import com.ecoeclesia.leadership.ParishLeadershipService;
 import com.ecoeclesia.member.JdbcMemberRepository;
 import com.ecoeclesia.member.MemberRepository;
 import com.ecoeclesia.revenue.JdbcRevenueRepository;
@@ -28,6 +31,7 @@ import com.ecoeclesia.steward.StewardRepository;
 import com.ecoeclesia.user.JdbcUserAccountRepository;
 import com.ecoeclesia.user.UserAccountRepository;
 import com.ecoeclesia.user.UserManagementController;
+import org.flywaydb.core.Flyway;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -58,7 +62,18 @@ public class AppConfig {
     }
 
     @Bean
-    public UserAccountRepository userAccountRepository(DataSource dataSource) {
+    public Flyway flyway(DataSource dataSource) {
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .load();
+        flyway.migrate();
+        return flyway;
+    }
+
+    @Bean
+    public UserAccountRepository userAccountRepository(DataSource dataSource, Flyway flyway) {
         return new JdbcUserAccountRepository(dataSource);
     }
 
@@ -68,8 +83,8 @@ public class AppConfig {
     }
 
     @Bean
-    public AuthTokenService authTokenService(UserManagementController userManagementController) {
-        return new AuthTokenService(userManagementController);
+    public AuthTokenService authTokenService(UserAccountRepository userAccountRepository) {
+        return new AuthTokenService(userAccountRepository);
     }
 
     @Bean
@@ -93,13 +108,27 @@ public class AppConfig {
     }
 
     @Bean
-    public BirthdayService birthdayService(BirthdayRepository birthdayRepository) {
-        return new BirthdayService(birthdayRepository);
+    public BirthdayService birthdayService(MemberRepository memberRepository, BirthdayRepository birthdayRepository) {
+        return new BirthdayService(memberRepository, birthdayRepository, java.time.Clock.systemDefaultZone());
     }
 
     @Bean
-    public FinancialReportGenerator financialReportGenerator(LedgerRepository ledgerRepository) {
-        return new FinancialReportGenerator(ledgerRepository, ChartOfAccounts.defaultPlan());
+    public ParishLeadershipRepository parishLeadershipRepository(DataSource dataSource) {
+        return new JdbcParishLeadershipRepository(dataSource);
+    }
+
+    @Bean
+    public ParishLeadershipService parishLeadershipService(ParishLeadershipRepository parishLeadershipRepository) {
+        return new ParishLeadershipService(parishLeadershipRepository);
+    }
+
+    @Bean
+    public FinancialReportGenerator financialReportGenerator(
+            LedgerRepository ledgerRepository,
+            ParishLeadershipRepository parishLeadershipRepository,
+            CommunityRepository communityRepository
+    ) {
+        return new FinancialReportGenerator(ledgerRepository, ChartOfAccounts.defaultPlan(), parishLeadershipRepository, communityRepository);
     }
 
     @Bean

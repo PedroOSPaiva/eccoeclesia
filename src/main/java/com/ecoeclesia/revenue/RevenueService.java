@@ -16,18 +16,22 @@ public final class RevenueService {
     }
 
     public RevenueEntity registerRevenue(BigDecimal amount, String description) {
-        return registerRevenue(amount, description, null, null);
+        return registerRevenue(amount, description, null, null, null);
     }
 
     public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName) {
-        return registerRevenue(amount, description, categoryName, null);
+        return registerRevenue(amount, description, categoryName, null, null);
     }
 
     public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName, String communityId) {
+        return registerRevenue(amount, description, categoryName, communityId, null);
+    }
+
+    public RevenueEntity registerRevenue(BigDecimal amount, String description, String categoryName, String communityId, String memberId) {
         RevenueCategory category = (categoryName != null && !categoryName.isBlank())
                 ? parseCategory(categoryName)
                 : classifyRevenue(description);
-        RevenueEntity entity = new RevenueEntity(java.util.UUID.randomUUID().toString(), communityId, amount, description, category, Instant.now());
+        RevenueEntity entity = new RevenueEntity(java.util.UUID.randomUUID().toString(), communityId, amount, description, category, Instant.now(), memberId);
         return repository.save(entity);
     }
 
@@ -37,7 +41,7 @@ public final class RevenueService {
         RevenueCategory category = (categoryName == null || categoryName.isBlank())
                 ? classifyRevenue(description)
                 : parseCategory(categoryName);
-        RevenueEntity updated = new RevenueEntity(existing.id(), amount, description, category, existing.receivedAt());
+        RevenueEntity updated = new RevenueEntity(existing.id(), existing.communityId(), amount, description, category, existing.receivedAt(), existing.memberId());
         return repository.save(updated);
     }
 

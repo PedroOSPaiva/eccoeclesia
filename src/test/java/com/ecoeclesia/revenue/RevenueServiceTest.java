@@ -46,4 +46,19 @@ public final class RevenueServiceTest {
         }
         assertTrue(thrown, "Expected IllegalArgumentException to be thrown");
     }
+
+    @Test("registers revenue with member and community linkage")
+    public void registersTitheWithMember() {
+        var entity = service.registerRevenue(
+                new BigDecimal("250.00"),
+                "Dízimo ofertado na missa",
+                "TITHES",
+                "comm-1",
+                "member-123"
+        );
+        assertEquals("comm-1", entity.communityId());
+        assertEquals("member-123", entity.memberId());
+        assertEquals(RevenueCategory.TITHES, entity.category());
+        assertEquals(new BigDecimal("250.00"), entity.amount());
+    }
 }

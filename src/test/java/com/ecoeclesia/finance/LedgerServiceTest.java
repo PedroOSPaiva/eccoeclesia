@@ -27,4 +27,22 @@ public final class LedgerServiceTest {
         assertEquals(2, repository.findAll().size());
         assertEquals("2.1.02", repository.findAll().get(1).accountCode());
     }
+
+    @Test("stores income with memberId and communityId")
+    public void storesIncomeWithMemberAndCommunity() {
+        var entry = service.recordIncome(
+                "1.1.01",
+                new BigDecimal("300.00"),
+                "Dízimo paroquial",
+                "REC-777",
+                "Pastoral do Dízimo",
+                LocalDate.of(2024, 2, 20),
+                "comm-1",
+                "member-999"
+        );
+        assertEquals("comm-1", entry.communityId());
+        assertEquals("member-999", entry.memberId());
+        assertEquals("1.1.01", entry.accountCode());
+        assertEquals(new BigDecimal("300.00"), entry.amount());
+    }
 }

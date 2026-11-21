@@ -32,11 +32,13 @@ public class JdbcRevenueRepository implements RevenueRepository {
         Objects.requireNonNull(entity, "entity");
         UUID id = toUuid(entity.id());
         UUID communityId = toUuid(entity.communityId());
+        UUID memberId = toUuid(entity.memberId());
 
-        String sql = "INSERT INTO revenues (id, community_id, amount, description, category, created_at, updated_at) " +
-                "VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, now()) " +
+        String sql = "INSERT INTO revenues (id, community_id, member_id, amount, description, category, created_at, updated_at) " +
+                "VALUES (?::uuid, ?::uuid, ?::uuid, ?, ?, ?, ?, now()) " +
                 "ON CONFLICT (id) DO UPDATE SET " +
                 "community_id = EXCLUDED.community_id, " +
+                "member_id = EXCLUDED.member_id, " +
                 "amount = EXCLUDED.amount, " +
                 "description = EXCLUDED.description, " +
                 "category = EXCLUDED.category, " +
@@ -46,10 +48,11 @@ public class JdbcRevenueRepository implements RevenueRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id.toString());
             ps.setString(2, communityId != null ? communityId.toString() : null);
-            ps.setBigDecimal(3, entity.amount());
-            ps.setString(4, entity.description());
-            ps.setString(5, entity.category().name());
-            ps.setTimestamp(6, Timestamp.from(entity.receivedAt()));
+            ps.setString(3, memberId != null ? memberId.toString() : null);
+            ps.setBigDecimal(4, entity.amount());
+            ps.setString(5, entity.description());
+            ps.setString(6, entity.category().name());
+            ps.setTimestamp(7, Timestamp.from(entity.receivedAt()));
             ps.executeUpdate();
             return entity;
         } catch (SQLException ex) {
@@ -63,7 +66,7 @@ public class JdbcRevenueRepository implements RevenueRepository {
             return Optional.empty();
         }
         UUID uuid = toUuid(id);
-        String sql = "SELECT id, community_id, amount, description, category, created_at FROM revenues WHERE id = ?::uuid";
+        String sql = "SELECT id, community_id, member_id, amount, description, category, created_at FROM revenues WHERE id = ?::uuid";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -81,7 +84,7 @@ public class JdbcRevenueRepository implements RevenueRepository {
 
     @Override
     public List<RevenueEntity> findAll() {
-        String sql = "SELECT id, community_id, amount, description, category, created_at FROM revenues ORDER BY created_at DESC, id";
+        String sql = "SELECT id, community_id, member_id, amount, description, category, created_at FROM revenues ORDER BY created_at DESC, id";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -97,7 +100,7 @@ public class JdbcRevenueRepository implements RevenueRepository {
 
     @Override
     public List<RevenueEntity> findByPeriod(Instant start, Instant end) {
-        StringBuilder sql = new StringBuilder("SELECT id, community_id, amount, description, category, created_at FROM revenues");
+        StringBuilder sql = new StringBuilder("SELECT id, community_id, member_id, amount, description, category, created_at FROM revenues");
         List<Object> params = new ArrayList<>();
 
         if (start != null && end != null) {
@@ -149,6 +152,7 @@ public class JdbcRevenueRepository implements RevenueRepository {
     private RevenueEntity mapRow(ResultSet rs) throws SQLException {
         String id = rs.getString("id");
         String communityId = rs.getString("community_id");
+        String memberId = rs.getString("member_id");
         BigDecimal amount = rs.getBigDecimal("amount");
         String description = rs.getString("description");
         String categoryStr = rs.getString("category");
@@ -156,7 +160,7 @@ public class JdbcRevenueRepository implements RevenueRepository {
 
         RevenueCategory category = parseCategory(categoryStr);
         Instant instant = createdAt != null ? createdAt.toInstant() : Instant.now();
-        return new RevenueEntity(id, communityId, amount, description, category, instant);
+        return new RevenueEntity(id, communityId, amount, description, category, instant, memberId);
     }
 
     private RevenueCategory parseCategory(String value) {

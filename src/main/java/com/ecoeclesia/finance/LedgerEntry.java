@@ -6,6 +6,7 @@ import java.util.Objects;
 
 public record LedgerEntry(String id,
                           String communityId,
+                          String memberId,
                           String accountCode,
                           String referenceCode,
                           String costCenter,
@@ -15,6 +16,7 @@ public record LedgerEntry(String id,
                           LocalDate occurredOn) {
 
     public LedgerEntry(String id,
+                       String communityId,
                        String accountCode,
                        String referenceCode,
                        String costCenter,
@@ -22,7 +24,18 @@ public record LedgerEntry(String id,
                        BigDecimal amount,
                        LedgerEntryType type,
                        LocalDate occurredOn) {
-        this(id, null, accountCode, referenceCode, costCenter, description, amount, type, occurredOn);
+        this(id, communityId, null, accountCode, referenceCode, costCenter, description, amount, type, occurredOn);
+    }
+
+    public LedgerEntry(String id,
+                       String accountCode,
+                       String referenceCode,
+                       String costCenter,
+                       String description,
+                       BigDecimal amount,
+                       LedgerEntryType type,
+                       LocalDate occurredOn) {
+        this(id, null, null, accountCode, referenceCode, costCenter, description, amount, type, occurredOn);
     }
 
     public LedgerEntry {

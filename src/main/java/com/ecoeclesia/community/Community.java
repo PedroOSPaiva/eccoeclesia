@@ -11,6 +11,10 @@ public record Community(String id, String name, String code, boolean isMainParis
         Objects.requireNonNull(code, "code");
     }
 
+    public Community(String id, String name, String code, boolean isMainParish) {
+        this(id, name, code, isMainParish, Instant.now(), Instant.now());
+    }
+
     public static Community create(String name, String code, boolean isMainParish) {
         return new Community(UUID.randomUUID().toString(), name, code, isMainParish, Instant.now(), Instant.now());
     }

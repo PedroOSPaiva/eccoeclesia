@@ -25,8 +25,8 @@ public class JdbcMemberRepository implements MemberRepository {
         UUID id = toUuid(member.id());
         UUID communityId = toUuid(member.communityId());
 
-        String sql = "INSERT INTO members (id, community_id, name, birth_date, phone, email, ministry, status, created_at, updated_at) " +
-                "VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?, ?, now()) " +
+        String sql = "INSERT INTO members (id, community_id, name, birth_date, phone, email, ministry, status, inactive_reason, created_at, updated_at) " +
+                "VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, now()) " +
                 "ON CONFLICT (id) DO UPDATE SET " +
                 "community_id = EXCLUDED.community_id, " +
                 "name = EXCLUDED.name, " +
@@ -35,6 +35,7 @@ public class JdbcMemberRepository implements MemberRepository {
                 "email = EXCLUDED.email, " +
                 "ministry = EXCLUDED.ministry, " +
                 "status = EXCLUDED.status, " +
+                "inactive_reason = EXCLUDED.inactive_reason, " +
                 "updated_at = now()";
 
         try (Connection conn = dataSource.getConnection();
@@ -47,7 +48,8 @@ public class JdbcMemberRepository implements MemberRepository {
             ps.setString(6, member.email());
             ps.setString(7, member.ministry());
             ps.setString(8, member.status());
-            ps.setTimestamp(9, Timestamp.from(member.createdAt() != null ? member.createdAt() : Instant.now()));
+            ps.setString(9, member.inactiveReason());
+            ps.setTimestamp(10, Timestamp.from(member.createdAt() != null ? member.createdAt() : Instant.now()));
             ps.executeUpdate();
             return member;
         } catch (SQLException ex) {
@@ -59,7 +61,7 @@ public class JdbcMemberRepository implements MemberRepository {
     public Optional<Member> findById(String id) {
         if (id == null || id.isBlank()) return Optional.empty();
         UUID uuid = toUuid(id);
-        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, created_at, updated_at FROM members WHERE id = ?::uuid";
+        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, inactive_reason, created_at, updated_at FROM members WHERE id = ?::uuid";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
@@ -74,7 +76,7 @@ public class JdbcMemberRepository implements MemberRepository {
 
     @Override
     public List<Member> findAll() {
-        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, created_at, updated_at FROM members ORDER BY name ASC";
+        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, inactive_reason, created_at, updated_at FROM members ORDER BY name ASC";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -92,7 +94,7 @@ public class JdbcMemberRepository implements MemberRepository {
     public List<Member> findByCommunityId(String communityId) {
         if (communityId == null || communityId.isBlank()) return List.of();
         UUID uuid = toUuid(communityId);
-        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, created_at, updated_at FROM members WHERE community_id = ?::uuid ORDER BY name ASC";
+        String sql = "SELECT id, community_id, name, birth_date, phone, email, ministry, status, inactive_reason, created_at, updated_at FROM members WHERE community_id = ?::uuid ORDER BY name ASC";
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, uuid.toString());
@@ -131,6 +133,7 @@ public class JdbcMemberRepository implements MemberRepository {
         String email = rs.getString("email");
         String ministry = rs.getString("ministry");
         String status = rs.getString("status");
+        String inactiveReason = rs.getString("inactive_reason");
         Timestamp createdAt = rs.getTimestamp("created_at");
         Timestamp updatedAt = rs.getTimestamp("updated_at");
 
@@ -143,6 +146,7 @@ public class JdbcMemberRepository implements MemberRepository {
                 email,
                 ministry,
                 status,
+                inactiveReason,
                 createdAt != null ? createdAt.toInstant() : Instant.now(),
                 updatedAt != null ? updatedAt.toInstant() : Instant.now()
         );

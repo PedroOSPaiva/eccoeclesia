@@ -3,10 +3,10 @@ package com.ecoeclesia.finance;
 import com.ecoeclesia.access.UserAccessPolicy;
 import com.ecoeclesia.access.UserRole;
 import com.ecoeclesia.user.CreateUserRequest;
+import com.ecoeclesia.user.InMemoryUserAccountRepository;
 import com.ecoeclesia.user.PasswordHasher;
 import com.ecoeclesia.user.UserAccount;
 import com.ecoeclesia.user.UserAccountRepository;
-import com.ecoeclesia.user.UserManagementController;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashSet;
@@ -33,23 +33,19 @@ public final class AuthTokenService {
     private final Map<String, UserAccount> refreshTokens = new ConcurrentHashMap<>();
     private final Map<String, ResetTokenEntry> passwordResetTokens = new ConcurrentHashMap<>();
     private final UserAccessPolicy accessPolicy = new UserAccessPolicy();
-    private final UserManagementController users;
+    private final UserAccountRepository userRepository;
     private final SecureRandom random = new SecureRandom();
 
     public AuthTokenService() {
-        this(new UserManagementController(), loadSeedUsersFromEnv());
+        this(new InMemoryUserAccountRepository(), loadSeedUsersFromEnv());
     }
 
-    public AuthTokenService(UserAccountRepository repository) {
-        this(new UserManagementController(repository));
+    public AuthTokenService(UserAccountRepository userRepository) {
+        this(userRepository, loadSeedUsersFromEnv());
     }
 
-    public AuthTokenService(UserManagementController users) {
-        this(users, loadSeedUsersFromEnv());
-    }
-
-    public AuthTokenService(UserManagementController users, List<CreateUserRequest> seedUsers) {
-        this.users = Objects.requireNonNull(users);
+    public AuthTokenService(UserAccountRepository userRepository, List<CreateUserRequest> seedUsers) {
+        this.userRepository = Objects.requireNonNull(userRepository);
         seedDefaultAccounts(seedUsers);
     }
 
@@ -57,7 +53,7 @@ public final class AuthTokenService {
         if (email == null || email.isBlank() || password == null || password.isBlank()) {
             throw new IllegalArgumentException("Email e senha são obrigatórios");
         }
-        UserAccount account = users.findAccountByEmail(email);
+        UserAccount account = userRepository.findByEmail(email).orElse(null);
         if (account == null || !PasswordHasher.matches(password, account.getHashedPassword())) {
             throw new IllegalArgumentException("Credenciais inválidas");
         }
@@ -89,7 +85,7 @@ public final class AuthTokenService {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Email é obrigatório");
         }
-        UserAccount account = users.findAccountByEmail(email);
+        UserAccount account = userRepository.findByEmail(email).orElse(null);
         if (account == null) {
             throw new IllegalArgumentException("Usuário não encontrado");
         }
@@ -113,7 +109,10 @@ public final class AuthTokenService {
         if (tokenEntry.expiresAt().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Token de recuperação expirado");
         }
-        users.updatePassword(tokenEntry.userId(), new com.ecoeclesia.user.UpdateUserPasswordRequest(newPassword));
+        UserAccount account = userRepository.findById(tokenEntry.userId())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+        account.updatePassword(PasswordHasher.hash(newPassword));
+        userRepository.save(account);
     }
 
     public Set<String> permissionsFor(String authorizationHeader) {
@@ -146,13 +145,31 @@ public final class AuthTokenService {
     }
 
     private void seedDefaultAccounts(List<CreateUserRequest> seedUsers) {
-        if (!users.listUsers().isEmpty()) {
-            return;
+        try {
+            if (!userRepository.findAll().isEmpty()) {
+                return;
+            }
+            if (seedUsers == null || seedUsers.isEmpty()) {
+                return;
+            }
+            for (CreateUserRequest req : seedUsers) {
+                if (!userRepository.existsByEmail(req.email())) {
+                    UserAccount account = new UserAccount(
+                            req.email(),
+                            PasswordHasher.hash(req.password()),
+                            Set.copyOf(req.roles()),
+                            req.fullName(),
+                            req.birthDate(),
+                            req.address(),
+                            req.photoUrl()
+                    );
+                    userRepository.save(account);
+                }
+            }
+        } catch (Exception ex) {
+            // Em caso de tabela ainda não inicializada ou falha transitória durante o startup,
+            // evita derrubar o ApplicationContext.
         }
-        if (seedUsers == null || seedUsers.isEmpty()) {
-            return;
-        }
-        seedUsers.forEach(users::createUser);
     }
 
     private String randomToken() {
@@ -210,7 +227,8 @@ public final class AuthTokenService {
         if (account == null) {
             throw new IllegalArgumentException("Token inválido");
         }
-        users.updatePassword(account.getId(), new com.ecoeclesia.user.UpdateUserPasswordRequest(newPassword));
+        account.updatePassword(PasswordHasher.hash(newPassword));
+        userRepository.save(account);
     }
 
     private PasswordStatus passwordStatus(UserAccount account) {
