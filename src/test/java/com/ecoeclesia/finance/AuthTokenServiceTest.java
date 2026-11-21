@@ -14,7 +14,7 @@ public final class AuthTokenServiceTest {
 
     private AuthTokenService newService() {
         return new AuthTokenService(
-                new UserManagementController(),
+                new com.ecoeclesia.user.InMemoryUserAccountRepository(),
                 List.of(new CreateUserRequest("tesouraria@ecoeclesia.test", "finance123",
                         List.of(UserRole.FINANCE), null, null, null, null)));
     }

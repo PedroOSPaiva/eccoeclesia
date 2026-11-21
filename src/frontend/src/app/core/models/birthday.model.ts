@@ -1,5 +1,6 @@
 export interface BirthdaySummary {
   id: string;
+  communityId?: string;
   name: string;
   birthDate: string;
   ministry: string;
@@ -10,9 +11,9 @@ export interface BirthdaySummary {
 }
 
 export interface CreateBirthdayDto {
+  communityId?: string;
   name: string;
   birthDate: string;
   ministry: string;
   contact: string;
 }
-

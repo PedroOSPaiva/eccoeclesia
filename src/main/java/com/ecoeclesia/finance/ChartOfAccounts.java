@@ -21,8 +21,8 @@ public final class ChartOfAccounts {
 
     public static ChartOfAccounts defaultPlan() {
         return new ChartOfAccounts(List.of(
-                new ChartOfAccount("1.1.01", "Receitas Ordinárias", "Receita", "Dízimos", AccountNature.INCOME),
-                new ChartOfAccount("1.1.02", "Receitas Ordinárias", "Receita", "Ofertas de missa", AccountNature.INCOME),
+                new ChartOfAccount("1.1.01", "Receitas Ordinárias", "Receita", "Dízimos Paroquiais", AccountNature.INCOME),
+                new ChartOfAccount("1.1.02", "Receitas Ordinárias", "Receita", "Ofertas de Missa e Culto", AccountNature.INCOME),
                 new ChartOfAccount("1.1.03", "Receitas Ordinárias", "Receita", "Contribuição mensal de fiéis", AccountNature.INCOME),
                 new ChartOfAccount("1.1.04", "Receitas Ordinárias", "Receita", "Campanhas paroquiais", AccountNature.INCOME),
                 new ChartOfAccount("1.1.05", "Receitas Ordinárias", "Receita", "Intenções de missa", AccountNature.INCOME),

@@ -19,13 +19,14 @@ export class ReportService extends BaseApiService<{ id?: string }> {
   private readonly _preview = signal<string | null>(null);
   readonly preview = this._preview.asReadonly();
 
-  fetchLedgerReportPreview(start?: string, end?: string): Observable<ReportTextResponse> {
+  fetchLedgerReportPreview(start?: string, end?: string, communityId?: string | null): Observable<ReportTextResponse> {
     this._loading.set(true);
     this._error.set(null);
 
     let params = new HttpParams();
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
+    if (communityId && communityId !== 'ALL') params = params.set('communityId', communityId);
 
     return this.http.get<ReportTextResponse>(`${this.apiUrl}/ledger`, { params }).pipe(
       tap({
@@ -36,13 +37,14 @@ export class ReportService extends BaseApiService<{ id?: string }> {
     );
   }
 
-  downloadLedgerPdf(start?: string, end?: string): void {
+  downloadLedgerPdf(start?: string, end?: string, communityId?: string | null): void {
     this._loading.set(true);
     this._error.set(null);
 
     let params = new HttpParams();
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
+    if (communityId && communityId !== 'ALL') params = params.set('communityId', communityId);
 
     this.http.get(`${this.apiUrl}/ledger.pdf`, {
       params,
@@ -51,10 +53,11 @@ export class ReportService extends BaseApiService<{ id?: string }> {
       finalize(() => this._loading.set(false))
     ).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
+        const fileBlob = new Blob([blob], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `razao-financeiro-${start || 'inicio'}-a-${end || 'hoje'}.pdf`;
+        a.download = `relatorio-${start || 'inicio'}-a-${end || 'hoje'}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
       },
@@ -64,13 +67,14 @@ export class ReportService extends BaseApiService<{ id?: string }> {
     });
   }
 
-  downloadLedgerCsv(start?: string, end?: string): void {
+  downloadLedgerCsv(start?: string, end?: string, communityId?: string | null): void {
     this._loading.set(true);
     this._error.set(null);
 
     let params = new HttpParams();
     if (start) params = params.set('start', start);
     if (end) params = params.set('end', end);
+    if (communityId && communityId !== 'ALL') params = params.set('communityId', communityId);
 
     this.http.get(`${this.apiUrl}/ledger.csv`, {
       params,

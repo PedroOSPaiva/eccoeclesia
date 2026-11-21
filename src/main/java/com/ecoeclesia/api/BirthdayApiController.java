@@ -21,6 +21,7 @@ public class BirthdayApiController {
     }
 
     public record CreateBirthdayRequest(
+            String communityId,
             String name,
             String birthDate,
             String ministry,
@@ -29,8 +30,8 @@ public class BirthdayApiController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public List<BirthdaySummary> listBirthdays() {
-        return birthdayService.listUpcomingBirthdays();
+    public List<BirthdaySummary> listBirthdays(@RequestParam(required = false) String communityId) {
+        return birthdayService.listUpcomingBirthdays(communityId);
     }
 
     @PostMapping
@@ -54,6 +55,7 @@ public class BirthdayApiController {
         }
 
         BirthdaySummary summary = birthdayService.registerBirthday(
+                request.communityId(),
                 request.name().trim(),
                 date,
                 request.ministry(),

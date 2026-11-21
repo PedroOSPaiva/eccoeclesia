@@ -7,55 +7,114 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="dom-bosco-card" [class.is-loading-mode]="mode === 'loading'" role="alert">
-      <!-- Ilustração Vetorial: Dom Bosquinho (São João Bosco em versão carismática infantil) -->
+      <!-- Ilustração Vetorial: Dom Bosquinho (São João Bosco em traço maduro e acolhedor) -->
       <div class="character-container">
-        <svg viewBox="0 0 160 160" width="130" height="130" class="dom-bosco-svg" [class.pulse-halo]="mode === 'loading'">
-          <!-- Auréola da Santidade Salesiana -->
-          <circle cx="80" cy="62" r="48" fill="#fef9c3" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 2" class="halo-circle"/>
+        <svg viewBox="0 0 160 160" width="135" height="135" class="dom-bosco-svg" [class.pulse-halo]="mode === 'loading'" role="img" aria-label="São João Bosco">
+          <defs>
+            <!-- Gradiente da Auréola -->
+            <linearGradient id="db-halo" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#fef08a" />
+              <stop offset="50%" stop-color="#f59e0b" />
+              <stop offset="100%" stop-color="#d97706" />
+            </linearGradient>
 
-          <!-- Cabelos de Dom Bosco (ondulados e volumosos) -->
-          <ellipse cx="80" cy="58" rx="38" ry="34" fill="#38220f"/>
-          <circle cx="52" cy="58" r="14" fill="#38220f"/>
-          <circle cx="108" cy="58" r="14" fill="#38220f"/>
-          <circle cx="65" cy="40" r="16" fill="#38220f"/>
-          <circle cx="95" cy="40" r="16" fill="#38220f"/>
-          <circle cx="80" cy="36" r="18" fill="#38220f"/>
+            <!-- Gradiente do Círculo de Fundo -->
+            <radialGradient id="db-bg" cx="50%" cy="45%" r="60%">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="70%" stop-color="#fefce8" />
+              <stop offset="100%" stop-color="#fef3c7" />
+            </radialGradient>
+
+            <!-- Gradiente da Batina -->
+            <linearGradient id="db-cassock" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1e293b" />
+              <stop offset="100%" stop-color="#0f172a" />
+            </linearGradient>
+
+            <!-- Gradiente do Cabelo -->
+            <linearGradient id="db-hair" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#3d2c1e" />
+              <stop offset="50%" stop-color="#241a12" />
+              <stop offset="100%" stop-color="#17100b" />
+            </linearGradient>
+
+            <!-- Gradiente da Pele -->
+            <linearGradient id="db-skin" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ffedd5" />
+              <stop offset="100%" stop-color="#fed7aa" />
+            </linearGradient>
+          </defs>
+
+          <!-- Fundo Circular Delicado -->
+          <circle cx="80" cy="80" r="74" fill="url(#db-bg)" stroke="#fde047" stroke-width="1.5" />
+
+          <!-- Auréola Dourada Luminosa de Santidade -->
+          <circle cx="80" cy="62" r="50" fill="none" stroke="url(#db-halo)" stroke-width="2.5" stroke-dasharray="8 4" class="halo-circle" opacity="0.85" />
+          <circle cx="80" cy="62" r="46" fill="#fef9c3" opacity="0.35" />
+
+          <!-- Batina Preta Sacerdotal (Ombros e Busto) -->
+          <path d="M34 154 C35 130, 48 114, 64 109 L96 109 C112 114, 125 130, 126 154 Z" fill="url(#db-cassock)" />
+          <!-- Dobras e Costura da Batina -->
+          <path d="M80 119 L80 154" stroke="#334155" stroke-width="1.5" />
+          <!-- Botões Pequenos da Batina -->
+          <circle cx="80" cy="126" r="1.5" fill="#475569" />
+          <circle cx="80" cy="135" r="1.5" fill="#475569" />
+          <circle cx="80" cy="144" r="1.5" fill="#475569" />
+
+          <!-- Colarinho Romano Branco (Alzacolletto Clerical) -->
+          <path d="M68 108 L92 108 L89 120 L71 120 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8" />
+          <path d="M74 108 L86 108 L85 117 L75 117 Z" fill="#f8fafc" />
+
+          <!-- Pescoço com Sombra Suave -->
+          <path d="M70 94 L70 110 L90 110 L90 94 Z" fill="url(#db-skin)" />
+          <path d="M70 94 C76 99, 84 99, 90 94 L90 100 C84 103, 76 103, 70 100 Z" fill="#fbcfe8" opacity="0.3" />
 
           <!-- Orelhas -->
-          <circle cx="48" cy="72" r="7" fill="#fed7aa"/>
-          <circle cx="112" cy="72" r="7" fill="#fed7aa"/>
+          <path d="M51 72 C49 68, 48 80, 52 83 C54 84, 55 80, 54 74 Z" fill="#fed7aa" />
+          <path d="M52 74 C51 75, 51 79, 53 80" stroke="#f97316" stroke-width="0.8" fill="none" opacity="0.5" />
+          <path d="M109 72 C111 68, 112 80, 108 83 C106 84, 105 80, 106 74 Z" fill="#fed7aa" />
+          <path d="M108 74 C109 75, 109 79, 107 80" stroke="#f97316" stroke-width="0.8" fill="none" opacity="0.5" />
 
-          <!-- Rostinho Alegre -->
-          <ellipse cx="80" cy="72" rx="32" ry="29" fill="#ffedd5"/>
+          <!-- Rosto Sereno de Dom Bosco -->
+          <path d="M53 66 C53 84, 63 98, 80 98 C97 98, 107 84, 107 66 C107 51, 96 46, 80 46 C64 46, 53 51, 53 66 Z" fill="url(#db-skin)" />
 
-          <!-- Franja clássica de Dom Bosco -->
-          <path d="M54 55 Q70 65 80 54 Q90 65 106 55 Q80 44 54 55 Z" fill="#38220f"/>
+          <!-- Cabelos de Fundo / Laterais Onduladas -->
+          <path d="M51 64 C47 54, 52 42, 62 36 C72 30, 88 30, 98 36 C108 42, 113 54, 109 64 C112 70, 111 76, 107 80 C106 74, 107 67, 105 63 C103 54, 96 48, 80 48 C64 48, 57 54, 55 63 C53 67, 54 74, 53 80 C49 76, 48 70, 51 64 Z" fill="url(#db-hair)" />
 
-          <!-- Olhinhos Felizes e Expressivos (Arco Sorridente) -->
-          <path d="M66 68 Q72 63 77 68" stroke="#1f2937" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <path d="M83 68 Q88 63 94 68" stroke="#1f2937" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <!-- Cabelo Frontal com Risca Lateral e Ondas Clássicas -->
+          <path d="M50 58 C51 44, 60 35, 75 33 C88 32, 104 36, 110 49 C113 56, 112 66, 108 72 C106 64, 106 58, 102 53 C96 46, 88 44, 78 45 C68 46, 58 50, 50 58 Z" fill="url(#db-hair)" />
+          <!-- Franja com risca lateral característica -->
+          <path d="M54 58 C58 50, 68 47, 73 47 C79 47, 85 51, 93 49 C100 47, 104 53, 106 58 C100 55, 93 54, 88 56 C80 59, 72 61, 64 58 C59 56, 56 57, 54 58 Z" fill="#2d2015" />
+          <path d="M68 46 C74 41, 84 41, 92 43 C96 44, 102 47, 105 52 C101 48, 95 46, 88 45 C80 44, 74 44, 68 46 Z" fill="#4a3728" opacity="0.6" />
 
-          <!-- Bochechas Coradinhas -->
-          <circle cx="62" cy="76" r="5" fill="#fca5a5" opacity="0.6"/>
-          <circle cx="98" cy="76" r="5" fill="#fca5a5" opacity="0.6"/>
+          <!-- Sobrancelhas Naturais e Expressivas -->
+          <path d="M63 65 C67 62.5, 73 63, 76 65.5" stroke="#2b1d11" stroke-width="2.2" stroke-linecap="round" fill="none" />
+          <path d="M84 65.5 C87 63, 93 62.5, 97 65" stroke="#2b1d11" stroke-width="2.2" stroke-linecap="round" fill="none" />
 
-          <!-- Narizinho -->
-          <ellipse cx="80" cy="74" rx="2" ry="1.5" fill="#f97316" opacity="0.7"/>
+          <!-- Olhos Serenos e Acolhedores -->
+          <!-- Olho Esquerdo -->
+          <path d="M64 71.5 Q70 67.5 76 71.5" stroke="#1f2937" stroke-width="2" stroke-linecap="round" fill="none" />
+          <path d="M65 72.5 Q70 75 75 72.5" stroke="#9ca3af" stroke-width="0.8" stroke-linecap="round" fill="none" />
+          <ellipse cx="70" cy="71.8" rx="3.2" ry="3" fill="#2d2015" />
+          <circle cx="70" cy="71.8" r="1.8" fill="#0f172a" />
+          <circle cx="71" cy="70.8" r="0.9" fill="#ffffff" />
 
-          <!-- Sorriso Acolhedor de Pai e Mestre -->
-          <path d="M72 81 Q80 91 88 81" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" fill="#fee2e2"/>
+          <!-- Olho Direito -->
+          <path d="M84 71.5 Q90 67.5 96 71.5" stroke="#1f2937" stroke-width="2" stroke-linecap="round" fill="none" />
+          <path d="M85 72.5 Q90 75 95 72.5" stroke="#9ca3af" stroke-width="0.8" stroke-linecap="round" fill="none" />
+          <ellipse cx="90" cy="71.8" rx="3.2" ry="3" fill="#2d2015" />
+          <circle cx="90" cy="71.8" r="1.8" fill="#0f172a" />
+          <circle cx="91" cy="70.8" r="0.9" fill="#ffffff" />
 
-          <!-- Batina Clássica Preta de Sacerdote -->
-          <path d="M50 115 L56 98 Q80 96 104 98 L110 115 Q80 120 50 115 Z" fill="#0f172a"/>
+          <!-- Nariz Suave e Digno -->
+          <path d="M80 67 L80 77.5 C80 79.5, 78 80.5, 77 79.5" stroke="#d97706" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.65" />
+          <path d="M81 79.5 C82.5 79.5, 83.5 78.5, 83.5 77.5" stroke="#d97706" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.45" />
 
-          <!-- Colarinho Romano Branco (Collar clerical) -->
-          <rect x="73" y="97" width="14" height="9" fill="#ffffff" rx="1.5"/>
-
-          <!-- Mãozinha Acenando em Paz -->
-          <g class="waving-hand">
-            <circle cx="118" cy="98" r="8" fill="#fed7aa"/>
-            <path d="M118 90 L121 95 M123 93 L125 97" stroke="#ea580c" stroke-width="1.5" stroke-linecap="round"/>
-          </g>
+          <!-- Sorriso Sereno, Paternal e Acolhedor -->
+          <path d="M72 85.5 C76 89.5, 84 89.5, 88 85.5" stroke="#991b1b" stroke-width="2.2" stroke-linecap="round" fill="none" />
+          <path d="M70.5 84.5 C71 85.5, 71.5 86, 72 86.5" stroke="#b45309" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5" />
+          <path d="M89.5 84.5 C89 85.5, 88.5 86, 88 86.5" stroke="#b45309" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5" />
+          <path d="M76 90 C78.5 91.5, 81.5 91.5, 84 90" stroke="#ea580c" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.35" />
         </svg>
 
         <span class="patron-badge">São João Bosco &bull; Padroeiro</span>

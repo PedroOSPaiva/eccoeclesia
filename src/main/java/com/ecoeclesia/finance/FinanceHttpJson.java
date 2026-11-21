@@ -37,6 +37,8 @@ final class FinanceHttpJson {
     String ledgerEntry(LedgerEntry entry) {
         return new StringBuilder("{")
                 .append("\"id\":\"").append(escape(entry.id())).append("\",")
+                .append("\"communityId\":").append(nullable(entry.communityId())).append(",")
+                .append("\"memberId\":").append(nullable(entry.memberId())).append(",")
                 .append("\"accountCode\":\"").append(escape(entry.accountCode())).append("\",")
                 .append("\"referenceCode\":\"").append(escape(entry.referenceCode())).append("\",")
                 .append("\"costCenter\":\"").append(escape(entry.costCenter())).append("\",")
@@ -209,6 +211,8 @@ final class FinanceHttpJson {
     String revenue(RevenueEntity revenue) {
         return new StringBuilder("{")
                 .append("\"id\":\"").append(escape(revenue.id())).append("\",")
+                .append("\"communityId\":").append(nullable(revenue.communityId())).append(",")
+                .append("\"memberId\":").append(nullable(revenue.memberId())).append(",")
                 .append("\"amount\":\"").append(revenue.amount().toPlainString()).append("\",")
                 .append("\"description\":\"").append(escape(revenue.description())).append("\",")
                 .append("\"category\":\"").append(revenue.category().name()).append("\",")
