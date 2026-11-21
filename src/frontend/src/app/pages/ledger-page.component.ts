@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LedgerService } from '../core/services/ledger.service';
 import { CommunityService } from '../core/services/community.service';
+import { MemberService } from '../core/services/member.service';
 import { CreateLedgerEntryDto, LedgerEntryType } from '../core/models/ledger.model';
 import { CHART_OF_ACCOUNTS, ChartAccountOption } from '../core/models/chart-of-accounts';
 import { ReportService } from '../core/services/report.service';
@@ -102,6 +103,22 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
               </div>
             </div>
 
+            @if (currentNature() === 'INCOME') {
+              <div class="form-row highlight-box">
+                <div class="field flex-2">
+                  <label for="memberId">
+                    <span>👤 Membro / Dizimista Vinculado (Opcional)</span>
+                  </label>
+                  <select id="memberId" formControlName="memberId">
+                    <option value="">Nenhum (Movimentação geral da paróquia)</option>
+                    @for (m of memberService.members(); track m.id) {
+                      <option [value]="m.id">{{ m.name }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            }
+
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleNewEntryForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="entryForm.invalid || ledger.loading()">
@@ -152,7 +169,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
             type="search"
             [value]="searchTerm()"
             (input)="onSearchInput($event)"
-            placeholder="Filtrar por descrição, conta ou centro de custo..."
+            placeholder="Filtrar por descrição, conta, membro ou centro de custo..."
           />
         </div>
 
@@ -180,7 +197,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
         </div>
       </section>
 
-      <!-- Tabela Analítica -->
+      <!-- Tabela Analítica com Vínculo de Membros -->
       <section class="card table-card">
         @if (ledger.loading() && ledger.entries().length === 0) {
           <div class="loading-state">
@@ -196,7 +213,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
                   <th>Conta</th>
                   <th>Referência</th>
                   <th>Centro de Custo</th>
-                  <th>Histórico Contábil</th>
+                  <th>Histórico Contábil / Vínculo</th>
                   <th>Natureza</th>
                   <th class="text-right">Valor (R$)</th>
                 </tr>
@@ -205,10 +222,24 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
                 @for (entry of searchedEntries(); track entry.id) {
                   <tr>
                     <td class="col-date">{{ entry.occurredOn | date:'dd/MM/yyyy' }}</td>
-                    <td><code>{{ entry.accountCode }}</code></td>
+                    <td>
+                      <div class="account-cell">
+                        <strong class="account-desc">{{ getAccountName(entry.accountCode) }}</strong>
+                        <span class="account-code">{{ entry.accountCode }}</span>
+                      </div>
+                    </td>
                     <td class="text-muted">{{ entry.referenceCode }}</td>
                     <td>{{ entry.costCenter }}</td>
-                    <td><strong>{{ entry.description }}</strong></td>
+                    <td>
+                      <div class="history-cell">
+                        <strong>{{ entry.description }}</strong>
+                        @if (entry.memberId) {
+                          <span class="badge-member">
+                            👤 {{ getMemberName(entry.memberId) }}
+                          </span>
+                        }
+                      </div>
+                    </td>
                     <td>
                       @if (entry.type === 'INCOME') {
                         <span class="badge badge-income">Receita</span>
@@ -248,10 +279,11 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
     .card-title-bar h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }
     .entry-form { display: flex; flex-direction: column; gap: 1rem; }
     .form-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .highlight-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem 1rem; }
     .field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 140px; }
     .flex-2 { flex: 2; }
     .field label { font-size: 0.8rem; font-weight: 600; color: #475569; }
-    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; }
+    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; background: #fff; }
     .form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
     .filter-bar { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-end; }
     .filter-group { display: flex; flex-direction: column; gap: 0.35rem; }
@@ -269,11 +301,16 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
     .table-responsive { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
     .data-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; }
-    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .col-date { white-space: nowrap; color: #64748b; }
+    .account-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+    .account-desc { color: #0f172a; font-size: 0.85rem; }
+    .account-code { color: #64748b; font-size: 0.72rem; font-family: monospace; }
+    .history-cell { display: flex; flex-direction: column; gap: 0.25rem; }
     .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; }
     .badge-income { background: #dcfce7; color: #15803d; }
     .badge-expense { background: #fee2e2; color: #b91c1c; }
+    .badge-member { font-size: 0.75rem; font-weight: 600; color: #0284c7; background: #e0f2fe; padding: 0.15rem 0.45rem; border-radius: 4px; display: inline-flex; width: fit-content; }
     .text-income { color: #059669; }
     .text-expense { color: #dc2626; }
     .text-right { text-align: right; }
@@ -296,6 +333,7 @@ import { DomBosquinhoStateComponent } from '../shared/components/dom-bosquinho-s
 export class LedgerPageComponent implements OnInit {
   protected readonly ledger = inject(LedgerService);
   protected readonly communityService = inject(CommunityService);
+  protected readonly memberService = inject(MemberService);
   private readonly report = inject(ReportService);
   private readonly fb = inject(FormBuilder);
 
@@ -316,8 +354,9 @@ export class LedgerPageComponent implements OnInit {
   constructor() {
     // Reage automaticamente à mudança da comunidade ativa no header
     effect(() => {
-      const _ = this.communityService.activeCommunityId();
+      const activeId = this.communityService.activeCommunityId();
       this.ledger.loadEntries(this.start(), this.end()).subscribe();
+      this.memberService.loadMembers(activeId).subscribe();
     });
   }
 
@@ -326,12 +365,16 @@ export class LedgerPageComponent implements OnInit {
     const term = this.searchTerm().trim().toLowerCase();
     const list = this.ledger.filteredEntries();
     if (!term) return list;
-    return list.filter((e) =>
-      e.description.toLowerCase().includes(term) ||
-      e.accountCode.toLowerCase().includes(term) ||
-      e.costCenter.toLowerCase().includes(term) ||
-      e.referenceCode.toLowerCase().includes(term)
-    );
+    return list.filter((e) => {
+      const memberName = e.memberId ? this.getMemberName(e.memberId).toLowerCase() : '';
+      return (
+        e.description.toLowerCase().includes(term) ||
+        e.accountCode.toLowerCase().includes(term) ||
+        e.costCenter.toLowerCase().includes(term) ||
+        e.referenceCode.toLowerCase().includes(term) ||
+        memberName.includes(term)
+      );
+    });
   });
 
   protected readonly entryForm = this.fb.group({
@@ -342,10 +385,13 @@ export class LedgerPageComponent implements OnInit {
     description: ['', [Validators.required, Validators.minLength(3)]],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     occurredOn: [new Date().toISOString().substring(0, 10), Validators.required],
+    memberId: [''],
   });
 
   ngOnInit(): void {
+    const activeId = this.communityService.activeCommunityId();
     this.ledger.loadEntries(this.start(), this.end()).subscribe();
+    this.memberService.loadMembers(activeId).subscribe();
   }
 
   onTypeChange(): void {
@@ -360,12 +406,14 @@ export class LedgerPageComponent implements OnInit {
       this.entryForm.patchValue({
         accountCode: '2.1.01',
         referenceCode: 'DESP-' + Math.floor(1000 + Math.random() * 9000),
+        memberId: '',
       });
     }
   }
 
   onRefresh(): void {
     this.ledger.refresh();
+    this.memberService.loadMembers(this.communityService.activeCommunityId()).subscribe();
   }
 
   onFilterType(type: LedgerEntryType | 'ALL'): void {
@@ -396,6 +444,7 @@ export class LedgerPageComponent implements OnInit {
       description: val.description!,
       amount: Number(val.amount),
       occurredOn: val.occurredOn!,
+      memberId: (val.type === 'INCOME' && val.memberId) ? val.memberId : undefined,
     };
 
     this.ledger.createEntry(dto).subscribe({
@@ -404,11 +453,24 @@ export class LedgerPageComponent implements OnInit {
         this.entryForm.patchValue({
           description: '',
           amount: '',
+          memberId: '',
           referenceCode: (this.currentNature() === 'INCOME' ? 'REC-' : 'DESP-') + Math.floor(1000 + Math.random() * 9000),
         });
         this.showNewEntry.set(false);
       },
     });
+  }
+
+  getMemberName(memberId?: string): string {
+    if (!memberId) return '';
+    const m = this.memberService.members().find((item) => item.id === memberId);
+    return m ? m.name : 'Dizimista';
+  }
+
+  getAccountName(accountCode: string): string {
+    const acc = CHART_OF_ACCOUNTS.find((a) => a.code === accountCode);
+    if (!acc) return accountCode;
+    return acc.name.replace(/^[0-9.]+\s*-\s*/, '');
   }
 
   exportPdf(): void {

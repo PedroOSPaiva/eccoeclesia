@@ -24,7 +24,11 @@ export class MemberService {
   readonly totalCount = computed<number>(() => this._members().length);
 
   readonly activeCount = computed<number>(() =>
-    this._members().filter((m) => m.status === 'ACTIVE').length
+    this._members().filter((m) => m.status === 'ACTIVE' || m.status === 'ATIVO').length
+  );
+
+  readonly inactiveCount = computed<number>(() =>
+    this._members().filter((m) => m.status === 'INACTIVE' || m.status === 'INATIVO').length
   );
 
   readonly stewardsCount = computed<number>(() =>
@@ -77,6 +81,22 @@ export class MemberService {
             list.map((m) => (m.id === id ? updated : m))
           ),
         error: (err) => this._error.set(err?.error?.error || 'Erro ao atualizar membro.'),
+      }),
+      finalize(() => this._loading.set(false))
+    );
+  }
+
+  inactivateMember(id: string, reason: string): Observable<Member> {
+    this._loading.set(true);
+    this._error.set(null);
+
+    return this.http.put<Member>(`${this.apiUrl}/${id}/inactivate`, { reason }).pipe(
+      tap({
+        next: (updated) =>
+          this._members.update((list) =>
+            list.map((m) => (m.id === id ? updated : m))
+          ),
+        error: (err) => this._error.set(err?.error?.error || 'Erro ao inativar membro.'),
       }),
       finalize(() => this._loading.set(false))
     );

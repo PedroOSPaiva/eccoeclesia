@@ -2,6 +2,8 @@ export type LedgerEntryType = 'INCOME' | 'EXPENSE';
 
 export interface LedgerEntry {
   id: string;
+  communityId?: string;
+  memberId?: string;
   accountCode: string;
   referenceCode: string;
   costCenter: string;
@@ -19,6 +21,8 @@ export interface CreateLedgerEntryDto {
   amount: number | string;
   type: LedgerEntryType;
   occurredOn?: string;
+  communityId?: string;
+  memberId?: string;
 }
 
 export interface LedgerFilter {
@@ -33,4 +37,3 @@ export interface LedgerFinancialSummary {
   netBalance: number;
   entryCount: number;
 }
-

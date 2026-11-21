@@ -13,9 +13,9 @@ import { CreateExpenseDto } from '../core/models/expense.model';
     <div class="expenses-container">
       <header class="page-header">
         <div>
-          <span class="badge-tag">Controle Operacional</span>
+          <span class="badge-tag">Saídas & Despesas</span>
           <h1>Controle de Despesas</h1>
-          <p class="subtitle">Gerenciamento, lançamento e conciliação de saídas financeiras.</p>
+          <p class="subtitle">Gerenciamento, lançamento e conciliação de saídas financeiras da comunidade.</p>
         </div>
         <div class="header-actions">
           <button type="button" class="btn btn-secondary" (click)="refresh()" [disabled]="expenseService.loading()">
@@ -55,7 +55,7 @@ import { CreateExpenseDto } from '../core/models/expense.model';
             <div class="form-row">
               <div class="field flex-2">
                 <label for="description">Descrição</label>
-                <input id="description" type="text" formControlName="description" placeholder="Ex: Pagamento conta de energia elétrica" />
+                <input id="description" type="text" formControlName="description" placeholder="Ex: Pagamento da conta de energia elétrica" />
               </div>
               <div class="field">
                 <label for="amount">Valor (R$)</label>
@@ -63,7 +63,16 @@ import { CreateExpenseDto } from '../core/models/expense.model';
               </div>
               <div class="field">
                 <label for="category">Categoria</label>
-                <input id="category" type="text" formControlName="category" placeholder="Ex: Manutenção, Pessoal" />
+                <select id="category" formControlName="category">
+                  <option value="Água, Energia e Utilidades">Água, Energia e Utilidades</option>
+                  <option value="Manutenção e Conservação">Manutenção e Conservação</option>
+                  <option value="Pessoal e Encargos">Pessoal e Encargos</option>
+                  <option value="Liturgia e Pastoral">Liturgia e Pastoral</option>
+                  <option value="Ação Social e Caridade">Ação Social e Caridade</option>
+                  <option value="Transporte e Combustível">Transporte e Combustível</option>
+                  <option value="Eventos e Festividades">Eventos e Festividades</option>
+                  <option value="Geral / Outros">Geral / Outros</option>
+                </select>
               </div>
             </div>
             <div class="form-actions">
@@ -80,12 +89,12 @@ import { CreateExpenseDto } from '../core/models/expense.model';
         </section>
       }
 
-      <!-- Card de Resumo -->
+      <!-- Card de Resumo (KPI) -->
       <section class="kpi-strip">
         <div class="kpi-card">
-          <span class="label">Total de Saídas Registradas</span>
+          <span class="label">Total de Despesas Realizadas</span>
           <strong class="value text-expense">{{ expenseService.totalAmount() | currency:'BRL':'symbol':'1.2-2' }}</strong>
-          <span class="hint">{{ expenseService.count() }} despesa(s) ativa(s)</span>
+          <span class="hint">{{ expenseService.count() }} saída(s) ativa(s)</span>
         </div>
       </section>
 
@@ -113,11 +122,7 @@ import { CreateExpenseDto } from '../core/models/expense.model';
                   <tr>
                     <td><strong>{{ item.description }}</strong></td>
                     <td>
-                      @if (item.category) {
-                        <span class="badge">{{ item.category }}</span>
-                      } @else {
-                        <span class="text-muted">Geral</span>
-                      }
+                      <span class="badge">{{ item.category || 'Geral / Outros' }}</span>
                     </td>
                     <td class="col-date">{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                     <td class="text-right col-amount text-expense">
@@ -159,7 +164,7 @@ import { CreateExpenseDto } from '../core/models/expense.model';
     .field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 150px; }
     .flex-2 { flex: 2; }
     .field label { font-size: 0.8rem; font-weight: 600; color: #475569; }
-    .field input { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; }
+    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; background: #fff; }
     .form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
     .kpi-strip { display: flex; }
     .kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; border-left: 4px solid #dc2626; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; min-width: 250px; }
@@ -170,15 +175,15 @@ import { CreateExpenseDto } from '../core/models/expense.model';
     .table-responsive { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
     .data-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; }
-    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .col-date { white-space: nowrap; color: #64748b; font-size: 0.8rem; }
-    .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #f1f5f9; color: #334155; }
+    .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #fee2e2; color: #b91c1c; }
     .text-expense { color: #dc2626; }
     .text-muted { color: #94a3b8; }
     .text-right { text-align: right; }
     .col-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
     .btn { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem; }
-    .btn-primary { background: #1d4ed8; color: #fff; }
+    .btn-primary { background: #dc2626; color: #fff; }
     .btn-secondary { background: #fff; color: #334155; border: 1px solid #cbd5e1; }
     .btn-action-delete { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.4rem; }
     .btn-action-delete:hover { text-decoration: underline; }
@@ -188,7 +193,8 @@ import { CreateExpenseDto } from '../core/models/expense.model';
     .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
     .empty-state { text-align: center; color: #94a3b8; padding: 2.5rem 1rem; }
     .loading-state { text-align: center; padding: 3rem 1rem; color: #64748b; }
-    .spinner-large { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #1d4ed8; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem; }
+    .spinner { width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    .spinner-large { width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #dc2626; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem; }
     @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
@@ -200,6 +206,12 @@ export class ExpensesPageComponent implements OnInit {
   protected readonly showNewForm = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
 
+  protected readonly expenseForm = this.fb.group({
+    description: ['', [Validators.required, Validators.minLength(3)]],
+    amount: ['', [Validators.required, Validators.min(0.01)]],
+    category: ['Água, Energia e Utilidades', Validators.required],
+  });
+
   constructor() {
     // Reage automaticamente à mudança da comunidade ativa no header
     effect(() => {
@@ -207,12 +219,6 @@ export class ExpensesPageComponent implements OnInit {
       this.expenseService.loadExpenses().subscribe();
     });
   }
-
-  protected readonly expenseForm = this.fb.group({
-    description: ['', [Validators.required, Validators.minLength(3)]],
-    amount: ['', [Validators.required, Validators.min(0.01)]],
-    category: ['Geral'],
-  });
 
   ngOnInit(): void {
     this.expenseService.loadExpenses().subscribe();
@@ -242,7 +248,7 @@ export class ExpensesPageComponent implements OnInit {
     this.expenseService.createExpense(dto).subscribe({
       next: () => {
         this.successMessage.set('Despesa registrada com sucesso!');
-        this.expenseForm.reset({ category: 'Geral' });
+        this.expenseForm.reset({ category: 'Água, Energia e Utilidades' });
         this.showNewForm.set(false);
       },
     });

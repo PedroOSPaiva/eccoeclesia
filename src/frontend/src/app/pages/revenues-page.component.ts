@@ -1,8 +1,10 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RevenueService } from '../core/services/revenue.service';
 import { CommunityService } from '../core/services/community.service';
+import { MemberService } from '../core/services/member.service';
 import { CreateRevenueDto } from '../core/models/revenue.model';
 
 @Component({
@@ -72,6 +74,27 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
                 </select>
               </div>
             </div>
+
+            <!-- Campo Condicional: Dizimista Ativo (SÓ e SOMENTE se Categoria = Dízimo) -->
+            @if (isTitheCategory()) {
+              <div class="form-row highlight-box">
+                <div class="field flex-2">
+                  <label for="memberId">
+                    <span>⭐ Dizimista Vinculado</span>
+                    <small class="label-hint">(Carregando dizimistas ativos da comunidade)</small>
+                  </label>
+                  <select id="memberId" formControlName="memberId">
+                    <option value="">Selecione o dizimista (ou deixe vazio para anônimo / livro geral)...</option>
+                    @for (steward of activeStewards(); track steward.id) {
+                      <option [value]="steward.id">
+                        {{ steward.name }} {{ steward.phone ? '• ' + steward.phone : '' }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            }
+
             <div class="form-actions">
               <button type="button" class="btn btn-secondary" (click)="toggleNewRevenueForm()">Cancelar</button>
               <button type="submit" class="btn btn-primary" [disabled]="revenueForm.invalid || revenueService.loading()">
@@ -108,6 +131,7 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
               <thead>
                 <tr>
                   <th>Descrição</th>
+                  <th>Dizimista / Vinculado</th>
                   <th>Categoria</th>
                   <th>Data Registro</th>
                   <th class="text-right">Valor</th>
@@ -118,6 +142,15 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
                 @for (item of revenueService.revenues(); track item.id) {
                   <tr>
                     <td><strong>{{ item.description }}</strong></td>
+                    <td>
+                      @if (item.memberId) {
+                        <span class="badge badge-steward">
+                          ⭐ {{ getMemberName(item.memberId) }}
+                        </span>
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
+                    </td>
                     <td>
                       <span class="badge">{{ item.category || 'Geral' }}</span>
                     </td>
@@ -133,7 +166,7 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="5" class="empty-state">
+                    <td colspan="6" class="empty-state">
                       <p>Nenhuma receita registrada até o momento.</p>
                     </td>
                   </tr>
@@ -158,10 +191,12 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
     .card-title-bar h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }
     .revenue-form { display: flex; flex-direction: column; gap: 1rem; }
     .form-row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .highlight-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 0.75rem 1rem; }
+    .label-hint { font-weight: normal; color: #64748b; margin-left: 0.5rem; }
     .field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 150px; }
     .flex-2 { flex: 2; }
     .field label { font-size: 0.8rem; font-weight: 600; color: #475569; }
-    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; }
+    .field input, .field select { padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.875rem; background: #fff; }
     .form-actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
     .kpi-strip { display: flex; }
     .kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; border-left: 4px solid #10b981; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; min-width: 250px; }
@@ -172,10 +207,12 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
     .table-responsive { overflow-x: auto; }
     .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
     .data-table th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; }
-    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .data-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .col-date { white-space: nowrap; color: #64748b; font-size: 0.8rem; }
     .badge { font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #ecfdf5; color: #065f46; }
+    .badge-steward { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 0.25rem; }
     .text-income { color: #059669; }
+    .text-muted { color: #94a3b8; }
     .text-right { text-align: right; }
     .col-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
     .btn { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.4rem; }
@@ -196,31 +233,64 @@ import { CreateRevenueDto } from '../core/models/revenue.model';
 export class RevenuesPageComponent implements OnInit {
   protected readonly revenueService = inject(RevenueService);
   protected readonly communityService = inject(CommunityService);
+  protected readonly memberService = inject(MemberService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly showNewForm = signal<boolean>(false);
   protected readonly successMessage = signal<string | null>(null);
 
-  constructor() {
-    // Reage automaticamente à mudança da comunidade ativa no header
-    effect(() => {
-      const _ = this.communityService.activeCommunityId();
-      this.revenueService.loadRevenues().subscribe();
-    });
-  }
-
   protected readonly revenueForm = this.fb.group({
     description: ['', [Validators.required, Validators.minLength(3)]],
     amount: ['', [Validators.required, Validators.min(0.01)]],
-    category: ['Dízimo'],
+    category: ['Dízimo', Validators.required],
+    memberId: [''],
   });
 
+  // Reatividade em tempo real às mudanças de seleção do formulário
+  private readonly categoryValue = toSignal(
+    this.revenueForm.get('category')!.valueChanges,
+    { initialValue: 'Dízimo' }
+  );
+
+  // Dizimistas ativos disponíveis para vínculo
+  protected readonly activeStewards = computed(() => {
+    return this.memberService.members().filter((m) =>
+      (m.status === 'ACTIVE' || m.status === 'ATIVO') &&
+      (m.isSteward || (m.ministry && m.ministry.toLowerCase().includes('dízim')))
+    );
+  });
+
+  // SÓ e SOMENTE se Categoria for Dízimo
+  protected readonly isTitheCategory = computed(() => {
+    return this.categoryValue() === 'Dízimo';
+  });
+
+  constructor() {
+    // Reage automaticamente à mudança da comunidade ativa no header
+    effect(() => {
+      const activeId = this.communityService.activeCommunityId();
+      this.revenueService.loadRevenues().subscribe();
+      this.memberService.loadMembers(activeId).subscribe();
+    });
+
+    // Se a categoria mudar para qualquer valor diferente de Dízimo, limpa a seleção de dizimista
+    effect(() => {
+      if (!this.isTitheCategory()) {
+        this.revenueForm.patchValue({ memberId: '' }, { emitEvent: false });
+      }
+    });
+  }
+
   ngOnInit(): void {
+    const activeId = this.communityService.activeCommunityId();
     this.revenueService.loadRevenues().subscribe();
+    this.memberService.loadMembers(activeId).subscribe();
   }
 
   refresh(): void {
+    const activeId = this.communityService.activeCommunityId();
     this.revenueService.loadRevenues().subscribe();
+    this.memberService.loadMembers(activeId).subscribe();
   }
 
   toggleNewRevenueForm(): void {
@@ -234,16 +304,18 @@ export class RevenuesPageComponent implements OnInit {
     }
 
     const val = this.revenueForm.getRawValue();
+    const isTithe = val.category === 'Dízimo';
     const dto: CreateRevenueDto = {
       description: val.description!,
       amount: Number(val.amount),
       category: val.category || undefined,
+      memberId: (isTithe && val.memberId) ? val.memberId : undefined,
     };
 
     this.revenueService.createRevenue(dto).subscribe({
       next: () => {
         this.successMessage.set('Receita registrada com sucesso!');
-        this.revenueForm.reset({ category: 'Dízimo' });
+        this.revenueForm.reset({ category: 'Dízimo', memberId: '' });
         this.showNewForm.set(false);
       },
     });
@@ -255,5 +327,11 @@ export class RevenuesPageComponent implements OnInit {
         next: () => this.successMessage.set('Receita removida com sucesso!'),
       });
     }
+  }
+
+  getMemberName(memberId?: string): string {
+    if (!memberId) return '';
+    const m = this.memberService.members().find((item) => item.id === memberId);
+    return m ? m.name : 'Dizimista Vinculado';
   }
 }

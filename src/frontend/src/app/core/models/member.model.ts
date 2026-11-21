@@ -6,7 +6,8 @@ export interface Member {
   phone?: string;
   email?: string;
   ministry?: string;
-  status: string; // 'ACTIVE' | 'INACTIVE'
+  status: string; // 'ACTIVE' | 'INACTIVE' | 'ATIVO' | 'INATIVO'
+  inactiveReason?: string;
   createdAt?: string;
   updatedAt?: string;
   isSteward?: boolean;
@@ -20,5 +21,6 @@ export interface CreateMemberDto {
   email?: string;
   ministry?: string;
   status?: string;
+  inactiveReason?: string;
   isSteward?: boolean;
 }
