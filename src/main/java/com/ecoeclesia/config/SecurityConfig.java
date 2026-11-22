@@ -45,15 +45,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .requestMatchers("/inventory", "/inventory/**").authenticated()
-                        .anyRequest().permitAll()
-                )
+                        .anyRequest().permitAll())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
                 )
                 .addFilterBefore(new OncePerRequestFilter() {
                     @Override
-                    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+                    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                            FilterChain filterChain)
                             throws ServletException, IOException {
                         String authHeader = request.getHeader("Authorization");
                         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -66,8 +66,8 @@ public class SecurityConfig {
                                 for (String perm : authTokenService.permissionsFor(authHeader)) {
                                     authorities.add(new SimpleGrantedAuthority(perm));
                                 }
-                                UsernamePasswordAuthenticationToken auth =
-                                        new UsernamePasswordAuthenticationToken(account.getEmail(), null, authorities);
+                                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                        account.getEmail(), null, authorities);
                                 SecurityContextHolder.getContext().setAuthentication(auth);
                             }
                         }
