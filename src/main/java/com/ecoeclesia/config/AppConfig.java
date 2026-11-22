@@ -3,6 +3,8 @@ package com.ecoeclesia.config;
 import com.ecoeclesia.birthday.BirthdayRepository;
 import com.ecoeclesia.birthday.BirthdayService;
 import com.ecoeclesia.birthday.JdbcBirthdayRepository;
+import com.ecoeclesia.community.CommunityRepository;
+import com.ecoeclesia.community.JdbcCommunityRepository;
 import com.ecoeclesia.expense.ExpenseRepository;
 import com.ecoeclesia.expense.ExpenseService;
 import com.ecoeclesia.expense.JdbcExpenseRepository;
@@ -16,14 +18,20 @@ import com.ecoeclesia.finance.LedgerRepository;
 import com.ecoeclesia.finance.LedgerService;
 import com.ecoeclesia.finance.SqlLedgerRepository;
 import com.ecoeclesia.inventory.InventoryService;
+import com.ecoeclesia.leadership.JdbcParishLeadershipRepository;
+import com.ecoeclesia.leadership.ParishLeadershipRepository;
+import com.ecoeclesia.leadership.ParishLeadershipService;
+import com.ecoeclesia.member.JdbcMemberRepository;
+import com.ecoeclesia.member.MemberRepository;
 import com.ecoeclesia.revenue.JdbcRevenueRepository;
 import com.ecoeclesia.revenue.RevenueRepository;
 import com.ecoeclesia.revenue.RevenueService;
+import com.ecoeclesia.steward.JdbcStewardRepository;
+import com.ecoeclesia.steward.StewardRepository;
 import com.ecoeclesia.user.JdbcUserAccountRepository;
 import com.ecoeclesia.user.UserAccountRepository;
 import com.ecoeclesia.user.UserManagementController;
 import org.flywaydb.core.Flyway;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -59,8 +67,8 @@ public class AppConfig {
     public Flyway flyway(DataSource dataSource) {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
-                .baselineOnMigrate(true)
                 .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
                 .load();
         flyway.migrate();
         return flyway;
@@ -109,13 +117,27 @@ public class AppConfig {
     }
 
     @Bean
-    public BirthdayService birthdayService(BirthdayRepository birthdayRepository) {
-        return new BirthdayService(birthdayRepository);
+    public BirthdayService birthdayService(MemberRepository memberRepository, BirthdayRepository birthdayRepository) {
+        return new BirthdayService(memberRepository, birthdayRepository, java.time.Clock.systemDefaultZone());
     }
 
     @Bean
-    public FinancialReportGenerator financialReportGenerator(LedgerRepository ledgerRepository) {
-        return new FinancialReportGenerator(ledgerRepository, ChartOfAccounts.defaultPlan());
+    public ParishLeadershipRepository parishLeadershipRepository(DataSource dataSource) {
+        return new JdbcParishLeadershipRepository(dataSource);
+    }
+
+    @Bean
+    public ParishLeadershipService parishLeadershipService(ParishLeadershipRepository parishLeadershipRepository) {
+        return new ParishLeadershipService(parishLeadershipRepository);
+    }
+
+    @Bean
+    public FinancialReportGenerator financialReportGenerator(
+            LedgerRepository ledgerRepository,
+            ParishLeadershipRepository parishLeadershipRepository,
+            CommunityRepository communityRepository
+    ) {
+        return new FinancialReportGenerator(ledgerRepository, ChartOfAccounts.defaultPlan(), parishLeadershipRepository, communityRepository);
     }
 
     @Bean
@@ -131,5 +153,20 @@ public class AppConfig {
     @Bean
     public FinancialReportSpreadsheetExporter financialReportSpreadsheetExporter() {
         return new FinancialReportSpreadsheetExporter();
+    }
+
+    @Bean
+    public CommunityRepository communityRepository(DataSource dataSource) {
+        return new JdbcCommunityRepository(dataSource);
+    }
+
+    @Bean
+    public MemberRepository memberRepository(DataSource dataSource) {
+        return new JdbcMemberRepository(dataSource);
+    }
+
+    @Bean
+    public StewardRepository stewardRepository(DataSource dataSource) {
+        return new JdbcStewardRepository(dataSource);
     }
 }
